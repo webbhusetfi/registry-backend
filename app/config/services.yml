@@ -1,0 +1,49 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+    json_exception_listener:
+        class: AppBundle\Kernel\JsonExceptionListener
+        tags:
+            - {name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 200}
+    #header_authenticator:
+        #class:  AppBundle\Security\HeaderAuthenticator
+        #arguments: ["@security.password_encoder"]
+        #public: false
+    service:
+        class: AppBundle\Common\Service
+        abstract: true
+        calls:
+          - [setContainer, [@service_container]]
+    registryapi.user:
+        class: AppBundle\Service\UserService
+        parent: service
+    registryapi.registry:
+        class: AppBundle\Service\RegistryService
+        parent: service
+    registryapi.status:
+        class: AppBundle\Service\StatusService
+        parent: service
+    registryapi.type:
+        class: AppBundle\Service\TypeService
+        parent: service
+    #registryapi.entry:
+        #class: AppBundle\Service\EntryService
+        #parent: service
+    registryapi.organization:
+        class: AppBundle\Service\OrganizationService
+        parent: service
+    registryapi.person:
+        class: AppBundle\Service\PersonService
+        parent: service
+    registryapi.place:
+        class: AppBundle\Service\PlaceService
+        parent: service
+    registryapi.address:
+        class: AppBundle\Service\AddressService
+        parent: service
+#    service_name:
+#        class: AppBundle\Directory\ClassName
+#        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
