@@ -1,11 +1,6 @@
 <?php
 namespace AppBundle\Service\Common\Traits;
 
-use AppBundle\Service\Configuration\ScrudConfiguration;
-use Symfony\Component\Form\Form;
-use Symfony\Component\HttpFoundation\Request;
-use JSend\JSendResponse;
-
 /**
  * Trait for SCRUD services.
  *
@@ -13,157 +8,20 @@ use JSend\JSendResponse;
  */
 trait ScrudTrait
 {
-    /**
-     * List all errors of a given form.
-     *
-     * @param Form $form
-     *
-     * @return array
-     */
-    protected function getFormErrors(Form $form)
-    {
-        $errors = [];
-        foreach ($form->getIterator() as $key => $child) {
+    use ScrudValidationTrait;
 
-            foreach ($child->getErrors() as $error){
-                if ($message = $error->getMessage()) {
-                    $errors[$key] = $message;
-                }
-            }
-
-            if (count($child->getIterator()) > 0) {
-                if ($messages = $this->getFormErrors($child)) {
-                    $errors[$key] = $messages;
-                }
-            }
-        }
-        return $errors;
-    }
-
-    protected function handlePost($item, array $request)
-    {
-        $attributes = $this->getConfiguration()->getAttributes();
-        $clearMissing = true;
-
-        if ($item->getId()) {
-            // Update, support missing fields
-            $attributes = array_intersect(array_keys($request), $attributes);
-            $clearMissing = false;
-        }
-
-        $builder = $this->createFormBuilder($item);
-
-        foreach ($attributes as $attribute) {
-            $builder->add($attribute);
-        }
-
-        $form = $builder->getForm()->submit($request, $clearMissing);
-        if (!$form->isValid()) {
-            return $this->getFormErrors($form);
-        }
-        return [];
-    }
-
-    protected function validateAttributes(
-        array $attributes,
-        $allowed,
-        $required,
-        $constraints
-    ) {
-        $keys = array_keys($attributes);
-        $messages = [];
-
-        // Validate allowed
-        if (isset($allowed)
-            && ($unallowed = array_diff($keys, $allowed))) {
-            $messages = array_merge(
-                $messages,
-                array_fill_keys($unallowed, 'Unallowed attribute')
-            );
-        }
-
-        // Validate required
-        if (isset($required)
-            && ($missing = array_diff($required, $keys))) {
-            $messages = array_merge(
-                $messages,
-                array_fill_keys($missing, 'Attribute required')
-            );
-        }
-
-        // Validate constraints
-        if (isset($constraints)) {
-            $invalid = array_diff_assoc(
-                array_intersect_key($attributes, $constraints),
-                $constraints
-            );
-            if ($invalid = array_diff_key($invalid, $messages)) {
-                $messages = array_merge(
-                    $messages,
-                    array_fill_keys(array_keys($invalid), 'Unallowed value')
-                );
-            }
-        }
-
-        return $messages;
-    }
-
-    protected function validateSearch(
-        array $request,
-        ScrudConfiguration $config
-    ) {
-        $messages = [];
-
-        // Validate request
-        $allowed = ['filter', 'order', 'offset', 'limit'];
-        if ($unallowed = array_diff(array_keys($request), $allowed)) {
-            $messages = array_fill_keys($unallowed, 'Unallowed attribute');
-        }
-
-        if (!empty($request['filter']) && is_array($request['filter'])) {
-            // Validate filter
-            $msgs = $this->validateAttributes(
-                $request['filter'],
-                $config->getFilterAttributes(),
-                null,
-                $config->getFilterConstraints()
-            );
-            if (!empty($msgs)) {
-                $messages['filter'] = $msgs;
-            }
-        }
-
-
-        if (!empty($request['order']) && is_array($request['order'])) {
-            // Order validation
-            $msgs = $this->validateAttributes(
-                $request['order'],
-                $config->getOrderAttributes(),
-                null,
-                $config->getOrderConstraints()
-            );
-            if (!empty($msgs)) {
-                $messages['order'] = $msgs;
-            }
-        }
-
-        return $messages;
-    }
-
-    public function search(array $request)
-    {
+    protected function searchItems(array $request, &$message, &$foundCount) {
         $config = $this->getConfiguration();
 
-        $messages = $this->validateSearch($request, $config);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
+        if ($message = $this->validateSearch($request, $config)) {
+            return null;
         }
 
         $filter = $order = [];
-        if (!empty($request['filter']) && is_array($request['filter'])) {
+        if (isset($request['filter'])) {
             $filter = $request['filter'];
         }
-        if (!empty($request['order']) && is_array($request['order'])) {
+        if (isset($request['order'])) {
             $order = $request['order'];
         }
 
@@ -182,179 +40,134 @@ trait ScrudTrait
 
         $repo = $this->getDoctrine()->getRepository($config->getName());
 
-        $criteria = $repo->buildCriteria($filter, $order, $offset, $limit);
-
-        $foundCount = $repo->foundCount($criteria);
-
-        $response = ['items' => [], 'foundCount' => 0];
-
-        if ($foundCount) {
-            $items = $repo->matching($criteria)->toArray();
-            $response['items'] = $items;
-            $response['foundCount'] = $foundCount;
-        }
-
-        return JSendResponse::success($response)->asArray();
-    }
-
-
-    protected function validateCreate(
-        array $request,
-        ScrudConfiguration $config
-    ) {
-        return $this->validateAttributes(
-            $request,
-            $config->getCreateAttributes(),
-            null,
-            $config->getCreateConstraints()
+        return $repo->findByFilter(
+            $filter,
+            $order,
+            $limit,
+            $offset,
+            $foundCount
         );
     }
 
-    public function create(array $request)
+    protected function createItem(array $request, &$message)
     {
         $config = $this->getConfiguration();
+
+        if ($message = $this->validateCreate($request, $config)) {
+            return null;
+        }
 
         $entityClass = $config->getName();
         $item = new $entityClass();
 
-        $messages = $this->validateCreate($request, $config);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
-        }
-
         // Apply constraints
-        if ($constraints = $config->getCreateConstraints()) {
+        if ($constraints = $config->getCreateConstraints($request)) {
             $request = array_merge($request, $constraints);
         }
 
-        $messages = $this->handlePost($item, $request);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
+        if ($message = $this->prepareItem($item, $request)) {
+            return null;
         }
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($item);
         $em->flush();
 
-        return JSendResponse::success(['item' => $item])->asArray();
+        return $item;
     }
 
-    protected function validateRead(
-        array $request,
-        ScrudConfiguration $config
-    ) {
-        return $this->validateAttributes(
-            $request,
-            $config->getIdentifier(),
-            $config->getIdentifier(),
-            $config->getFilterConstraints()
-        );
-    }
-
-    public function read(array $request)
+    protected function readItem(array $request, &$message)
     {
         $config = $this->getConfiguration();
 
-        $messages = $this->validateRead($request, $config);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
+        if ($message = $this->validateRead($request, $config)) {
+            return null;
         }
 
         // Apply constraints
-        if ($constraints = $config->getFilterConstraints()) {
-            $request = array_merge($request, $constraints);
-        }
-
-        $repo = $this->getDoctrine()->getRepository($config->getName());
-
-        $criteria = $repo->buildCriteria($request);
-
-        $items = $repo->matching($criteria)->toArray();
-
-        if (count($items) !== 1) {
-            return JSendResponse::fail(['item' => 'Not found'])->asArray();
-        }
-
-        return JSendResponse::success(['item' => $items[0]])->asArray();
-    }
-
-    protected function validateUpdate(
-        array $request,
-        ScrudConfiguration $config
-    ) {
-        return $this->validateAttributes(
-            $request,
-            $config->getUpdateAttributes(),
-            $config->getIdentifier(),
-            $config->getUpdateConstraints()
-        );
-    }
-
-    public function update(array $request)
-    {
-        $config = $this->getConfiguration();
-
-        $messages = $this->validateUpdate($request, $config);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
-        }
-
-        $readRequest = array_intersect_key(
-            $request,
-            array_flip($config->getIdentifier())
-        );
-
-        // Apply constraints
-        if ($constraints = $config->getUpdateConstraints()) {
+        $readRequest = $request;
+        if ($constraints = $config->getReadConstraints()) {
             $readRequest = array_merge($readRequest, $constraints);
         }
 
         $repo = $this->getDoctrine()->getRepository($config->getName());
 
-        $criteria = $repo->buildCriteria($readRequest);
-
-        $items = $repo->matching($criteria)->toArray();
+        $items = $repo->findByFilter($readRequest);
         if (count($items) !== 1) {
-            return JSendResponse::fail(['item' => 'Not found'])->asArray();
+            $message = array_fill_keys(array_keys($request), 'Not found');
+            return null;
         }
 
-        $messages = $this->handlePost($items[0], $request);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
+        return $items[0];
+    }
+
+    protected function updateItem($item, array $request, &$message)
+    {
+        $config = $this->getConfiguration();
+
+        $message = $this->validateUpdate($item, $request, $config);
+        if (!empty($message)) {
+            return false;
+        }
+
+        // Apply constraints
+        if ($constraints = $config->getUpdateConstraints($request)) {
+            $request = array_merge($request, $constraints);
+        }
+
+        $message = $this->prepareItem($item, $request);
+        if (!empty($message)) {
+            return false;
         }
 
         $this->getDoctrine()->getManager()->flush();
 
-        return JSendResponse::success()->asArray();
+        return true;
     }
 
-    public function delete(array $request)
+    protected function deleteItem($item, array $request, &$message)
     {
         $config = $this->getConfiguration();
 
-        $messages = $this->validateRead($request, $config);
-        if (!empty($messages)) {
-            return JSendResponse::fail($messages)->asArray();
+        $message = $this->validateDelete($item, $request, $config);
+        if (!empty($message)) {
+            return false;
         }
 
         // Apply constraints
-        if ($constraints = $config->getFilterConstraints()) {
+        if ($constraints = $config->getDeleteConstraints($request)) {
             $request = array_merge($request, $constraints);
         }
 
-        $repo = $this->getDoctrine()->getRepository($config->getName());
-
-        $criteria = $repo->buildCriteria($request);
-
-        $items = $repo->matching($criteria)->toArray();
-        if (count($items) !== 1) {
-            return JSendResponse::fail(['item' => 'Not found'])->asArray();
-        }
-
         $em = $this->getDoctrine()->getManager();
-        $em->remove($items[0]);
+        $em->remove($item);
         $em->flush();
 
-        return JSendResponse::success()->asArray();
+        return true;
+    }
+
+    protected function prepareItem($item, array $request)
+    {
+        $attributes = $this->getConfiguration()->getAttributes($request);
+        $clearMissing = true;
+
+        if ($item->getId()) {
+            // Update, support missing fields
+            $attributes = array_intersect(array_keys($request), $attributes);
+            $clearMissing = false;
+        }
+
+        $builder = $this->container->get('form.factory')
+            ->createBuilder('form', $item);
+
+        foreach ($attributes as $attribute) {
+            $builder->add($attribute);
+        }
+
+        $form = $builder->getForm()->submit($request, $clearMissing);
+        if (!$form->isValid()) {
+            return $this->getFormErrors($form);
+        }
+        return null;
     }
 }

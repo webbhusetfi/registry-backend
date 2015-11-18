@@ -10,3 +10,5 @@
 /vendor/
 /web/bundles/
 /BAK/
+*.kdev4
+/.kdev4/

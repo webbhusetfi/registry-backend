@@ -25,9 +25,9 @@ abstract class Repository extends EntityRepository implements
 
     public function buildCriteria(
         $filter = null,
-        $order = null,
-        $offset = null,
-        $limit = null
+        $orderBy = null,
+        $limit = null,
+        $offset = null
     ) {
         $em = $this->getEntityManager();
         $meta = $this->getClassMetadata();
@@ -57,16 +57,16 @@ abstract class Repository extends EntityRepository implements
                 }
             }
         }
-        if (!empty($order)) {
-            $orderBy = [];
-            foreach ($order as $key => $dir) {
+        if (!empty($orderBy)) {
+            $values = [];
+            foreach ($orderBy as $key => $dir) {
                 if (strtolower($dir) == 'desc') {
-                    $orderBy[$key] = Criteria::DESC;
+                    $values[$key] = Criteria::DESC;
                 } else {
-                    $orderBy[$key] = Criteria::ASC;
+                    $values[$key] = Criteria::ASC;
                 }
             }
-            $criteria->orderBy($orderBy);
+            $criteria->orderBy($values);
         }
         if (isset($offset)) {
             $criteria->setFirstResult((int)$offset);
@@ -75,5 +75,29 @@ abstract class Repository extends EntityRepository implements
             $criteria->setMaxResults((int)$limit);
         }
         return $criteria;
+    }
+
+    /**
+     * Finds entities by a filter.
+     *
+     * @param array $filter
+     * @param array|null $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @param int|null $foundCount
+     * @return array The objects.
+     */
+    public function findByFilter(
+        array $filter,
+        array $orderBy = null,
+        $limit = null,
+        $offset = null,
+        &$foundCount = null
+    ) {
+        $criteria = $this->buildCriteria($filter, $orderBy, $offset, $limit);
+        if (func_num_args() === 5) {
+            $foundCount = $this->foundCount($criteria);
+        }
+        return $this->matching($criteria)->toArray();
     }
 }

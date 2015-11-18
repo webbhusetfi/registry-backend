@@ -23,9 +23,8 @@ security:
             #stateless: false
             #simple_preauth:
                 #authenticator: header_authenticator
-            #provider: database
+            provider: database
             anonymous: ~
-            #form_login: ~
             # activate different ways to authenticate
 
             # http://symfony.com/doc/current/book/security.html#a-configuring-how-your-users-will-authenticate

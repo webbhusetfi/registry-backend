@@ -156,6 +156,38 @@ class ScrudConfiguration extends Configuration
         return $this->constraints;
     }
 
+
+
+    /**
+     * Get allowed attributes for order.
+     *
+     * @return array|null
+     */
+    public function getOrderAllowed()
+    {
+        return $this->getOrderAttributes();
+    }
+
+    /**
+     * Get required attributes for order.
+     *
+     * @return array|null
+     */
+    public function getOrderRequired()
+    {
+        return null;
+    }
+
+    /**
+     * Get in values for filter.
+     *
+     * @return array|null
+     */
+    public function getOrderIn()
+    {
+        return array_fill_keys($this->getOrderAllowed(), ['asc', 'desc']);
+    }
+
     /**
      * Set attributes for order.
      *
@@ -205,6 +237,38 @@ class ScrudConfiguration extends Configuration
     public function getOrderConstraints()
     {
         return $this->orderConstraints;
+    }
+
+
+
+    /**
+     * Get allowed attributes for filter.
+     *
+     * @return array|null
+     */
+    public function getFilterAllowed()
+    {
+        return $this->getFilterAttributes();
+    }
+
+    /**
+     * Get required attributes for filter.
+     *
+     * @return array|null
+     */
+    public function getFilterRequired()
+    {
+        return null;
+    }
+
+    /**
+     * Get in values for filter.
+     *
+     * @return array|null
+     */
+    public function getFilterIn()
+    {
+        return null;
     }
 
     /**
@@ -261,6 +325,38 @@ class ScrudConfiguration extends Configuration
         return $this->constraints;
     }
 
+
+
+    /**
+     * Get allowed attributes for create.
+     *
+     * @return array|null
+     */
+    public function getCreateAllowed()
+    {
+        return $this->getCreateAttributes();
+    }
+
+    /**
+     * Get required attributes for update.
+     *
+     * @return array|null
+     */
+    public function getCreateRequired()
+    {
+        return null;
+    }
+
+    /**
+     * Get in values for update.
+     *
+     * @return array|null
+     */
+    public function getCreateIn()
+    {
+        return null;
+    }
+
     /**
      * Set attributes for create.
      *
@@ -315,6 +411,41 @@ class ScrudConfiguration extends Configuration
         return $this->constraints;
     }
 
+
+
+    /**
+     * Get allowed attributes for update.
+     *
+     * @return array|null
+     */
+    public function getUpdateAllowed()
+    {
+        if (isset($this->updateAttributes)) {
+            return array_merge($this->getIdentifier(), $this->updateAttributes);
+        }
+        return array_merge($this->getIdentifier(), $this->getAttributes());
+    }
+
+    /**
+     * Get required attributes for update.
+     *
+     * @return array|null
+     */
+    public function getUpdateRequired()
+    {
+        return $this->getIdentifier();
+    }
+
+    /**
+     * Get in values for update.
+     *
+     * @return array|null
+     */
+    public function getUpdateIn()
+    {
+        return null;
+    }
+
     /**
      * Set attributes for update.
      *
@@ -337,9 +468,9 @@ class ScrudConfiguration extends Configuration
     public function getUpdateAttributes()
     {
         if (isset($this->updateAttributes)) {
-            return array_merge($this->getIdentifier(), $this->updateAttributes);
+            return $this->updateAttributes;
         }
-        return array_merge($this->getIdentifier(), $this->getAttributes());
+        return $this->getAttributes();
     }
 
     /**
@@ -367,5 +498,177 @@ class ScrudConfiguration extends Configuration
             return $this->updateConstraints;
         }
         return $this->constraints;
+    }
+
+
+
+    /**
+     * Get allowed attributes for read.
+     *
+     * @return array|null
+     */
+    public function getReadAllowed()
+    {
+        return $this->getReadAttributes();
+    }
+
+    /**
+     * Get required attributes for read.
+     *
+     * @return array|null
+     */
+    public function getReadRequired()
+    {
+        return $this->getReadAttributes();
+    }
+
+    /**
+     * Get in values for read.
+     *
+     * @return array|null
+     */
+    public function getReadIn()
+    {
+        return null;
+    }
+
+    /**
+     * Set attributes for read.
+     *
+     * @param array|null $attributes
+     *
+     * @return self
+     */
+    public function setReadAttributes($attributes)
+    {
+        $this->readAttributes = $attributes;
+
+        return $this;
+    }
+
+    /**
+     * Get attributes for read.
+     *
+     * @return array|null
+     */
+    public function getReadAttributes()
+    {
+        if (isset($this->readAttributes)) {
+            return $this->readAttributes;
+        }
+        return $this->getIdentifier();
+    }
+
+    /**
+     * Set constraints for read.
+     *
+     * @param array|null $constraints
+     *
+     * @return self
+     */
+    public function setReadConstraints($constraints)
+    {
+        $this->readConstraints = $constraints;
+
+        return $this;
+    }
+
+    /**
+     * Get constraints for read.
+     *
+     * @return array|null
+     */
+    public function getReadConstraints()
+    {
+        if (isset($this->readConstraints)) {
+            return $this->readConstraints;
+        }
+        return $this->getFilterConstraints();
+    }
+
+
+
+    /**
+     * Get allowed attributes for delete.
+     *
+     * @return array|null
+     */
+    public function getDeleteAllowed()
+    {
+        return $this->getReadAllowed();
+    }
+
+    /**
+     * Get required attributes for delete.
+     *
+     * @return array|null
+     */
+    public function getDeleteRequired()
+    {
+        return $this->getReadRequired();
+    }
+
+    /**
+     * Get in values for delete.
+     *
+     * @return array|null
+     */
+    public function getDeleteIn()
+    {
+        return $this->getReadIn();
+    }
+
+    /**
+     * Set attributes for delete.
+     *
+     * @param array|null $attributes
+     *
+     * @return self
+     */
+    public function setDeleteAttributes($attributes)
+    {
+        $this->deleteAttributes = $attributes;
+
+        return $this;
+    }
+
+    /**
+     * Get attributes for delete.
+     *
+     * @return array|null
+     */
+    public function getDeleteAttributes()
+    {
+        if (isset($this->deleteAttributes)) {
+            return $this->deleteAttributes;
+        }
+        return $this->getReadAttributes();
+    }
+
+    /**
+     * Set constraints for delete.
+     *
+     * @param array|null $constraints
+     *
+     * @return self
+     */
+    public function setDeleteConstraints($constraints)
+    {
+        $this->deleteConstraints = $constraints;
+
+        return $this;
+    }
+
+    /**
+     * Get constraints for delete.
+     *
+     * @return array|null
+     */
+    public function getDeleteConstraints()
+    {
+        if (isset($this->deleteConstraints)) {
+            return $this->deleteConstraints;
+        }
+        return $this->getReadConstraints();
     }
 }
