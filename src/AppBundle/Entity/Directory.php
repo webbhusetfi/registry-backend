@@ -46,7 +46,7 @@ class Directory
      *      name="type",
      *      type="string",
      *      nullable=false,
-     *      columnDefinition="ENUM('ADDRESS','EMAIL')"
+     *      columnDefinition="ENUM('ADDRESS','EMAIL') NOT NULL"
      * )
      * @Assert\Choice(choices = {"ADDRESS", "EMAIL"})
      */

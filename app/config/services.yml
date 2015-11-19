@@ -4,6 +4,14 @@ parameters:
 #    parameter_name: value
 
 services:
+    memcached:
+        class: Memcached
+        calls:
+            - [addServers, [%memcached.servers%]]
+    doctrine.cache.memcached:
+        class: Doctrine\Common\Cache\MemcachedCache
+        calls:
+            - [setMemcached, [@memcached]]
     json_exception_listener:
         class: AppBundle\Kernel\JsonExceptionListener
         tags:

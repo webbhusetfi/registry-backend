@@ -30,7 +30,7 @@ class Person extends Entry
      *      name="gender",
      *      type="string",
      *      nullable=false,
-     *      columnDefinition="ENUM('MALE','FEMALE')"
+     *      columnDefinition="ENUM('MALE','FEMALE') NOT NULL"
      * )
      * @Assert\Choice(choices = {"MALE", "FEMALE"})
      */

@@ -41,7 +41,8 @@ class Acl
      *      name="id",
      *      type="integer",
      *      nullable=false,
-     *      options={"unsigned"=true}
+     *      options={"unsigned"=true},
+     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
@@ -55,7 +56,8 @@ class Acl
      *      name="viewAccess",
      *      type="boolean",
      *      nullable=true,
-     *      options={"unsigned"=true}
+     *      options={"unsigned"=true},
+     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
     private $viewAccess;
@@ -67,7 +69,8 @@ class Acl
      *      name="createAccess",
      *      type="boolean",
      *      nullable=true,
-     *      options={"unsigned"=true}
+     *      options={"unsigned"=true},
+     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
     private $createAccess;
@@ -79,7 +82,8 @@ class Acl
      *      name="editAccess",
      *      type="boolean",
      *      nullable=true,
-     *      options={"unsigned"=true}
+     *      options={"unsigned"=true},
+     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
     private $editAccess;
@@ -91,7 +95,8 @@ class Acl
      *      name="deleteAccess",
      *      type="boolean",
      *      nullable=true,
-     *      options={"unsigned"=true}
+     *      options={"unsigned"=true},
+     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
     private $deleteAccess;
