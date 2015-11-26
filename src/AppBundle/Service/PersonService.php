@@ -9,7 +9,7 @@ class PersonService extends ScrudService
 {
     protected $configuration;
 
-    public function getConfiguration()
+    public function getConfiguration($name = null)
     {
         if (!isset($this->configuration)) {
             $methods = ['search', 'create', 'read', 'update', 'delete'];

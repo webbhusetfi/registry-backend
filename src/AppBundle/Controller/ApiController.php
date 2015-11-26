@@ -46,40 +46,39 @@ class ApiController extends Controller
             throw new BadRequestHttpException('Invalid JSON request');
         }
 
-        // NOOP, ping from front-end
-        if (empty($content)) {
-            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
-        }
-
         $results = [];
         foreach ($content as $key => $message) {
+            if (isset($message['service'])) {
+                list($name, $method) = explode('/', $message['service']);
 
-            list($name, $method) = explode('/', $message['service']);
-
-            $serviceName = "registryapi.{$name}";
-            if ($this->has($serviceName)) {
-                $service = $this->get($serviceName);
-                if ($service->getConfiguration()->hasMethod($method)) {
-                    $results[$key] = $service->{$method}(
-                        !empty($message['arguments'])
-                        ? $message['arguments']
-                        : []
-                    );
+                $serviceName = "registryapi.{$name}";
+                if ($this->has($serviceName)) {
+                    $service = $this->get($serviceName);
+                    if ($service->getConfiguration()->hasMethod($method)) {
+                        $results[$key] = $service->{$method}(
+                            !empty($message['arguments'])
+                            ? $message['arguments']
+                            : []
+                        );
+                    } else {
+                        $results[$key] = JSendResponse::error(
+                            "Invalid method: {$method}"
+                        )->asArray();
+                    }
                 } else {
                     $results[$key] = JSendResponse::error(
-                        "Invalid method: {$method}"
+                        "Invalid service: {$name}"
                     )->asArray();
                 }
-            } else {
-                $results[$key] = JSendResponse::error(
-                    "Invalid service: {$name}"
-                )->asArray();
-            }
 
-            // Debug data
-            $results[$key]['query'] = $message;
+                // Debug data
+                $results[$key]['query'] = $message;
+            }
         }
 
+        if (empty($results)) {
+            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+        }
         return new JsonResponse($results);
     }
 

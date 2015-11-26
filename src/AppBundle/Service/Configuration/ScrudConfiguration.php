@@ -100,11 +100,21 @@ class ScrudConfiguration extends Configuration
     }
 
     /**
+     * Get class metadata.
+     *
+     * @return ClassMetadata
+     */
+    public function getClassMetadata()
+    {
+        return $this->metaData;
+    }
+
+    /**
      * Get entity class.
      *
      * @return string
      */
-    public function getName()
+    public function getEntityClass()
     {
         return $this->metaData->name;
     }
@@ -334,7 +344,11 @@ class ScrudConfiguration extends Configuration
      */
     public function getCreateAllowed()
     {
-        return $this->getCreateAttributes();
+        $attributes = [];
+        if ($this->metaData->discriminatorColumn) {
+            $attributes[] = $this->metaData->discriminatorColumn['name'];
+        }
+        return array_merge($attributes, $this->getCreateAttributes());
     }
 
     /**
@@ -420,10 +434,14 @@ class ScrudConfiguration extends Configuration
      */
     public function getUpdateAllowed()
     {
-        if (isset($this->updateAttributes)) {
-            return array_merge($this->getIdentifier(), $this->updateAttributes);
+        $attributes = [];
+        if ($this->metaData->discriminatorColumn) {
+            $attributes[] = $this->metaData->discriminatorColumn['name'];
         }
-        return array_merge($this->getIdentifier(), $this->getAttributes());
+        if (isset($this->updateAttributes)) {
+            return array_merge($attributes, $this->getIdentifier(), $this->updateAttributes);
+        }
+        return array_merge($attributes, $this->getIdentifier(), $this->getAttributes());
     }
 
     /**

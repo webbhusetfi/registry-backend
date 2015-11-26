@@ -12,7 +12,6 @@ abstract class ScrudService extends Service implements ScrudInterface
     public function search(array $request)
     {
         $items = $this->searchItems($request, $message, $foundCount);
-
         if (!isset($items)) {
             return JSendResponse::fail($message)->asArray();
         }
@@ -45,22 +44,7 @@ abstract class ScrudService extends Service implements ScrudInterface
 
     public function update(array $request)
     {
-        $config = $this->getConfiguration();
-
-        $readRequest = array_intersect_key(
-            $request,
-            array_flip($config->getReadAllowed())
-        );
-        $item = $this->readItem($readRequest, $message);
-        if (!isset($item)) {
-            return JSendResponse::fail($message)->asArray();
-        }
-
-        $updateRequest = array_diff_key(
-            $request,
-            array_flip($config->getReadAllowed())
-        );
-        if (!$this->updateItem($item, $updateRequest, $message)) {
+        if (!$this->updateItem($request, $message)) {
             return JSendResponse::fail($message)->asArray();
         }
 
@@ -69,22 +53,7 @@ abstract class ScrudService extends Service implements ScrudInterface
 
     public function delete(array $request)
     {
-        $config = $this->getConfiguration();
-
-        $readRequest = array_intersect_key(
-            $request,
-            array_flip($config->getReadAllowed())
-        );
-        $item = $this->readItem($readRequest, $message);
-        if (!isset($item)) {
-            return JSendResponse::fail($message)->asArray();
-        }
-
-        $updateRequest = array_diff_key(
-            $request,
-            array_flip($config->getReadAllowed())
-        );
-        if (!$this->deleteItem($item, $updateRequest, $message)) {
+        if (!$this->deleteItem($request, $message)) {
             return JSendResponse::fail($message)->asArray();
         }
 

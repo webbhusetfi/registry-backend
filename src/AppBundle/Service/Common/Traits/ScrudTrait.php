@@ -1,6 +1,8 @@
 <?php
 namespace AppBundle\Service\Common\Traits;
 
+use AppBundle\Service\Configuration\ScrudConfiguration;
+
 /**
  * Trait for SCRUD services.
  *
@@ -10,8 +12,46 @@ trait ScrudTrait
 {
     use ScrudValidationTrait;
 
-    protected function searchItems(array $request, &$message, &$foundCount) {
+    protected function getMappedConfiguration(
+        array $request,
+        &$message,
+        $required = true
+    ) {
+        // Get default configuration
         $config = $this->getConfiguration();
+
+        // Detect inheritance mapped abstract parent
+        $metaData = $config->getClassMetadata();
+        $map = $metaData->discriminatorMap;
+        if (!empty($map) && !$metaData->discriminatorValue) {
+            $column = $metaData->discriminatorColumn['name'];
+            if ($column && isset($request[$column])) {
+                if (isset($map[$request[$column]])) {
+                    $config = $this->getConfiguration(
+                        $request[$column]
+                    );
+                    if (!isset($config)) {
+                        $message[$column] = 'Configuration error';
+                        return null;
+                    }
+                } else {
+                    $message[$column] = 'Invalid value';
+                    return null;
+                }
+            } elseif ($required) {
+                $message[$column] = 'Required attribute';
+                return null;
+            }
+        }
+
+        return $config;
+    }
+
+    protected function searchItems(array $request, &$message, &$foundCount) {
+        $config = $this->getMappedConfiguration($request, $message, false);
+        if (!$config) {
+            return null;
+        }
 
         if ($message = $this->validateSearch($request, $config)) {
             return null;
@@ -38,7 +78,7 @@ trait ScrudTrait
             $filter = array_merge($filter, $constraints);
         }
 
-        $repo = $this->getDoctrine()->getRepository($config->getName());
+        $repo = $this->getDoctrine()->getRepository($config->getEntityClass());
 
         return $repo->findByFilter(
             $filter,
@@ -51,21 +91,24 @@ trait ScrudTrait
 
     protected function createItem(array $request, &$message)
     {
-        $config = $this->getConfiguration();
+        $config = $this->getMappedConfiguration($request, $message, true);
+        if (!$config) {
+            return null;
+        }
 
         if ($message = $this->validateCreate($request, $config)) {
             return null;
         }
 
-        $entityClass = $config->getName();
+        $entityClass = $config->getEntityClass();
         $item = new $entityClass();
 
         // Apply constraints
-        if ($constraints = $config->getCreateConstraints($request)) {
+        if ($constraints = $config->getCreateConstraints()) {
             $request = array_merge($request, $constraints);
         }
 
-        if ($message = $this->prepareItem($item, $request)) {
+        if ($message = $this->prepareItem($item, $request, $config)) {
             return null;
         }
 
@@ -78,7 +121,10 @@ trait ScrudTrait
 
     protected function readItem(array $request, &$message)
     {
-        $config = $this->getConfiguration();
+        $config = $this->getMappedConfiguration($request, $message, false);
+        if (!$config) {
+            return null;
+        }
 
         if ($message = $this->validateRead($request, $config)) {
             return null;
@@ -90,7 +136,7 @@ trait ScrudTrait
             $readRequest = array_merge($readRequest, $constraints);
         }
 
-        $repo = $this->getDoctrine()->getRepository($config->getName());
+        $repo = $this->getDoctrine()->getRepository($config->getEntityClass());
 
         $items = $repo->findByFilter($readRequest);
         if (count($items) !== 1) {
@@ -101,9 +147,21 @@ trait ScrudTrait
         return $items[0];
     }
 
-    protected function updateItem($item, array $request, &$message)
+    protected function updateItem(array $request, &$message)
     {
-        $config = $this->getConfiguration();
+        $config = $this->getMappedConfiguration($request, $message, false);
+        if (!$config) {
+            return null;
+        }
+
+        $readRequest = array_intersect_key(
+            $request,
+            array_flip($config->getReadAllowed())
+        );
+        $item = $this->readItem($readRequest, $message);
+        if (!isset($item)) {
+            return JSendResponse::fail($message)->asArray();
+        }
 
         $message = $this->validateUpdate($item, $request, $config);
         if (!empty($message)) {
@@ -115,7 +173,7 @@ trait ScrudTrait
             $request = array_merge($request, $constraints);
         }
 
-        $message = $this->prepareItem($item, $request);
+        $message = $this->prepareItem($item, $request, $config);
         if (!empty($message)) {
             return false;
         }
@@ -125,9 +183,21 @@ trait ScrudTrait
         return true;
     }
 
-    protected function deleteItem($item, array $request, &$message)
+    protected function deleteItem(array $request, &$message)
     {
-        $config = $this->getConfiguration();
+        $config = $this->getMappedConfiguration($request, $message, false);
+        if (!$config) {
+            return null;
+        }
+
+        $readRequest = array_intersect_key(
+            $request,
+            array_flip($config->getReadAllowed())
+        );
+        $item = $this->readItem($readRequest, $message);
+        if (!isset($item)) {
+            return JSendResponse::fail($message)->asArray();
+        }
 
         $message = $this->validateDelete($item, $request, $config);
         if (!empty($message)) {
@@ -135,7 +205,7 @@ trait ScrudTrait
         }
 
         // Apply constraints
-        if ($constraints = $config->getDeleteConstraints($request)) {
+        if ($constraints = $config->getDeleteConstraints()) {
             $request = array_merge($request, $constraints);
         }
 
@@ -146,17 +216,20 @@ trait ScrudTrait
         return true;
     }
 
-    protected function prepareItem($item, array $request)
-    {
-        $attributes = $this->getConfiguration()->getAttributes($request);
-        $clearMissing = true;
-
+    protected function prepareItem(
+        $item,
+        array $request,
+        ScrudConfiguration $config
+    ) {
+        $attributes = [];
         if ($item->getId()) {
-            // Update, support missing fields
-            $attributes = array_intersect(array_keys($request), $attributes);
             $clearMissing = false;
+            $attributes = $config->getUpdateAttributes();
+            $attributes = array_intersect(array_keys($request), $attributes);
+        } else {
+            $attributes = $config->getCreateAttributes();
+            $clearMissing = true;
         }
-
         $builder = $this->container->get('form.factory')
             ->createBuilder('form', $item);
 

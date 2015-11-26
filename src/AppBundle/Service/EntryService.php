@@ -1,34 +1,50 @@
 <?php
 namespace AppBundle\Service;
 
-use AppBundle\Service\Common\ScrudServiceNG;
-use AppBundle\Service\Configuration\ScrudConfigurationNG;
+use AppBundle\Service\Common\ScrudService;
+use AppBundle\Service\Configuration\ScrudConfiguration;
 use AppBundle\Entity\User;
 
-class EntryService extends ScrudServiceNG
+class EntryService extends ScrudService
 {
     protected $configuration;
 
-    public function getConfiguration()
+    public function getConfiguration($name = null)
     {
         if (!isset($this->configuration)) {
-            $methods = ['search', 'create', 'read', 'update', 'delete'];
-            $constraints = [];
 
-            $authChecker = $this->get('security.authorization_checker');
-            if (!$authChecker->isGranted(User::ROLE_SUPER_ADMIN)) {
-                $registryId = $this->getUser()->getRegistry()->getId();
-                $constraints['registry'] = $registryId;
-            }
+            $entryAttrs = ['externalId', 'registry', 'status', 'type'];
+            $this->configuration[0] = ScrudConfiguration::create(
+                $this->getDoctrine(),
+                'AppBundle\Entity\Entry',
+                ['search', 'create', 'read', 'update', 'delete']
+            )
+            ->setCreateAttributes($entryAttrs)
+            ->setUpdateAttributes($entryAttrs);
 
-            $this->configuration = ScrudConfigurationNG::create(
-                    $this->getDoctrine(),
-                    'AppBundle\Entity\Entry',
-                    $methods
-                )
-                ->setConstraints($constraints)
-                ;
+            $organizationAttrs = $entryAttrs;
+            $organizationAttrs[] = 'name';
+            $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
+                $this->getDoctrine(),
+                'AppBundle\Entity\Organization',
+                ['search', 'create', 'read', 'update', 'delete']
+            )
+            ->setCreateAttributes($organizationAttrs)
+            ->setUpdateAttributes($organizationAttrs);
+
+            $personAttrs = $entryAttrs;
+            $personAttrs[] = 'gender';
+            $personAttrs[] = 'firstName';
+            $personAttrs[] = 'lastName';
+            $personAttrs[] = 'birthdate';
+            $this->configuration['PERSON'] = ScrudConfiguration::create(
+                $this->getDoctrine(),
+                'AppBundle\Entity\Person',
+                ['search', 'create', 'read', 'update', 'delete']
+            )
+            ->setCreateAttributes($personAttrs)
+            ->setUpdateAttributes($personAttrs);
         }
-        return $this->configuration;
+        return $this->configuration[(!isset($name) ? 0 : $name)];
     }
 }

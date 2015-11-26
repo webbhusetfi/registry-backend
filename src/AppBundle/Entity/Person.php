@@ -33,6 +33,7 @@ class Person extends Entry
      *      columnDefinition="ENUM('MALE','FEMALE') NOT NULL"
      * )
      * @Assert\Choice(choices = {"MALE", "FEMALE"})
+     * @Assert\NotBlank
      */
     private $gender;
 
@@ -145,7 +146,7 @@ class Person extends Entry
      */
     public function setBirthdate($birthdate)
     {
-        if ($createdAt instanceof \DateTime) {
+        if ($birthdate instanceof \DateTime) {
             $this->birthdate = $birthdate;
         } else {
             $this->birthdate = new \DateTime($birthdate);

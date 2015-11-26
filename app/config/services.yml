@@ -37,9 +37,9 @@ services:
     registryapi.type:
         class: AppBundle\Service\TypeService
         parent: service
-    #registryapi.entry:
-        #class: AppBundle\Service\EntryService
-        #parent: service
+    registryapi.entry:
+        class: AppBundle\Service\EntryService
+        parent: service
     registryapi.organization:
         class: AppBundle\Service\OrganizationService
         parent: service

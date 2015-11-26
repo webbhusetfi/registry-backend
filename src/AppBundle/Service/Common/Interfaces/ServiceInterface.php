@@ -11,7 +11,9 @@ interface ServiceInterface
     /**
      * Get configuration.
      *
+     * @param string $name Name of the configuration
+     *
      * @return Configuration The configuration
      */
-    public function getConfiguration();
+    public function getConfiguration($name = null);
 }
