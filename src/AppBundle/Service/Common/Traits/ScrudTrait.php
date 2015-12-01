@@ -48,7 +48,11 @@ trait ScrudTrait
     }
 
     protected function searchItems(array $request, &$message, &$foundCount) {
-        $config = $this->getMappedConfiguration($request, $message, false);
+        $config = $this->getMappedConfiguration(
+            (!empty($request['filter']) ? $request['filter'] : []),
+            $message,
+            false
+        );
         if (!$config) {
             return null;
         }
@@ -59,7 +63,10 @@ trait ScrudTrait
 
         $filter = $order = [];
         if (isset($request['filter'])) {
-            $filter = $request['filter'];
+            $filter = array_intersect_key(
+                $request['filter'],
+                $config->getFilterAttributes()
+            );
         }
         if (isset($request['order'])) {
             $order = $request['order'];
@@ -131,7 +138,10 @@ trait ScrudTrait
         }
 
         // Apply constraints
-        $readRequest = $request;
+        $readRequest = array_intersect_key(
+            $request,
+            array_flip($config->getReadAttributes())
+        );
         if ($constraints = $config->getReadConstraints()) {
             $readRequest = array_merge($readRequest, $constraints);
         }
@@ -156,14 +166,15 @@ trait ScrudTrait
 
         $readRequest = array_intersect_key(
             $request,
-            array_flip($config->getReadAllowed())
+            array_flip($config->getReadAttributes())
         );
+
         $item = $this->readItem($readRequest, $message);
         if (!isset($item)) {
             return JSendResponse::fail($message)->asArray();
         }
 
-        $message = $this->validateUpdate($item, $request, $config);
+        $message = $this->validateUpdate($request, $config);
         if (!empty($message)) {
             return false;
         }
@@ -192,14 +203,14 @@ trait ScrudTrait
 
         $readRequest = array_intersect_key(
             $request,
-            array_flip($config->getReadAllowed())
+            array_flip($config->getReadAttributes())
         );
         $item = $this->readItem($readRequest, $message);
         if (!isset($item)) {
             return JSendResponse::fail($message)->asArray();
         }
 
-        $message = $this->validateDelete($item, $request, $config);
+        $message = $this->validateDelete($request, $config);
         if (!empty($message)) {
             return false;
         }

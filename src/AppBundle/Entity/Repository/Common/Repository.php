@@ -23,6 +23,15 @@ abstract class Repository extends EntityRepository implements
 //     use PrepareTrait;
     use FoundCountTrait;
 
+    /**
+     * Build a criteria.
+     *
+     * @param array|null $filter
+     * @param array|null $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return Criteria The critieria.
+     */
     public function buildCriteria(
         $filter = null,
         $orderBy = null,

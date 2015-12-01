@@ -139,11 +139,11 @@ abstract class Entry implements JsonSerializable
      * @Assert\NotBlank
      */
     private $type;
-/*
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
-    }*/
+    }
 
     /**
      * Get id

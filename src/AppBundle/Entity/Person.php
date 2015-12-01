@@ -59,7 +59,7 @@ class Person extends Entry
      * @var \DateTime
      *
      * @ORM\Column(name="birthdate", type="date", nullable=false)
-     * @Assert\Date
+     * @Assert\Date()
      * @Assert\NotBlank
      */
     private $birthdate;
@@ -148,7 +148,7 @@ class Person extends Entry
     {
         if ($birthdate instanceof \DateTime) {
             $this->birthdate = $birthdate;
-        } else {
+        } elseif (!empty($birthdate)) {
             $this->birthdate = new \DateTime($birthdate);
         }
 

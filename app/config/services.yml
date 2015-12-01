@@ -40,14 +40,11 @@ services:
     registryapi.entry:
         class: AppBundle\Service\EntryService
         parent: service
-    registryapi.organization:
-        class: AppBundle\Service\OrganizationService
+    registryapi.category:
+        class: AppBundle\Service\CategoryService
         parent: service
-    registryapi.person:
-        class: AppBundle\Service\PersonService
-        parent: service
-    registryapi.place:
-        class: AppBundle\Service\PlaceService
+    registryapi.association:
+        class: AppBundle\Service\AssociationService
         parent: service
     registryapi.address:
         class: AppBundle\Service\AddressService

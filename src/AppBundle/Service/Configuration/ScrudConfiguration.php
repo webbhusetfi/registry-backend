@@ -258,7 +258,11 @@ class ScrudConfiguration extends Configuration
      */
     public function getFilterAllowed()
     {
-        return $this->getFilterAttributes();
+        $attributes = [];
+        if ($this->metaData->discriminatorColumn) {
+            $attributes[] = $this->metaData->discriminatorColumn['name'];
+        }
+        return array_merge($attributes, $this->getFilterAttributes());
     }
 
     /**
@@ -527,7 +531,11 @@ class ScrudConfiguration extends Configuration
      */
     public function getReadAllowed()
     {
-        return $this->getReadAttributes();
+        $attributes = [];
+        if ($this->metaData->discriminatorColumn) {
+            $attributes[] = $this->metaData->discriminatorColumn['name'];
+        }
+        return array_merge($attributes, $this->getReadAttributes());
     }
 
     /**

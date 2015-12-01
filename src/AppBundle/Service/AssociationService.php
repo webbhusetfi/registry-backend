@@ -3,9 +3,8 @@ namespace AppBundle\Service;
 
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
-use AppBundle\Entity\User;
 
-class OrganizationService extends ScrudService
+class AssociationService extends ScrudService
 {
     protected $configuration;
 
@@ -15,15 +14,9 @@ class OrganizationService extends ScrudService
             $methods = ['search', 'create', 'read', 'update', 'delete'];
             $constraints = [];
 
-            $authChecker = $this->get('security.authorization_checker');
-            if (!$authChecker->isGranted(User::ROLE_SUPER_ADMIN)) {
-                $registryId = $this->getUser()->getRegistry()->getId();
-                $constraints['registry'] = $registryId;
-            }
-
             $this->configuration = ScrudConfiguration::create(
                     $this->getDoctrine(),
-                    'AppBundle\Entity\Organization',
+                    'AppBundle\Entity\Association',
                     $methods
                 )
                 ->setConstraints($constraints)
