@@ -34,6 +34,6 @@ security:
 
     access_control:
         # require ROLE_USER for /*
-        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-        - { path: ^/logout, role: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-        - { path: ^/, roles: ROLE_USER, methods: [POST] }
+        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/logout, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }

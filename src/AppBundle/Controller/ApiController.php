@@ -19,23 +19,6 @@ use JSend\JSendResponse;
 class ApiController extends Controller
 {
     /**
-     * @Route("/debug/", name="debug")
-     * @Method("POST")
-     */
-    public function debugAction(Request $request)
-    {
-
-        $response = new JsonResponse();
-
-        $meta = $this->getDoctrine()->getManager()->getClassMetaData('AppBundle\Entity\Entry');
-        $content = var_export($meta->getFieldMapping('createdAt'));
-
-        $response->setContent($content);
-
-        return $response;
-    }
-
-    /**
      * @Route("/", name="root")
      * @Method("POST")
      */

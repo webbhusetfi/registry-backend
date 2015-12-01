@@ -86,3 +86,11 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+nelmio_cors:
+    paths:
+        '^/':
+            allow_origin: "%cors_allow_origin%"
+            allow_headers: ["Content-Type"]
+            allow_methods: ["POST","OPTIONS"]
+            max_age: 0

@@ -7,7 +7,7 @@ services:
     memcached:
         class: Memcached
         calls:
-            - [addServers, [%memcached.servers%]]
+            - [addServers, [%memcached_servers%]]
     doctrine.cache.memcached:
         class: Doctrine\Common\Cache\MemcachedCache
         calls:
@@ -16,10 +16,6 @@ services:
         class: AppBundle\Kernel\JsonExceptionListener
         tags:
             - {name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 200}
-    #header_authenticator:
-        #class:  AppBundle\Security\HeaderAuthenticator
-        #arguments: ["@security.password_encoder"]
-        #public: false
     service:
         class: AppBundle\Common\Service
         abstract: true
@@ -49,6 +45,3 @@ services:
     registryapi.address:
         class: AppBundle\Service\AddressService
         parent: service
-#    service_name:
-#        class: AppBundle\Directory\ClassName
-#        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
