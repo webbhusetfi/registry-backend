@@ -103,7 +103,7 @@ abstract class Repository extends EntityRepository implements
         $offset = null,
         &$foundCount = null
     ) {
-        $criteria = $this->buildCriteria($filter, $orderBy, $offset, $limit);
+        $criteria = $this->buildCriteria($filter, $orderBy, $limit, $offset);
         if (func_num_args() === 5) {
             $foundCount = $this->foundCount($criteria);
         }
