@@ -3,7 +3,6 @@ namespace AppBundle\Service;
 
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
-use AppBundle\Entity\User;
 
 class AddressService extends ScrudService
 {
@@ -13,21 +12,12 @@ class AddressService extends ScrudService
     {
         if (!isset($this->configuration)) {
             $methods = ['search', 'create', 'read', 'update', 'delete'];
-            $constraints = [];
-
-            // TODO: implement in-values and use allowed entries
-            $authChecker = $this->get('security.authorization_checker');
-//             if (!$authChecker->isGranted(User::ROLE_ADMIN)) {
-//                 $registryId = $this->getUser()->getRegistry()->getId();
-//                 $constraints['registry'] = $registryId;
-//             }
 
             $this->configuration = ScrudConfiguration::create(
                     $this->getDoctrine(),
-                    'AppBundle\Entity\Place',
+                    'AppBundle\Entity\Address',
                     $methods
                 )
-                ->setConstraints($constraints)
                 ;
         }
         return $this->configuration;

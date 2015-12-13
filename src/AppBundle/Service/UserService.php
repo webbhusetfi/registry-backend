@@ -3,7 +3,6 @@ namespace AppBundle\Service;
 
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
-use AppBundle\Entity\User;
 
 class UserService extends ScrudService
 {
@@ -16,11 +15,11 @@ class UserService extends ScrudService
             $constraints = [];
 
             $authChecker = $this->get('security.authorization_checker');
-            if (!$authChecker->isGranted(User::ROLE_SUPER_ADMIN)) {
+            if (!$authChecker->isGranted('ROLE_SUPER_ADMIN')) {
                 $registryId = $this->getUser()->getRegistry()->getId();
                 $constraints['registry'] = $registryId;
             }
-            if (!$authChecker->isGranted(User::ROLE_ADMIN)) {
+            if (!$authChecker->isGranted('ROLE_ADMIN')) {
                 $entryId = $this->getUser()->getEntry()->getId();
                 $constraints['entry'] = $entryId;
             }

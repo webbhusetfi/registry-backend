@@ -4,7 +4,7 @@ namespace AppBundle\Service;
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
 
-class AssociationService extends ScrudService
+class ConnectionTypeService extends ScrudService
 {
     protected $configuration;
 
@@ -16,7 +16,7 @@ class AssociationService extends ScrudService
 
             $this->configuration = ScrudConfiguration::create(
                     $this->getDoctrine(),
-                    'AppBundle\Entity\Association',
+                    'AppBundle\Entity\ConnectionType',
                     $methods
                 )
                 ->setConstraints($constraints)

@@ -16,13 +16,13 @@ class RegistryService extends ScrudService
             $constraints = [];
 
             $authChecker = $this->get('security.authorization_checker');
-            if (!$authChecker->isGranted(User::ROLE_SUPER_ADMIN)) {
+            if (!$authChecker->isGranted('ROLE_SUPER_ADMIN')) {
                 $methods = ['search', 'read', 'update'];
 
                 $registryId = $this->getUser()->getRegistry()->getId();
                 $constraints['id'] = $registryId;
             }
-            if (!$authChecker->isGranted(User::ROLE_ADMIN)) {
+            if (!$authChecker->isGranted('ROLE_ADMIN')) {
                 $methods = [];
             }
 
