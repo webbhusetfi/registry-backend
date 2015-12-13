@@ -4,7 +4,7 @@
 parameters:
     database_host:     127.0.0.1
     database_port:     ~
-    database_name:     symfony
+    database_name:     registry
     database_user:     root
     database_password: ~
     # You should uncomment this if you want use pdo_sqlite
@@ -14,6 +14,12 @@ parameters:
     mailer_host:       127.0.0.1
     mailer_user:       ~
     mailer_password:   ~
+
+    import_host:     127.0.0.1
+    import_port:     ~
+    import_name:     register
+    import_user:     import
+    import_password: ~
 
     memcached_servers:
         - {host: 127.0.0.1, port: 11211}

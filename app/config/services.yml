@@ -36,11 +36,11 @@ services:
     registryapi.entry:
         class: AppBundle\Service\EntryService
         parent: service
-    registryapi.category:
-        class: AppBundle\Service\CategoryService
+    registryapi.connectionType:
+        class: AppBundle\Service\ConnectionTypeService
         parent: service
-    registryapi.association:
-        class: AppBundle\Service\AssociationService
+    registryapi.connection:
+        class: AppBundle\Service\ConnectionService
         parent: service
     registryapi.address:
         class: AppBundle\Service\AddressService
