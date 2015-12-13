@@ -25,9 +25,6 @@ use AppBundle\Entity\ConnectionType;
 class ImportCommand extends ContainerAwareCommand
 {
     protected $dbh;
-    protected $output;
-    protected $registry;
-    protected $sourceID;
 
     protected function configure()
     {
