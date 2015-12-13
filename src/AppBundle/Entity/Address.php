@@ -43,34 +43,23 @@ class Address
      * @var string
      *
      * @ORM\Column(name="name", type="string", length=128, nullable=true)
-     * @Assert\Length(min = 3, max = 128)
+     * @Assert\Length(min = 1, max = 128)
      */
     private $name;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="detail", type="string", length=128, nullable=true)
-     * @Assert\Length(min = 3, max = 128)
-     */
-    private $detail;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="street", type="string", length=128, nullable=false)
-     * @Assert\Length(min = 3, max = 128)
-     * @Assert\NotBlank
+     * @ORM\Column(name="street", type="string", length=128, nullable=true)
+     * @Assert\Length(min = 1, max = 128)
      */
     private $street;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="postalCode", type="string", length=32, nullable=false)
-     * @Assert\Type(type="integer")
-     * @Assert\Length(min = 5, max = 5)
-     * @Assert\NotBlank
+     * @ORM\Column(name="postalCode", type="string", length=32, nullable=true)
+     * @Assert\Length(min = 1, max = 32)
      */
     private $postalCode;
 
@@ -78,17 +67,16 @@ class Address
      * @var string
      *
      * @ORM\Column(name="town", type="string", length=64, nullable=true)
-     * @Assert\Length(min = 3, max = 64)
+     * @Assert\Length(min = 1, max = 64)
      */
     private $town;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="email", type="string", length=128, nullable=false)
+     * @ORM\Column(name="email", type="string", length=128, nullable=true)
      * @Assert\Length(min = 3, max = 128)
-     * @Assert\NotBlank
-     * @Assert\Email(checkHost = true)
+     * @Assert\Email()
      */
     private $email;
 
@@ -96,7 +84,7 @@ class Address
      * @var string
      *
      * @ORM\Column(name="phone", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 3, max = 32)
+     * @Assert\Length(min = 1, max = 32)
      */
     private $phone;
 
@@ -104,7 +92,7 @@ class Address
      * @var string
      *
      * @ORM\Column(name="mobile", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 3, max = 32)
+     * @Assert\Length(min = 1, max = 32)
      */
     private $mobile;
 
@@ -173,30 +161,6 @@ class Address
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * Set detail
-     *
-     * @param string $detail
-     *
-     * @return self
-     */
-    public function setDetail($detail)
-    {
-        $this->detail = $detail;
-
-        return $this;
-    }
-
-    /**
-     * Get detail
-     *
-     * @return string
-     */
-    public function getDetail()
-    {
-        return $this->detail;
     }
 
     /**

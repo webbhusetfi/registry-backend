@@ -2,6 +2,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use \JsonSerializable;
@@ -17,7 +18,6 @@ use \JsonSerializable;
  *          @ORM\Index(name="idx_createdAt", columns={"createdAt"}),
  *          @ORM\Index(name="idx_registry_id", columns={"registry_id"}),
  *          @ORM\Index(name="idx_type_id", columns={"type_id"}),
- *          @ORM\Index(name="idx_status_id", columns={"status_id"}),
  *          @ORM\Index(name="idx_createdBy_id", columns={"createdBy_id"}),
  *          @ORM\Index(name="idx_class", columns={"class"})
  *      }
@@ -109,22 +109,6 @@ abstract class Entry implements JsonSerializable
     private $registry;
 
     /**
-     * @var Status
-     *
-     * @ORM\ManyToOne(targetEntity="Status")
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="status_id",
-     *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="RESTRICT"
-     *      )
-     * })
-     * @Assert\NotBlank
-     */
-    private $status;
-
-    /**
      * @var Type
      *
      * @ORM\ManyToOne(targetEntity="Type")
@@ -140,8 +124,41 @@ abstract class Entry implements JsonSerializable
      */
     private $type;
 
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\ManyToMany(
+     *      targetEntity="Property",
+     *      inversedBy="entries"
+     * )
+     * @ORM\JoinTable(
+     *      name="EntryProperty",
+     *      joinColumns={
+     *          @ORM\JoinColumn(
+     *              name="entry_id",
+     *              referencedColumnName="id",
+     *              nullable=false,
+     *              onDelete="CASCADE"
+     *          )
+     *      },
+     *      inverseJoinColumns={
+     *          @ORM\JoinColumn(
+     *              name="property_id",
+     *              referencedColumnName="id",
+     *              nullable=false,
+     *              onDelete="RESTRICT"
+     *          )
+     *      }
+     * )
+     */
+    private $properties;
+
+    /**
+     * Constructor
+     */
     public function __construct()
     {
+        $this->properties = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -238,30 +255,6 @@ abstract class Entry implements JsonSerializable
     }
 
     /**
-     * Set status
-     *
-     * @param Status $status
-     *
-     * @return self
-     */
-    public function setStatus(Status $status = null)
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    /**
-     * Get status
-     *
-     * @return Status
-     */
-    public function getStatus()
-    {
-        return $this->status;
-    }
-
-    /**
      * Set type
      *
      * @param Type $type
@@ -283,6 +276,40 @@ abstract class Entry implements JsonSerializable
     public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * Add property
+     *
+     * @param Property $property
+     *
+     * @return self
+     */
+    public function addProperty(Property $property)
+    {
+        $this->properties[] = $property;
+
+        return $this;
+    }
+
+    /**
+     * Remove property
+     *
+     * @param Property $property
+     */
+    public function removeProperty(Property $property)
+    {
+        $this->properties->removeElement($property);
+    }
+
+    /**
+     * Get properties
+     *
+     * @return ArrayCollection
+     */
+    public function getProperties()
+    {
+        return $this->properties;
     }
 
     /**

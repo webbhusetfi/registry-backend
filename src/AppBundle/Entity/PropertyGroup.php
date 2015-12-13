@@ -2,30 +2,28 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * Type
+ * PropertyGroup
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
- *      name="Type",
+ *      name="PropertyGroup",
  *      indexes={
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"}),
- *          @ORM\Index(name="idx_name", columns={"name"})
+ *          @ORM\Index(name="idx_name", columns={"name"}),
+ *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"}),
+ *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
  *      }
  * )
  * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\TypeRepository"
+ *      repositoryClass="AppBundle\Entity\Repository\PropertyGroupRepository"
  * )
  */
-class Type implements JsonSerializable
+class PropertyGroup
 {
-    const CLASS_ORGANIZATION = 'ORGANIZATION';
-    const CLASS_PERSON = 'PERSON';
-    const CLASS_PLACE = 'PLACE';
-
     /**
      * @var integer
      *
@@ -43,20 +41,6 @@ class Type implements JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column(
-     *      name="class",
-     *      type="string",
-     *      nullable=false,
-     *      columnDefinition="ENUM('ORGANIZATION','PERSON','PLACE') NOT NULL"
-     * )
-     * @Assert\Choice(choices = {"ORGANIZATION", "PERSON", "PLACE"})
-     * @Assert\NotBlank
-     */
-    private $class;
-
-    /**
-     * @var string
-     *
      * @ORM\Column(name="name", type="string", length=64, nullable=false)
      * @Assert\Length(min = 3, max = 64)
      * @Assert\NotBlank
@@ -64,12 +48,19 @@ class Type implements JsonSerializable
     private $name;
 
     /**
-     * @var string
+     * @var Entry
      *
-     * @ORM\Column(name="label", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 3, max = 32)
+     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\JoinColumns({
+     *      @ORM\JoinColumn(
+     *          name="ownerEntry_id",
+     *          referencedColumnName="id",
+     *          nullable=true,
+     *          onDelete="CASCADE"
+     *      )
+     * })
      */
-    private $label;
+    private $ownerEntry;
 
     /**
      * @var Registry
@@ -83,10 +74,23 @@ class Type implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
      */
     private $registry;
 
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Property", mappedBy="propertyGroup")
+     */
+    private $properties;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->properties = new ArrayCollection();
+    }
 
     /**
      * Get id
@@ -96,30 +100,6 @@ class Type implements JsonSerializable
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * Set class
-     *
-     * @param string $class
-     *
-     * @return self
-     */
-    public function setClass($class)
-    {
-        $this->class = $class;
-
-        return $this;
-    }
-
-    /**
-     * Get class
-     *
-     * @return string
-     */
-    public function getClass()
-    {
-        return $this->class;
     }
 
     /**
@@ -147,27 +127,27 @@ class Type implements JsonSerializable
     }
 
     /**
-     * Set label
+     * Set owner entry
      *
-     * @param string $label
+     * @param Entry $ownerEntry
      *
      * @return self
      */
-    public function setLabel($label)
+    public function setOwnerEntry(Entry $ownerEntry = null)
     {
-        $this->label = $label;
+        $this->ownerEntry = $ownerEntry;
 
         return $this;
     }
 
     /**
-     * Get label
+     * Get owner entry
      *
-     * @return string
+     * @return Entry
      */
-    public function getLabel()
+    public function getOwnerEntry()
     {
-        return $this->label;
+        return $this->ownerEntry;
     }
 
     /**
@@ -195,18 +175,13 @@ class Type implements JsonSerializable
     }
 
     /**
-     * JSON serialize
+     * Get properties
      *
-     * @return array
+     * @return ArrayCollection
      */
-    public function jsonSerialize() {
-        return [
-            'id' => $this->id,
-            'class' => $this->class,
-            'name' => $this->name,
-            'label' => $this->label,
-            'registry' => ($this->registry ? $this->registry->getId() : null)
-        ];
+    public function getProperties()
+    {
+        return $this->properties;
     }
 }
 

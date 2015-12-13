@@ -6,34 +6,39 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * Category
+ * ConnectionType
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
- *      name="Category",
+ *      name="ConnectionType",
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
- *              columns={"name", "parentType_id", "childType_id", "entry_id"}
+ *              columns={
+ *                  "name",
+ *                  "parentType_id",
+ *                  "childType_id",
+ *                  "ownerEntry_id"
+ *              }
  *          )
  *      },
  *      indexes={
  *          @ORM\Index(name="idx_name", columns={"name"}),
  *          @ORM\Index(name="idx_label", columns={"label"}),
- *          @ORM\Index(name="idx_entry_id", columns={"entry_id"}),
+ *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"}),
  *          @ORM\Index(name="idx_parentType_id", columns={"parentType_id"}),
  *          @ORM\Index(name="idx_childType_id", columns={"childType_id"}),
  *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
  *      }
  * )
  * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\CategoryRepository"
+ *      repositoryClass="AppBundle\Entity\Repository\ConnectionTypeRepository"
  * )
  * @UniqueEntity(
- *      fields={"registry", "childType", "parentType", "entry"}
+ *      fields={"registry", "childType", "parentType", "ownerEntry"}
  * )
  */
-class Category
+class ConnectionType
 {
     /**
      * @var integer
@@ -65,21 +70,6 @@ class Category
      * @Assert\Length(min = 3, max = 128)
      */
     private $label;
-
-    /**
-     * @var Registry
-     *
-     * @ORM\ManyToOne(targetEntity="Registry")
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="registry_id",
-     *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="CASCADE"
-     *      )
-     * })
-     */
-    private $registry;
 
     /**
      * @var Type
@@ -116,14 +106,30 @@ class Category
      * @ORM\ManyToOne(targetEntity="Entry")
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
-     *          name="entry_id",
+     *          name="ownerEntry_id",
      *          referencedColumnName="id",
      *          nullable=true,
      *          onDelete="CASCADE"
      *      )
      * })
      */
-    private $entry;
+    private $ownerEntry;
+
+    /**
+     * @var Registry
+     *
+     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\JoinColumns({
+     *      @ORM\JoinColumn(
+     *          name="registry_id",
+     *          referencedColumnName="id",
+     *          nullable=false,
+     *          onDelete="CASCADE"
+     *      )
+     * })
+     */
+    private $registry;
+
 
 
     /**
@@ -185,30 +191,6 @@ class Category
     }
 
     /**
-     * Set registry
-     *
-     * @param Registry $registry
-     *
-     * @return self
-     */
-    public function setRegistry(Registry $registry = null)
-    {
-        $this->registry = $registry;
-
-        return $this;
-    }
-
-    /**
-     * Get registry
-     *
-     * @return Registry
-     */
-    public function getRegistry()
-    {
-        return $this->registry;
-    }
-
-    /**
      * Set child type
      *
      * @param Type $childType
@@ -257,27 +239,51 @@ class Category
     }
 
     /**
-     * Set entry
+     * Set owner entry
      *
-     * @param Entry $entry
+     * @param Entry $ownerEntry
      *
      * @return self
      */
-    public function setEntry(Entry $entry = null)
+    public function setOwnerEntry(Entry $ownerEntry = null)
     {
-        $this->entry = $entry;
+        $this->ownerEntry = $ownerEntry;
 
         return $this;
     }
 
     /**
-     * Get entry
+     * Get owner entry
      *
      * @return Entry
      */
-    public function getEntry()
+    public function getOwnerEntry()
     {
-        return $this->entry;
+        return $this->ownerEntry;
+    }
+
+    /**
+     * Set registry
+     *
+     * @param Registry $registry
+     *
+     * @return self
+     */
+    public function setRegistry(Registry $registry = null)
+    {
+        $this->registry = $registry;
+
+        return $this;
+    }
+
+    /**
+     * Get registry
+     *
+     * @return Registry
+     */
+    public function getRegistry()
+    {
+        return $this->registry;
     }
 }
 

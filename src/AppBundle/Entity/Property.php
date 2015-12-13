@@ -14,15 +14,13 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      name="Property",
  *      indexes={
  *          @ORM\Index(name="idx_name", columns={"name"}),
- *          @ORM\Index(name="idx_category_id", columns={"category_id"}),
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
+ *          @ORM\Index(name="idx_propertyGroup_id", columns={"propertyGroup_id"}),
+ *          @ORM\Index(name="idx_connectionType_id", columns={"connectionType_id"}),
+ *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"})
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\PropertyRepository"
- * )
- * @UniqueEntity(
- *      fields={"category", "registry"}
  * )
  */
 class Property
@@ -45,7 +43,7 @@ class Property
      * @var string
      *
      * @ORM\Column(name="name", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
+     * @Assert\Length(min = 1, max = 64)
      * @Assert\NotBlank
      */
     private $name;
@@ -54,56 +52,82 @@ class Property
      * @var string
      *
      * @ORM\Column(name="notes", type="string", length=255, nullable=true)
-     * @Assert\Length(min = 3, max = 255)
+     * @Assert\Length(min = 1, max = 255)
      */
     private $notes;
 
     /**
-     * @var Category
+     * @var PropertyGroup
      *
-     * @ORM\ManyToOne(targetEntity="Category")
+     * @ORM\ManyToOne(targetEntity="PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
-     *          name="category_id",
-     *          referencedColumnName="id",
-     *          nullable=true,
-     *          onDelete="CASCADE"
-     *      )
-     * })
-     */
-    private $category;
-
-    /**
-     * @var Registry
-     *
-     * @ORM\ManyToOne(targetEntity="Registry")
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="registry_id",
+     *          name="propertyGroup_id",
      *          referencedColumnName="id",
      *          nullable=false,
      *          onDelete="CASCADE"
      *      )
      * })
      */
-    private $registry;
+    private $propertyGroup;
+
+    /**
+     * @var ConnectionType
+     *
+     * @ORM\ManyToOne(targetEntity="ConnectionType")
+     * @ORM\JoinColumns({
+     *      @ORM\JoinColumn(
+     *          name="connectionType_id",
+     *          referencedColumnName="id",
+     *          nullable=true,
+     *          onDelete="CASCADE"
+     *      )
+     * })
+     */
+    private $connectionType;
+
+    /**
+     * @var Entry
+     *
+     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\JoinColumns({
+     *      @ORM\JoinColumn(
+     *          name="ownerEntry_id",
+     *          referencedColumnName="id",
+     *          nullable=true,
+     *          onDelete="CASCADE"
+     *      )
+     * })
+     */
+    private $ownerEntry;
 
     /**
      * @var ArrayCollection
      *
      * @ORM\ManyToMany(
-     *      targetEntity="Association",
+     *      targetEntity="Connection",
      *      mappedBy="properties"
      * )
      */
-    private $associations;
+    private $connections;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\ManyToMany(
+     *      targetEntity="Entry",
+     *      mappedBy="properties"
+     * )
+     */
+    private $entries;
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        $this->associations = new ArrayCollection();
+        $this->connections = new ArrayCollection();
+        $this->entries = new ArrayCollection();
     }
 
     /**
@@ -165,85 +189,142 @@ class Property
     }
 
     /**
-     * Set category
+     * Set property group
      *
-     * @param Category $category
+     * @param PropertyGroup $propertyGroup
      *
      * @return self
      */
-    public function setCategory(Category $category = null)
+    public function setPropertyGroup(PropertyGroup $propertyGroup = null)
     {
-        $this->category = $category;
+        $this->propertyGroup = $propertyGroup;
 
         return $this;
     }
 
     /**
-     * Get category
+     * Get property group
      *
-     * @return Category
+     * @return PropertyGroup
      */
-    public function getCategory()
+    public function getPropertyGroup()
     {
-        return $this->category;
+        return $this->propertyGroup;
     }
 
     /**
-     * Set registry
+     * Set connection type
      *
-     * @param Registry $registry
+     * @param ConnectionType $connectionType
      *
      * @return self
      */
-    public function setRegistry(Registry $registry = null)
+    public function setConnectionType(ConnectionType $connectionType = null)
     {
-        $this->registry = $registry;
+        $this->connectionType = $connectionType;
 
         return $this;
     }
 
     /**
-     * Get registry
+     * Get connection type
      *
-     * @return Registry
+     * @return ConnectionType
      */
-    public function getRegistry()
+    public function getConnectionType()
     {
-        return $this->registry;
+        return $this->connectionType;
     }
 
     /**
-     * Add association
+     * Set owner entry
      *
-     * @param Association $association
+     * @param Entry $ownerEntry
      *
      * @return self
      */
-    public function addAssociation(Association $association)
+    public function setOwnerEntry(Entry $ownerEntry = null)
     {
-        $this->associations[] = $association;
+        $this->ownerEntry = $ownerEntry;
 
         return $this;
     }
 
     /**
-     * Remove association
+     * Get owner entry
      *
-     * @param Association $association
+     * @return Entry
      */
-    public function removeAssociation(Association $association)
+    public function getOwnerEntry()
     {
-        $this->associations->removeElement($association);
+        return $this->ownerEntry;
     }
 
     /**
-     * Get associations
+     * Add connection
+     *
+     * @param Connection $connection
+     *
+     * @return self
+     */
+    public function addConnection(Connection $connection)
+    {
+        $this->connections[] = $connection;
+
+        return $this;
+    }
+
+    /**
+     * Remove connection
+     *
+     * @param Connection $connection
+     */
+    public function removeConnection(Connection $connection)
+    {
+        $this->connections->removeElement($connection);
+    }
+
+    /**
+     * Get connections
      *
      * @return ArrayCollection
      */
-    public function getAssociations()
+    public function getConnections()
     {
-        return $this->associations;
+        return $this->connections;
+    }
+
+    /**
+     * Add entry
+     *
+     * @param Entry $entry
+     *
+     * @return self
+     */
+    public function addEntry(Entry $entry)
+    {
+        $this->entries[] = $entry;
+
+        return $this;
+    }
+
+    /**
+     * Remove entry
+     *
+     * @param Entry $entry
+     */
+    public function removeEntry(Entry $entry)
+    {
+        $this->entries->removeElement($entry);
+    }
+
+    /**
+     * Get entries
+     *
+     * @return ArrayCollection
+     */
+    public function getEntries()
+    {
+        return $this->entries;
     }
 }
-

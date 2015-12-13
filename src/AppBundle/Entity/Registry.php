@@ -3,6 +3,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use \JsonSerializable;
 
 /**
@@ -12,6 +13,9 @@ use \JsonSerializable;
  * @ORM\Table(name="Registry")
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\RegistryRepository"
+ * )
+ * @UniqueEntity("name")
+ * @UniqueEntity("label")
  * )
  */
 class Registry implements JsonSerializable
@@ -46,7 +50,6 @@ class Registry implements JsonSerializable
      * @Assert\Length(min = 3, max = 64)
      */
     private $label;
-
 
     /**
      * Get ID

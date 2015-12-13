@@ -29,7 +29,7 @@ class Place extends Entry
      *      length=64,
      *      nullable=false
      * )
-     * @Assert\Length(min = 3, max = 64)
+     * @Assert\Length(min = 1, max = 64)
      * @Assert\NotBlank
      */
     private $name;

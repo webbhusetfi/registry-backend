@@ -7,35 +7,36 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * Association
+ * Connection
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
- *      name="Association",
+ *      name="Connection",
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
  *              columns={
  *                  "parentEntry_id",
  *                  "childEntry_id",
- *                  "category_id"
+ *                  "connectionType_id"
  *              }
  *          )
  *      },
  *      indexes={
  *          @ORM\Index(name="idx_parent_id", columns={"parentEntry_id"}),
  *          @ORM\Index(name="idx_child_id", columns={"childEntry_id"}),
- *          @ORM\Index(name="idx_category_id", columns={"category_id"})
+ *          @ORM\Index(name="idx_status_id", columns={"status_id"}),
+ *          @ORM\Index(name="idx_connectionType_id", columns={"connectionType_id"})
  *      }
  * )
  * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\AssociationRepository"
+ *      repositoryClass="AppBundle\Entity\Repository\ConnectionRepository"
  * )
  * @UniqueEntity(
- *      fields={"category", "childEntry", "parentEntry"}
+ *      fields={"connectionType", "childEntry", "parentEntry"}
  * )
  */
-class Association
+class Connection
 {
     /**
      * @var integer
@@ -92,19 +93,35 @@ class Association
     private $endNotes;
 
     /**
-     * @var Category
+     * @var Status
      *
-     * @ORM\ManyToOne(targetEntity="Category")
+     * @ORM\ManyToOne(targetEntity="Status")
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
-     *          name="category_id",
+     *          name="status_id",
+     *          referencedColumnName="id",
+     *          nullable=false,
+     *          onDelete="RESTRICT"
+     *      )
+     * })
+     * @Assert\NotBlank
+     */
+    private $status;
+
+    /**
+     * @var ConnectionType
+     *
+     * @ORM\ManyToOne(targetEntity="ConnectionType")
+     * @ORM\JoinColumns({
+     *      @ORM\JoinColumn(
+     *          name="connectionType_id",
      *          referencedColumnName="id",
      *          nullable=false,
      *          onDelete="CASCADE"
      *      )
      * })
      */
-    private $category;
+    private $connectionType;
 
     /**
      * @var Entry
@@ -141,13 +158,13 @@ class Association
      *
      * @ORM\ManyToMany(
      *      targetEntity="Property",
-     *      inversedBy="associations"
+     *      inversedBy="connections"
      * )
      * @ORM\JoinTable(
-     *      name="AssociationProperty",
+     *      name="ConnectionProperty",
      *      joinColumns={
      *          @ORM\JoinColumn(
-     *              name="association_id",
+     *              name="connection_id",
      *              referencedColumnName="id",
      *              nullable=false,
      *              onDelete="CASCADE"
@@ -304,27 +321,51 @@ class Association
     }
 
     /**
-     * Set category
+     * Set status
      *
-     * @param Category $category
+     * @param Status $status
      *
      * @return self
      */
-    public function setCategory(Category $category = null)
+    public function setStatus(Status $status = null)
     {
-        $this->category = $category;
+        $this->status = $status;
 
         return $this;
     }
 
     /**
-     * Get category
+     * Get status
      *
-     * @return Category
+     * @return Status
      */
-    public function getCategory()
+    public function getStatus()
     {
-        return $this->category;
+        return $this->status;
+    }
+
+    /**
+     * Set connection type
+     *
+     * @param ConnectionType $connectionType
+     *
+     * @return self
+     */
+    public function setConnectionType(ConnectionType $connectionType = null)
+    {
+        $this->connectionType = $connectionType;
+
+        return $this;
+    }
+
+    /**
+     * Get connection type
+     *
+     * @return ConnectionType
+     */
+    public function getConnectionType()
+    {
+        return $this->connectionType;
     }
 
     /**

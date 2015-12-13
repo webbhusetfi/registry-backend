@@ -4,10 +4,10 @@ namespace AppBundle\Entity\Repository;
 use AppBundle\Entity\Repository\Common\Repository;
 
 /**
- * Category repository
+ * Property group repository
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-class CategoryRepository extends Repository
+class PropertyGroupRepository extends Repository
 {
 }

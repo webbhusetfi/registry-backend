@@ -14,7 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          @ORM\Index(name="idx_gender", columns={"gender"}),
  *          @ORM\Index(name="idx_firstName", columns={"firstName"}),
  *          @ORM\Index(name="idx_lastName", columns={"lastName"}),
- *          @ORM\Index(name="idx_birthdate", columns={"birthdate"})
+ *          @ORM\Index(name="idx_birthYear", columns={"birthYear"}),
+ *          @ORM\Index(name="idx_birthMonth", columns={"birthMonth"}),
+ *          @ORM\Index(name="idx_birthDay", columns={"birthDay"})
  *      }
  * )
  * @ORM\Entity(
@@ -23,17 +25,19 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Person extends Entry
 {
+    const GENDER_MALE = 'MALE';
+    const GENDER_FEMALE = 'FEMALE';
+
     /**
      * @var string
      *
      * @ORM\Column(
      *      name="gender",
      *      type="string",
-     *      nullable=false,
-     *      columnDefinition="ENUM('MALE','FEMALE') NOT NULL"
+     *      nullable=true,
+     *      columnDefinition="ENUM('MALE','FEMALE')"
      * )
      * @Assert\Choice(choices = {"MALE", "FEMALE"})
-     * @Assert\NotBlank
      */
     private $gender;
 
@@ -41,7 +45,7 @@ class Person extends Entry
      * @var string
      *
      * @ORM\Column(name="firstName", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
+     * @Assert\Length(min = 1, max = 64)
      * @Assert\NotBlank
      */
     private $firstName;
@@ -50,20 +54,46 @@ class Person extends Entry
      * @var string
      *
      * @ORM\Column(name="lastName", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
+     * @Assert\Length(min = 1, max = 64)
      * @Assert\NotBlank
      */
     private $lastName;
 
     /**
-     * @var \DateTime
+     * @var integer
      *
-     * @ORM\Column(name="birthdate", type="date", nullable=false)
-     * @Assert\Date()
-     * @Assert\NotBlank
+     * @ORM\Column(name="birthYear", type="integer", nullable=true)
+     * @Assert\Type(type="integer")
+     * @Assert\Range(
+     *      min = 0,
+     *      max = 9999
+     * )
      */
-    private $birthdate;
+    private $birthYear;
 
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="birthMonth", type="integer", nullable=true)
+     * @Assert\Type(type="integer")
+     * @Assert\Range(
+     *      min = 1,
+     *      max = 12
+     * )
+     */
+    private $birthMonth;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="birthDay", type="integer", nullable=true)
+     * @Assert\Type(type="integer")
+     * @Assert\Range(
+     *      min = 1,
+     *      max = 31
+     * )
+     */
+    private $birthDay;
 
     /**
      * Set gender
@@ -138,31 +168,75 @@ class Person extends Entry
     }
 
     /**
-     * Set birthdate
+     * Set birth year
      *
-     * @param \DateTime|string $birthdate
+     * @param integer $birthYear
      *
      * @return self
      */
-    public function setBirthdate($birthdate)
+    public function setBirthYear($birthYear)
     {
-        if ($birthdate instanceof \DateTime) {
-            $this->birthdate = $birthdate;
-        } elseif (!empty($birthdate)) {
-            $this->birthdate = new \DateTime($birthdate);
-        }
+        $this->birthYear = $birthYear;
 
         return $this;
     }
 
     /**
-     * Get birthdate
+     * Get birth year
      *
-     * @return \DateTime
+     * @return integer
      */
-    public function getBirthdate()
+    public function getBirthYear()
     {
-        return $this->birthdate;
+        return $this->birthYear;
+    }
+
+    /**
+     * Set birth month
+     *
+     * @param integer $birthMonth
+     *
+     * @return self
+     */
+    public function setBirthMonth($birthMonth)
+    {
+        $this->birthMonth = $birthMonth;
+
+        return $this;
+    }
+
+    /**
+     * Get birth month
+     *
+     * @return integer
+     */
+    public function getBirthMonth()
+    {
+        return $this->birthMonth;
+    }
+
+    /**
+     * Set birth day
+     *
+     * @param integer $birthDay
+     *
+     * @return self
+     */
+    public function setBirthDay($birthDay)
+    {
+        $this->birthDay = $birthDay;
+
+        return $this;
+    }
+
+    /**
+     * Get birth day
+     *
+     * @return integer
+     */
+    public function getBirthDay()
+    {
+        return $this->birthDay;
     }
 
     /**
@@ -178,7 +252,9 @@ class Person extends Entry
                 'gender' => $this->gender,
                 'firstName' => $this->firstName,
                 'lastName' => $this->lastName,
-                'birthdate' => $this->birthdate->format(\DateTime::ISO8601)
+                'birthYear' => $this->birthYear,
+                'birthMonth' => $this->birthMonth,
+                'birthDay' => $this->birthDay,
             ]
         );
     }

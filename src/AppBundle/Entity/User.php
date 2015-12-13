@@ -35,9 +35,9 @@ use \JsonSerializable;
  */
 class User implements JsonSerializable, UserInterface
 {
-    const ROLE_USER = 'ROLE_USER';
-    const ROLE_ADMIN = 'ROLE_ADMIN';
-    const ROLE_SUPER_ADMIN = 'ROLE_SUPER_ADMIN';
+    const ROLE_USER = 'USER';
+    const ROLE_ADMIN = 'ADMIN';
+    const ROLE_SUPER_ADMIN = 'SUPER_ADMIN';
 
     /**
      * @var integer
@@ -100,6 +100,19 @@ class User implements JsonSerializable, UserInterface
      */
     private $registry;
 
+    /**
+     * @var string
+     *
+     * @ORM\Column(
+     *      name="role",
+     *      type="string",
+     *      nullable=false,
+     *      columnDefinition="ENUM('SUPER_ADMIN','ADMIN','USER') NOT NULL"
+     * )
+     * @Assert\Choice(choices = {"SUPER_ADMIN", "ADMIN", "USER"})
+     * @Assert\NotBlank
+     */
+    private $role;
 
     /**
      * Get id
@@ -160,6 +173,30 @@ class User implements JsonSerializable, UserInterface
     }
 
     /**
+     * Set role
+     *
+     * @param string $role
+     *
+     * @return self
+     */
+    public function setRole($role)
+    {
+        $this->role = $role;
+
+        return $this;
+    }
+
+    /**
+     * Get role
+     *
+     * @return string
+     */
+    public function getRole()
+    {
+        return $this->role;
+    }
+
+    /**
      * Set entry
      *
      * @param Entry $entry
@@ -214,14 +251,7 @@ class User implements JsonSerializable, UserInterface
      */
     public function getRoles()
     {
-        $roles = [self::ROLE_USER];
-        if (!isset($this->entry)) {
-            $roles[] = self::ROLE_ADMIN;
-        }
-        if (!isset($this->registry)) {
-            $roles[] = self::ROLE_SUPER_ADMIN;
-        }
-        return $roles;
+        return ['ROLE_' . $this->role];
     }
 
     /**
@@ -252,6 +282,7 @@ class User implements JsonSerializable, UserInterface
         return [
             'id' => $this->id,
             'username' => $this->username,
+            'role' => $this->role,
             'entry' => ($this->entry ? $this->entry->getId() : null),
             'registry' => ($this->registry ? $this->registry->getId() : null)
         ];
