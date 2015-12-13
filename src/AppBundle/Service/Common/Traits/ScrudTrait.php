@@ -72,12 +72,13 @@ trait ScrudTrait
             $order = $request['order'];
         }
 
-        $offset = $limit = null;
+        $offset = null;
+        $limit = 100;
         if (isset($request['offset'])) {
-            $offset = $request['offset'];
+            $offset = (int)$request['offset'];
         }
-        if (isset($request['limit'])) {
-            $limit = $request['limit'];
+        if (isset($request['limit']) && (int)$request['limit'] < 100) {
+            $limit = (int)$request['limit'];
         }
 
         // Apply constraints
