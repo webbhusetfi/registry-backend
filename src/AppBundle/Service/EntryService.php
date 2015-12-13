@@ -13,7 +13,7 @@ class EntryService extends ScrudService
     {
         if (!isset($this->configuration)) {
 
-            $entryAttrs = ['externalId', 'registry', 'status', 'type'];
+            $entryAttrs = ['externalId', 'registry', 'type'];
             $this->configuration[0] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Entry',

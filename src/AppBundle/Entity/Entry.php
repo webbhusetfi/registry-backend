@@ -36,9 +36,6 @@ use \JsonSerializable;
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
- * @UniqueEntity(
- *      fields={"createdBy", "registry", "status", "type"}
- * )
  */
 abstract class Entry implements JsonSerializable
 {
@@ -324,7 +321,6 @@ abstract class Entry implements JsonSerializable
             'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
             'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
             'registry' => ($this->registry ? $this->registry->getId() : null),
-            'status' => ($this->status ? $this->status->getId() : null),
             'type' => ($this->type ? $this->type->getId() : null),
         ];
     }
