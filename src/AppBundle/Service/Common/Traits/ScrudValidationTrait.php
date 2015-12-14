@@ -79,7 +79,10 @@ trait ScrudValidationTrait
                     $request['order'],
                     $config->getOrderAllowed(),
                     $config->getOrderRequired(),
-                    $config->getOrderIn(),
+                    array_intersect_key(
+                        $config->getOrderIn(),
+                        $request['order']
+                    ),
                     $config->getOrderConstraints()
                 );
                 if ($msgs) {
