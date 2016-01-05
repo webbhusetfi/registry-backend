@@ -65,7 +65,7 @@ trait ScrudTrait
         if (isset($request['filter'])) {
             $filter = array_intersect_key(
                 $request['filter'],
-                $config->getFilterAttributes()
+                array_flip($config->getFilterAttributes())
             );
         }
         if (isset($request['order'])) {
