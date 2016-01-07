@@ -13,7 +13,9 @@ use AppBundle\Entity\Registry;
 use AppBundle\Entity\Type;
 use AppBundle\Entity\Organization;
 use AppBundle\Entity\Person;
+
 use AppBundle\Entity\Address;
+use AppBundle\Entity\Directory;
 
 use AppBundle\Entity\PropertyGroup;
 use AppBundle\Entity\Property;
@@ -166,6 +168,23 @@ class ImportCommand extends ContainerAwareCommand
         return $property;
     }
 
+    protected function getDirectory(array $attributes)
+    {
+        $directory = $this->getRepository('AppBundle\Entity\Directory')
+            ->findOneBy($attributes);
+        if (!$directory) {
+            $directory = new Directory();
+            $directory
+                ->setName($attributes['name'])
+                ->setView($attributes['view'])
+                ->setRegistry($attributes['registry']);
+            $em = $this->getManager();
+            $em->persist($directory);
+            $em->flush();
+        }
+        return $directory;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $destinationID = (int)$input->getArgument('destination');
@@ -251,6 +270,7 @@ class ImportCommand extends ContainerAwareCommand
         $organization
             ->setRegistry($registry)
             ->setType($type)
+            ->setExternalId((int)$sourceID)
             ->setName(
                 mb_convert_case(trim($row['name_reg']), MB_CASE_TITLE)
             );
@@ -395,6 +415,12 @@ class ImportCommand extends ContainerAwareCommand
             'registry' => $registry,
         ]);
 
+        $billingDirectory = $this->getDirectory([
+            'name' => 'Fakturering',
+            'view' => Directory::VIEW_ADDRESS,
+            'registry' => $registry,
+        ]);
+
         $members = [];
         $em = $this->getManager();
         $validator = $this->getValidator();
@@ -414,12 +440,20 @@ class ImportCommand extends ContainerAwareCommand
             } elseif (!$lastName) {
                 $lastName = $firstName;
             }
+
             $member = new Person();
             $member
                 ->setRegistry($registry)
                 ->setType($type)
+                ->setCreatedAt(new \DateTime($row['added_mem']))
+                ->setExternalId((int)$row['id_mem'])
                 ->setFirstName($firstName)
                 ->setLastName($lastName);
+
+            $notes = trim($row['note_mem']);
+            if ($notes) {
+                $member->setNotes($notes);
+            }
 
             $year = abs((int)trim($row['date_of_birth_year_mem']));
             if ($year) {
@@ -463,6 +497,9 @@ class ImportCommand extends ContainerAwareCommand
 
             $address = new Address();
             $address->setEntry($member);
+            if (!trim($row['inv_address_mem'])) {
+                $address->addDirectory($billingDirectory);
+            }
             if (trim($row['address_mem'])) {
                 $address->setStreet(
                     mb_convert_case(trim($row['address_mem']), MB_CASE_TITLE)
@@ -476,10 +513,17 @@ class ImportCommand extends ContainerAwareCommand
                     mb_convert_case(trim($row['city_mem']), MB_CASE_TITLE)
                 );
             }
+            if (trim($row['country_mem'])) {
+                $address->setCountry(trim($row['country_mem']));
+            }
+            $phone = [];
             if (trim($row['phone_home_mem'])) {
-                $address->setPhone(trim($row['phone_home_mem']));
+                $phone[] = trim($row['phone_home_mem']);
             } elseif (trim($row['phone_work_mem'])) {
-                $address->setPhone(trim($row['phone_work_mem']));
+                $phone[] = trim($row['phone_work_mem']);
+            }
+            if (!empty($phone)) {
+                $address->setPhone(implode(',', $phone));
             }
             if (trim($row['phone_mobile_mem'])) {
                 $address->setMobile(trim($row['phone_mobile_mem']));
@@ -497,7 +541,59 @@ class ImportCommand extends ContainerAwareCommand
             }
             $em->persist($address);
 
-            if ($count++ >= 100) {
+            if (trim($row['inv_address_mem'])) {
+                $billingAddress = new Address();
+                $billingAddress->setEntry($member);
+                $billingAddress->addDirectory($billingDirectory);
+                if (trim($row['inv_name_mem'])) {
+                    $billingAddress->setName(
+                        mb_convert_case(
+                            trim($row['inv_name_mem']),
+                            MB_CASE_TITLE
+                        )
+                    );
+                }
+                $billingAddress->setStreet(
+                    mb_convert_case(
+                        trim($row['inv_address_mem']),
+                        MB_CASE_TITLE
+                    )
+                );
+                if (trim($row['inv_zipcode_mem'])) {
+                    $billingAddress->setPostalCode(
+                        trim($row['inv_zipcode_mem'])
+                    );
+                }
+                if (trim($row['inv_city_mem'])) {
+                    $billingAddress->setTown(
+                        mb_convert_case(
+                            trim($row['inv_city_mem']),
+                            MB_CASE_TITLE
+                        )
+                    );
+                }
+                if (trim($row['inv_country_mem'])) {
+                    $billingAddress->setCountry(
+                        mb_convert_case(
+                            trim($row['inv_country_mem']),
+                            MB_CASE_TITLE
+                        )
+                    );
+                }
+
+                $errors = $validator->validate($billingAddress);
+                if (count($errors)) {
+                    $output->writeln(
+                        "Validation failed for member billing address:"
+                    );
+                    $output->writeln(var_export($row) . PHP_EOL);
+                    $output->writeln((string)$errors);
+                    continue;
+                }
+                $em->persist($billingAddress);
+            }
+
+            if (++$count >= 100) {
                 $count = 0;
                 $em->flush();
                 $em->clear('AppBundle\Entity\Address');
@@ -555,6 +651,7 @@ class ImportCommand extends ContainerAwareCommand
             $association
                 ->setRegistry($registry)
                 ->setType($childType)
+                ->setExternalId((int)$row['id_ass'])
                 ->setName(
                     mb_convert_case(trim($row['name_ass']), MB_CASE_TITLE)
                 );
@@ -602,6 +699,7 @@ class ImportCommand extends ContainerAwareCommand
     ) {
         $sql = "SELECT"
             . " member_of_association_moa.*,"
+            . " member_mem.*,"
             . " member_type_mty.*,"
             . " member_status_mst.*"
             . " FROM member_of_association_moa"
@@ -645,7 +743,7 @@ class ImportCommand extends ContainerAwareCommand
         $em = $this->getManager();
         $validator = $this->getValidator();
         $output->writeln("Importing connections...");
-        $count = $subCount = 0;
+        $count = $connections = 0;
         foreach ($statement as $row) {
             $status = trim($row['status_mst']);
             if (!$status) {
@@ -675,6 +773,62 @@ class ImportCommand extends ContainerAwareCommand
                 $connection->addProperty($types[$type]);
             }
 
+            $startYear = abs((int)trim($row['member_from_year_mem']));
+            if ($startYear) {
+                if ($startYear > (date("Y") + 100)) {
+                    $startYear = date("Y") + 100;
+                }
+                $startMonth = abs((int)trim($row['member_from_month_mem']));
+                if (!$startMonth) {
+                    $startMonth = 1;
+                } elseif ($startMonth > 12) {
+                    $startMonth = 12;
+                }
+                $startDay = abs((int)trim($row['member_from_day_mem']));
+                if (!$startDay) {
+                    $startDay = 1;
+                } elseif ($startDay > 31) {
+                    $startDay = 31;
+                }
+                $startDate = new \DateTime(
+                    "{$startYear}-{$startMonth}-{$startDay}"
+                );
+                $connection->setStart($startDate);
+            }
+
+            $startNotes = trim($row['member_from_cause_mem']);
+            if ($startNotes) {
+                $connection->setStartNotes($startNotes);
+            }
+
+            $endYear = abs((int)trim($row['member_to_year_mem']));
+            if ($endYear) {
+                if ($endYear > (date("Y") + 100)) {
+                    $endYear = date("Y") + 100;
+                }
+                $endMonth = abs((int)trim($row['member_to_month_mem']));
+                if (!$endMonth) {
+                    $endMonth = 1;
+                } elseif ($endMonth > 12) {
+                    $endMonth = 12;
+                }
+                $endDay = abs((int)trim($row['member_to_day_mem']));
+                if (!$endDay) {
+                    $endDay = 1;
+                } elseif ($endDay > 31) {
+                    $endDay = 31;
+                }
+                $endDate = new \DateTime(
+                    "{$endYear}-{$endMonth}-{$endDay}"
+                );
+                $connection->setEnd($endDate);
+            }
+
+            $endNotes = trim($row['member_to_cause_mem']);
+            if ($endNotes) {
+                $connection->setEndNotes($endNotes);
+            }
+
             $errors = $validator->validate($connection);
             if (count($errors)) {
                 $output->writeln("Validation failed for connection:");
@@ -684,16 +838,16 @@ class ImportCommand extends ContainerAwareCommand
             }
             $em->persist($connection);
 
-            if ($subCount++ >= 100) {
-                $subCount = 0;
+            if (++$count >= 100) {
+                $count = 0;
                 $em->flush();
                 $em->clear('AppBundle\Entity\Connection');
             }
-            $count++;
+            $connections++;
         }
         $em->flush();
         $em->clear('AppBundle\Entity\Connection');
 
-        $output->writeln("{$count} connections imported.");
+        $output->writeln("{$connections} connections imported.");
     }
 }
