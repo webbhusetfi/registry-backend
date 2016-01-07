@@ -45,3 +45,12 @@ services:
     registryapi.address:
         class: AppBundle\Service\AddressService
         parent: service
+    registryapi.directory:
+        class: AppBundle\Service\DirectoryService
+        parent: service
+    registryapi.property:
+        class: AppBundle\Service\PropertyService
+        parent: service
+    registryapi.propertyGroup:
+        class: AppBundle\Service\PropertyGroupService
+        parent: service
