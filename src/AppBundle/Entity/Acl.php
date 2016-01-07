@@ -41,8 +41,7 @@ class Acl
      *      name="id",
      *      type="integer",
      *      nullable=false,
-     *      options={"unsigned"=true},
-     *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
+     *      options={"unsigned"=true}
      * )
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
