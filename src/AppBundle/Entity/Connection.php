@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * Connection
@@ -36,7 +37,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      fields={"connectionType", "childEntry", "parentEntry"}
  * )
  */
-class Connection
+class Connection implements JsonSerializable
 {
     /**
      * @var integer
@@ -449,5 +450,48 @@ class Connection
     {
         return $this->properties;
     }
-}
 
+    /**
+     * JSON serialize
+     *
+     * @return array
+     */
+    public function jsonSerialize() {
+        return [
+            'id' => $this->id,
+            'notes' => $this->notes,
+            'start' => (
+                $this->start
+                ? $this->start->format(\DateTime::ISO8601)
+                : null
+            ),
+            'end' => (
+                $this->end
+                ? $this->end->format(\DateTime::ISO8601)
+                : null
+            ),
+            'startNotes' => $this->startNotes,
+            'endNotes' => $this->endNotes,
+            'status' => (
+                $this->status
+                ? $this->status->getId()
+                : null
+            ),
+            'connectionType' => (
+                $this->connectionType
+                ? $this->connectionType->getId()
+                : null
+            ),
+            'childEntry' => (
+                $this->childEntry
+                ? $this->childEntry->getId()
+                : null
+            ),
+            'parentEntry' => (
+                $this->parentEntry
+                ? $this->parentEntry->getId()
+                : null
+            ),
+        ];
+    }
+}

@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * Address
@@ -19,11 +20,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\AddressRepository"
  * )
- * @UniqueEntity(
- *      fields={"entry"}
- * )
  */
-class Address
+class Address implements JsonSerializable
 {
     /**
      * @var integer
@@ -74,6 +72,14 @@ class Address
     /**
      * @var string
      *
+     * @ORM\Column(name="country", type="string", length=64, nullable=true)
+     * @Assert\Length(min = 1, max = 64)
+     */
+    private $country;
+
+    /**
+     * @var string
+     *
      * @ORM\Column(name="email", type="string", length=128, nullable=true)
      * @Assert\Length(min = 3, max = 128)
      * @Assert\Email()
@@ -99,7 +105,7 @@ class Address
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(targetEntity="Entry", inversedBy="addresses")
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="entry_id",
@@ -233,6 +239,30 @@ class Address
     public function getTown()
     {
         return $this->town;
+    }
+
+    /**
+     * Set country
+     *
+     * @param string $country
+     *
+     * @return self
+     */
+    public function setCountry($country)
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    /**
+     * Get country
+     *
+     * @return string
+     */
+    public function getCountry()
+    {
+        return $this->country;
     }
 
     /**
@@ -372,15 +402,15 @@ class Address
     public function jsonSerialize() {
         return [
             'id' => $this->id,
+            'entry' => ($this->entry ? $this->entry->getId() : null),
             'name' => $this->name,
-            'detail' => $this->detail,
             'street' => $this->street,
             'postalCode' => $this->postalCode,
             'town' => $this->town,
+            'country' => $this->country,
             'email' => $this->email,
             'phone' => $this->phone,
             'mobile' => $this->mobile,
-            'entry' => ($this->entry ? $this->entry->getId() : null),
         ];
     }
 }

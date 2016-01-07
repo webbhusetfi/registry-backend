@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * Directory
@@ -13,18 +14,19 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Table(
  *      name="Directory",
  *      indexes={
- *          @ORM\Index(name="idx_entry_id", columns={"entry_id"})
+ *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\DirectoryRepository"
  * )
- * @UniqueEntity(
- *      fields={"entry"}
- * )
  */
-class Directory
+class Directory implements JsonSerializable
 {
+    const VIEW_ADDRESS = 'ADDRESS';
+    const VIEW_EMAIL_PHONE = 'EMAIL_PHONE';
+    const VIEW_ANY = 'ANY';
+
     /**
      * @var integer
      *
@@ -43,14 +45,15 @@ class Directory
      * @var string
      *
      * @ORM\Column(
-     *      name="type",
+     *      name="view",
      *      type="string",
      *      nullable=false,
-     *      columnDefinition="ENUM('ADDRESS','EMAIL') NOT NULL"
+     *      columnDefinition="ENUM('ADDRESS','EMAIL_PHONE','ANY') NOT NULL"
      * )
-     * @Assert\Choice(choices = {"ADDRESS", "EMAIL"})
+     * @Assert\Choice(choices = {"ADDRESS", "EMAIL_PHONE", "ANY"})
+     * @Assert\NotBlank
      */
-    private $type;
+    private $view;
 
     /**
      * @var string
@@ -62,19 +65,19 @@ class Directory
     private $name;
 
     /**
-     * @var Entry
+     * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(targetEntity="Registry")
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
-     *          name="entry_id",
+     *          name="registry_id",
      *          referencedColumnName="id",
      *          nullable=false,
      *          onDelete="CASCADE"
      *      )
      * })
      */
-    private $entry;
+    private $registry;
 
     /**
      * @var ArrayCollection
@@ -124,27 +127,27 @@ class Directory
     }
 
     /**
-     * Set type
+     * Set view
      *
-     * @param string $type
+     * @param string $view
      *
      * @return self
      */
-    public function setType($type)
+    public function setView($view)
     {
-        $this->type = $type;
+        $this->view = $view;
 
         return $this;
     }
 
     /**
-     * Get type
+     * Get view
      *
      * @return string
      */
-    public function getType()
+    public function getView()
     {
-        return $this->type;
+        return $this->view;
     }
 
     /**
@@ -172,27 +175,27 @@ class Directory
     }
 
     /**
-     * Set entry
+     * Set registry
      *
-     * @param Entry $entry
+     * @param Registry $registry
      *
      * @return self
      */
-    public function setEntry(Entry $entry = null)
+    public function setRegistry(Registry $registry = null)
     {
-        $this->entry = $entry;
+        $this->registry = $registry;
 
         return $this;
     }
 
     /**
-     * Get entry
+     * Get registry
      *
-     * @return Entry
+     * @return Registry
      */
-    public function getEntry()
+    public function getRegistry()
     {
-        return $this->entry;
+        return $this->registry;
     }
 
     /**
@@ -228,5 +231,18 @@ class Directory
     {
         return $this->addresses;
     }
-}
 
+    /**
+     * JSON serialize
+     *
+     * @return array
+     */
+    public function jsonSerialize() {
+        return [
+            'id' => $this->id,
+            'view' => $this->view,
+            'name' => $this->name,
+            'registry' => ($this->registry ? $this->registry->getId() : null),
+        ];
+    }
+}

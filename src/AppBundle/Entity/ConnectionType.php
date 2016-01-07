@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * ConnectionType
@@ -38,7 +39,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      fields={"registry", "childType", "parentType", "ownerEntry"}
  * )
  */
-class ConnectionType
+class ConnectionType implements JsonSerializable
 {
     /**
      * @var integer
@@ -285,5 +286,32 @@ class ConnectionType
     {
         return $this->registry;
     }
-}
 
+    /**
+     * JSON serialize
+     *
+     * @return array
+     */
+    public function jsonSerialize() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'label' => $this->label,
+            'childType' => (
+                $this->childType
+                ? $this->childType->getId()
+                : null
+            ),
+            'parentType' => (
+                $this->parentType
+                ? $this->parentType->getId()
+                : null
+            ),
+            'ownerEntry' => (
+                $this->ownerEntry
+                ? $this->ownerEntry->getId()
+                : null
+            ),
+        ];
+    }
+}

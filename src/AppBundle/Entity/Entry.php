@@ -66,6 +66,14 @@ abstract class Entry implements JsonSerializable
     private $externalId;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="notes", type="string", length=255, nullable=true)
+     * @Assert\Length(max = 255)
+     */
+    private $notes;
+
+    /**
      * @var \DateTime
      *
      * @ORM\Column(name="createdAt", type="datetime", nullable=false)
@@ -124,6 +132,13 @@ abstract class Entry implements JsonSerializable
     /**
      * @var ArrayCollection
      *
+     * @ORM\OneToMany(targetEntity="Address", mappedBy="entry")
+     */
+    private $addresses;
+
+    /**
+     * @var ArrayCollection
+     *
      * @ORM\ManyToMany(
      *      targetEntity="Property",
      *      inversedBy="entries"
@@ -155,6 +170,7 @@ abstract class Entry implements JsonSerializable
      */
     public function __construct()
     {
+        $this->addresses = new ArrayCollection();
         $this->properties = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
@@ -191,6 +207,44 @@ abstract class Entry implements JsonSerializable
     public function getExternalId()
     {
         return $this->externalId;
+    }
+
+    /**
+     * Set notes
+     *
+     * @param string $notes
+     *
+     * @return self
+     */
+    public function setNotes($notes)
+    {
+        $this->notes = $notes;
+
+        return $this;
+    }
+
+    /**
+     * Get notes
+     *
+     * @return string
+     */
+    public function getNotes()
+    {
+        return $this->notes;
+    }
+
+    /**
+     * Set created at
+     *
+     * @param \DateTime $createdAt
+     *
+     * @return self
+     */
+    public function setCreatedAt(\DateTime $createdAt)
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     /**
@@ -273,6 +327,16 @@ abstract class Entry implements JsonSerializable
     public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * Get addresses
+     *
+     * @return ArrayCollection
+     */
+    public function getAddresses()
+    {
+        return $this->addresses;
     }
 
     /**
