@@ -379,13 +379,18 @@ abstract class Entry implements JsonSerializable
      * @return array
      */
     public function jsonSerialize() {
+        $properties = [];
+        foreach ($this->properties as $property) {
+            $properties[] = $property->getId();
+        }
         return [
             'id' => $this->id,
-            'externalId' => $this->externalId,
-            'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
-            'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
             'registry' => ($this->registry ? $this->registry->getId() : null),
             'type' => ($this->type ? $this->type->getId() : null),
+            'properties' => $properties,
+            'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
+            'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
+            'externalId' => $this->externalId,
         ];
     }
 }
