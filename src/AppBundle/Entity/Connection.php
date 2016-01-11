@@ -3,8 +3,11 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Persistence\Proxy;
+
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 use \JsonSerializable;
 
 /**
@@ -479,24 +482,28 @@ class Connection implements JsonSerializable
             'startNotes' => $this->startNotes,
             'endNotes' => $this->endNotes,
             'status' => (
-                $this->status
+                $this->status instanceof Proxy
+                    && !$this->status->__isInitialized()
                 ? $this->status->getId()
-                : null
+                : $this->status->jsonSerialize()
             ),
             'connectionType' => (
-                $this->connectionType
+                $this->connectionType instanceof Proxy
+                    && !$this->connectionType->__isInitialized()
                 ? $this->connectionType->getId()
-                : null
+                : $this->connectionType->jsonSerialize()
             ),
             'childEntry' => (
-                $this->childEntry
+                $this->childEntry instanceof Proxy
+                    && !$this->childEntry->__isInitialized()
                 ? $this->childEntry->getId()
-                : null
+                : $this->childEntry->jsonSerialize()
             ),
             'parentEntry' => (
-                $this->parentEntry
+                $this->parentEntry instanceof Proxy
+                    && !$this->parentEntry->__isInitialized()
                 ? $this->parentEntry->getId()
-                : null
+                : $this->parentEntry->jsonSerialize()
             ),
         ];
     }

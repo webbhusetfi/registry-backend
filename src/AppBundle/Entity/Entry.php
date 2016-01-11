@@ -168,7 +168,10 @@ abstract class Entry implements JsonSerializable
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Connection", mappedBy="parentEntry")
+     * @ORM\OneToMany(
+     *      targetEntity="Connection",
+     *      mappedBy="parentEntry"
+     * )
      */
     private $childConnections;
 
@@ -402,6 +405,7 @@ abstract class Entry implements JsonSerializable
             'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
             'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
             'externalId' => $this->externalId,
+            'notes' => $this->notes
         ];
         if ($this->properties->isInitialized()) {
             $attributes['properties'] = [];

@@ -42,6 +42,7 @@ services:
         parent: service
     registryapi.connection:
         class: AppBundle\Service\ConnectionService
+        arguments: ['AppBundle\Entity\Connection']
         parent: service
     registryapi.address:
         class: AppBundle\Service\AddressService

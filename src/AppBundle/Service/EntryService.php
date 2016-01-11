@@ -60,6 +60,19 @@ class EntryService extends ScrudService
         return $this->getDoctrine()->getRepository($this->entityClass);
     }
 
+    public function read(array $request)
+    {
+        $response = $this->getRepository()->read(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
+
     public function search(array $request)
     {
         $response = $this->getRepository()->search(

@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityRepository;
 use AppBundle\Entity\Repository\Common\Interfaces\FoundCountInterface;
 use AppBundle\Entity\Repository\Common\Traits\FoundCountTrait;
 
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Common\Collections\Criteria;
 
 /**
@@ -144,5 +145,86 @@ abstract class Repository extends EntityRepository implements
             return array_unique($attributes);
         }
         return $attributes;
+    }
+
+    /**
+     * Build a query.
+     *
+     * @param array|null $filter
+     * @param array|null $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return QueryBuilder The query builder.
+     */
+    public function prepareQueryBuilder(
+        $alias,
+        $filter = null,
+        $order = null,
+        $limit = null,
+        $offset = null
+    ) {
+        $attributes = array_flip($this->getIndexedAttributes());
+
+        $qb = $this->createQueryBuilder($alias)->select($alias);
+        if (isset($filter)
+            && is_array($filter)
+            && ($filter = array_intersect_key($filter, $attributes))) {
+            $metaData = $this->getClassMetadata();
+            foreach ($filter as $attr => $value) {
+                if (isset($metaData->associationMappings[$attr])
+                    || $metaData->isIdentifier($attr)) {
+                    $qb
+                        ->andWhere(
+                            $qb->expr()->in("{$alias}.{$attr}",":{$attr}")
+                        )
+                        ->setParameter($attr, $value);
+                } else {
+                    $qb
+                        ->andWhere(
+                            $qb->expr()->like("{$alias}.{$attr}", ":{$attr}")
+                        )
+                        ->setParameter($attr, "%{$value}%");
+                }
+            }
+        }
+
+        if (isset($order)
+            && is_array($order)
+            && ($order = array_intersect_key($order, $attributes))) {
+            foreach ($order as $attr => $direction) {
+                $qb->addOrderBy(
+                    "{$alias}.{$attr}",
+                    (strtolower($direction) == 'desc' ? 'DESC' : 'ASC')
+                );
+            }
+        }
+
+        if (isset($offset)) {
+            $qb->setFirstResult((int)$offset);
+        }
+
+        if (!isset($limit) || $limit > 500) {
+            $limit = 500;
+        }
+        $qb->setMaxResults((int)$limit);
+
+        return $qb;
+    }
+
+    /**
+     * Get found count.
+     *
+     * @param QueryBuilder $queryBuilder
+     * @return int The found count.
+     */
+    public function getFoundCount(QueryBuilder $queryBuilder)
+    {
+        $qb = clone $queryBuilder;
+        $qb
+            ->select('count(t.id)')
+            ->setFirstResult(null)
+            ->setMaxResults(null);
+
+        return (int)$qb->getQuery()->getSingleScalarResult();
     }
 }

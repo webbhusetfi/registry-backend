@@ -2,6 +2,7 @@
 namespace AppBundle\Entity\Repository;
 
 use AppBundle\Entity\Repository\Common\Repository;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * Entry repository
@@ -13,12 +14,12 @@ class EntryRepository extends Repository
     protected function getMappedRepository(array $request)
     {
         $class = null;
-        if (isset($request['filter']['class'])) {
-            $class = $request['filter']['class'];
-        } elseif (isset($request['filter']['type'])) {
+        if (isset($request['class'])) {
+            $class = $request['class'];
+        } elseif (isset($request['type'])) {
             $type = $this->getEntityManager()->getRepository(
                 'AppBundle\Entity\Type'
-            )->find((int)$request['filter']['type']);
+            )->find((int)$request['type']);
             if (!$type) {
                 return ['items' => [], 'foundCount' => 0];
             }
@@ -34,101 +35,76 @@ class EntryRepository extends Repository
         return null;
     }
 
-    public function search(array $request, $user, &$message)
+    public function read(array $request, $user, &$message)
     {
         if ($repo = $this->getMappedRepository($request)) {
+            return $repo->read($request, $user, $message);
+        }
+
+        $metaData = $this->getClassMetadata();
+        foreach ($metaData->identifier as $id) {
+            if (!isset($request[$id]) || !is_scalar($request[$id])) {
+                $message[$id] = 'Not found';
+            }
+        }
+        if (!empty($message)) {
+            return null;
+        }
+
+        $qb = $this->prepareQueryBuilder('t', $request);
+        $qb
+            ->leftJoin('t.properties', 'p')
+            ->addSelect('p');
+
+        $items = $qb->getQuery()->getResult();
+        if (count($items) !== 1) {
+            $message = array_fill_keys($metaData->identifier, 'Not found');
+            return null;
+        }
+
+        return ['item' => $items[0]];
+    }
+
+    public function search(array $request, $user, &$message)
+    {
+        if (isset($request['filter'])
+            && is_array($request['filter'])
+            && ($repo = $this->getMappedRepository($request['filter']))) {
             return $repo->search($request, $user, $message);
         }
 
-        $attributes = $this->getIndexedAttributes();
-
-        $qb = $this->createQueryBuilder('e');
-        if (isset($request['filter']) && is_array($request['filter'])) {
-            if (isset($request['filter']['childOfEntry'])) {
-                $qb
-                    ->innerJoin('e.parentConnections', 'pc')
-                    ->andWhere(
-                        $qb->expr()->in('pc.parentEntry', ':childOfEntry')
-                    )
-                    ->setParameter(
-                        'childOfEntry',
-                        $request['filter']['childOfEntry']
-                    );
-            }
-            if (isset($request['filter']['properties'])) {
-                $qb
-                    ->innerJoin('e.properties', 'p')
-                    ->andWhere(
-                        $qb->expr()->in('p.id', ':properties')
-                    )
-                    ->setParameter(
-                        'properties',
-                        $request['filter']['properties']
-                    );
-            }
-
-            $metaData = $this->getClassMetadata();
-            foreach ($attributes as $attribute) {
-                if (!isset($request['filter'][$attribute])) {
-                    continue;
-                }
-                if (isset($metaData->associationMappings[$attribute])
-                    || $metaData->isIdentifier($attribute)) {
-                    $qb
-                        ->andWhere(
-                            $qb->expr()->in("e.$attribute", ":{$attribute}")
-                        )
-                        ->setParameter(
-                            $attribute,
-                            $request['filter'][$attribute]
-                        );
-                } else {
-                    $qb
-                        ->andWhere(
-                            $qb->expr()->like("e.$attribute", ":{$attribute}")
-                        )
-                        ->setParameter(
-                            $attribute,
-                            "%{$request['filter'][$attribute]}%"
-                        );
-                }
-            }
+        $qb = $this->prepareQueryBuilder(
+            't',
+            (isset($request['filter']) ? $request['filter'] : null),
+            (isset($request['order']) ? $request['order'] : null),
+            (isset($request['limit']) ? $request['limit'] : null),
+            (isset($request['offset']) ? $request['offset'] : null)
+        );
+        if (isset($request['filter']['parentEntry'])) {
+            $qb
+                ->innerJoin('t.parentConnections', 'pc')
+                ->andWhere(
+                    $qb->expr()->in('pc.parentEntry', ':parentEntry')
+                )
+                ->setParameter(
+                    'parentEntry',
+                    $request['filter']['parentEntry']
+                );
+        }
+        if (isset($request['filter']['properties'])) {
+            $qb
+                ->innerJoin('t.properties', 'p')
+                ->andWhere(
+                    $qb->expr()->in('p.id', ':properties')
+                )
+                ->setParameter(
+                    'properties',
+                    $request['filter']['properties']
+                );
         }
 
-        if (isset($request['order']) && is_array($request['order'])) {
-            $order = array_intersect_key(
-                $request['order'],
-                array_flip($attributes)
-            );
-            if (!empty($order)) {
-                foreach ($order as $attribute => $direction) {
-                    $qb->addOrderBy(
-                        "e.$attribute",
-                        (strtolower($direction) == 'desc' ? 'DESC' : 'ASC')
-                    );
-                }
-            }
-        }
-
-        $foundCount = (int)$qb
-            ->select('count(e.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if (isset($request['offset'])) {
-            $qb->setFirstResult((int)$request['offset']);
-        }
-
-        $limit = 500;
-        if (isset($request['limit']) && (int)$request['limit'] < $limit) {
-            $limit = (int)$request['limit'];
-        }
-        $qb->setMaxResults($limit);
-
-        $items = $qb
-            ->select('e')
-            ->getQuery()
-            ->getResult();
+        $items = $qb->getQuery()->getResult();
+        $foundCount = $this->getFoundCount($qb);
 
         return ['items' => $items, 'foundCount' => $foundCount];
     }
