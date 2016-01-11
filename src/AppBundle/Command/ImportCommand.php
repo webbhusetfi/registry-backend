@@ -573,12 +573,7 @@ class ImportCommand extends ContainerAwareCommand
                     );
                 }
                 if (trim($row['inv_country_mem'])) {
-                    $billingAddress->setCountry(
-                        mb_convert_case(
-                            trim($row['inv_country_mem']),
-                            MB_CASE_TITLE
-                        )
-                    );
+                    $billingAddress->setCountry(trim($row['inv_country_mem']));
                 }
 
                 $errors = $validator->validate($billingAddress);

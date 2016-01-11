@@ -109,4 +109,40 @@ abstract class Repository extends EntityRepository implements
         }
         return $this->matching($criteria)->toArray();
     }
+
+    /**
+     * Get indexed attributes.
+     *
+     * @return array
+     */
+    public function getIndexedAttributes()
+    {
+        $em = $this->getEntityManager();
+        $class = $this->getEntityName();
+        $attributes = [];
+
+        do {
+            $metaData = $em->getClassMetadata($class);
+            foreach ($metaData->identifier as $id) {
+                $attributes[] = $id;
+            }
+            if ($indexes = $metaData->table['indexes']) {
+                foreach ($indexes as $index) {
+                    foreach ($index['columns'] as $column) {
+                        if ($column != $metaData->discriminatorColumn['name']) {
+                            $attributes[] = $metaData->getFieldForColumn(
+                                $column
+                            );
+                        }
+                    }
+                }
+            }
+        } while(($class = get_parent_class($class))
+            && !$em->getMetadataFactory()->isTransient($class));
+
+        if (!empty($attributes)) {
+            return array_unique($attributes);
+        }
+        return $attributes;
+    }
 }

@@ -127,7 +127,10 @@ class Connection implements JsonSerializable
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry",
+     *      inversedBy="parentConnections"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="childEntry_id",
@@ -142,7 +145,10 @@ class Connection implements JsonSerializable
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry",
+     *      inversedBy="childConnections"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="parentEntry_id",

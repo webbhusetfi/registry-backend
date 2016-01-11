@@ -35,6 +35,7 @@ services:
         parent: service
     registryapi.entry:
         class: AppBundle\Service\EntryService
+        arguments: ['AppBundle\Entity\Entry']
         parent: service
     registryapi.connectionType:
         class: AppBundle\Service\ConnectionTypeService

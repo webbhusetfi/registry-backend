@@ -4,9 +4,11 @@ namespace AppBundle\Service;
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
 use AppBundle\Entity\User;
+use JSend\JSendResponse;
 
 class EntryService extends ScrudService
 {
+    protected $entity;
     protected $configuration;
 
     public function getConfiguration($name = null)
@@ -46,5 +48,28 @@ class EntryService extends ScrudService
             ->setUpdateAttributes($personAttrs);
         }
         return $this->configuration[(!isset($name) ? 0 : $name)];
+    }
+
+    public function __construct($entityClass)
+    {
+        $this->entityClass = $entityClass;
+    }
+
+    public function getRepository()
+    {
+        return $this->getDoctrine()->getRepository($this->entityClass);
+    }
+
+    public function search(array $request)
+    {
+        $response = $this->getRepository()->search(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
     }
 }

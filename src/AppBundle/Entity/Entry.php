@@ -132,13 +132,6 @@ abstract class Entry implements JsonSerializable
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Address", mappedBy="entry")
-     */
-    private $addresses;
-
-    /**
-     * @var ArrayCollection
-     *
      * @ORM\ManyToMany(
      *      targetEntity="Property",
      *      inversedBy="entries"
@@ -166,13 +159,36 @@ abstract class Entry implements JsonSerializable
     private $properties;
 
     /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Address", mappedBy="entry")
+     */
+    private $addresses;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Connection", mappedBy="parentEntry")
+     */
+    private $childConnections;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Connection", mappedBy="childEntry")
+     */
+    private $parentConnections;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
-        $this->addresses = new ArrayCollection();
-        $this->properties = new ArrayCollection();
         $this->createdAt = new \DateTime();
+        $this->properties = new ArrayCollection();
+        $this->addresses = new ArrayCollection();
+        $this->childConnections = new ArrayCollection();
+        $this->parentConnections = new ArrayCollection();
     }
 
     /**
@@ -379,18 +395,20 @@ abstract class Entry implements JsonSerializable
      * @return array
      */
     public function jsonSerialize() {
-        $properties = [];
-        foreach ($this->properties as $property) {
-            $properties[] = $property->getId();
-        }
-        return [
+        $attributes = [
             'id' => $this->id,
             'registry' => ($this->registry ? $this->registry->getId() : null),
             'type' => ($this->type ? $this->type->getId() : null),
-            'properties' => $properties,
             'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
             'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
             'externalId' => $this->externalId,
         ];
+        if ($this->properties->isInitialized()) {
+            $attributes['properties'] = [];
+            foreach ($this->properties as $property) {
+                $attributes['properties'][] = $property->getId();
+            }
+        }
+        return $attributes;
     }
 }
