@@ -15,37 +15,37 @@ class EntryService extends ScrudService
     {
         if (!isset($this->configuration)) {
 
-            $entryAttrs = ['externalId', 'registry', 'type'];
+//             $entryAttrs = ['externalId', 'registry', 'type'];
             $this->configuration[0] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Entry',
                 ['search', 'create', 'read', 'update', 'delete']
             )
-            ->setCreateAttributes($entryAttrs)
-            ->setUpdateAttributes($entryAttrs);
+/*            ->setCreateAttributes($entryAttrs)
+            ->setUpdateAttributes($entryAttrs)*/;
 
-            $organizationAttrs = $entryAttrs;
-            $organizationAttrs[] = 'name';
+//             $organizationAttrs = $entryAttrs;
+//             $organizationAttrs[] = 'name';
             $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Organization',
                 ['search', 'create', 'read', 'update', 'delete']
             )
-            ->setCreateAttributes($organizationAttrs)
-            ->setUpdateAttributes($organizationAttrs);
+/*            ->setCreateAttributes($organizationAttrs)
+            ->setUpdateAttributes($organizationAttrs)*/;
 
-            $personAttrs = $entryAttrs;
-            $personAttrs[] = 'gender';
-            $personAttrs[] = 'firstName';
-            $personAttrs[] = 'lastName';
-            $personAttrs[] = 'birthdate';
+//             $personAttrs = $entryAttrs;
+//             $personAttrs[] = 'gender';
+//             $personAttrs[] = 'firstName';
+//             $personAttrs[] = 'lastName';
+//             $personAttrs[] = 'birthdate';
             $this->configuration['PERSON'] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Person',
                 ['search', 'create', 'read', 'update', 'delete']
             )
-            ->setCreateAttributes($personAttrs)
-            ->setUpdateAttributes($personAttrs);
+/*            ->setCreateAttributes($personAttrs)
+            ->setUpdateAttributes($personAttrs)*/;
         }
         return $this->configuration[(!isset($name) ? 0 : $name)];
     }
