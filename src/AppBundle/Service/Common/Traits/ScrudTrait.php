@@ -245,8 +245,15 @@ trait ScrudTrait
         $builder = $this->container->get('form.factory')
             ->createBuilder('form', $item);
 
+        $fields = $config->getClassMetadata()->fieldMappings;
         foreach ($attributes as $attribute) {
-            $builder->add($attribute);
+            if (isset($fields[$attribute])
+                && $fields[$attribute]['type'] == 'datetime') {
+                $builder->add($attribute, 'datetime');
+            } else {
+                $builder->add($attribute);
+
+            }
         }
 
         $form = $builder->getForm()->submit($request, $clearMissing);
