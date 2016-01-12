@@ -237,13 +237,17 @@ class Connection implements JsonSerializable
     /**
      * Set start
      *
-     * @param \DateTime $start
+     * @param \DateTime|string|null $start
      *
      * @return self
      */
-    public function setStart(\DateTime $start)
+    public function setStart($start)
     {
-        $this->start = $start;
+        if (!isset($start) || $start instanceof \DateTime) {
+            $this->start = $start;
+        } else {
+            $this->start = new \DateTime($start);
+        }
 
         return $this;
     }
@@ -261,13 +265,17 @@ class Connection implements JsonSerializable
     /**
      * Set end
      *
-     * @param \DateTime $end
+     * @param \DateTime|string|null $end
      *
      * @return self
      */
-    public function setEnd(\DateTime $end)
+    public function setEnd($end)
     {
-        $this->end = $end;
+        if (!isset($end) || $end instanceof \DateTime) {
+            $this->end = $end;
+        } else {
+            $this->end = new \DateTime($end);
+        }
 
         return $this;
     }
