@@ -124,6 +124,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank
      */
     private $connectionType;
 
@@ -142,6 +143,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank
      */
     private $childEntry;
 
@@ -160,6 +162,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank
      */
     private $parentEntry;
 
