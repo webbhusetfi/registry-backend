@@ -11,12 +11,30 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(
  *      name="Person",
  *      indexes={
- *          @ORM\Index(name="idx_gender", columns={"gender"}),
- *          @ORM\Index(name="idx_firstName", columns={"firstName"}),
- *          @ORM\Index(name="idx_lastName", columns={"lastName"}),
- *          @ORM\Index(name="idx_birthYear", columns={"birthYear"}),
- *          @ORM\Index(name="idx_birthMonth", columns={"birthMonth"}),
- *          @ORM\Index(name="idx_birthDay", columns={"birthDay"})
+ *          @ORM\Index(
+ *              name="idx_gender",
+ *              columns={"gender"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_firstName",
+ *              columns={"firstName"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_lastName",
+ *              columns={"lastName"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthYear",
+ *              columns={"birthYear"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthMonth",
+ *              columns={"birthMonth"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthDay",
+ *              columns={"birthDay"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -37,33 +55,57 @@ class Person extends Entry
      *      nullable=true,
      *      columnDefinition="ENUM('MALE','FEMALE')"
      * )
-     * @Assert\Choice(choices = {"MALE", "FEMALE"})
+     * @Assert\Choice(
+     *      choices={"MALE","FEMALE"}
+     * )
      */
     private $gender;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="firstName", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 1, max = 64)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="firstName",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $firstName;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="lastName", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 1, max = 64)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="lastName",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $lastName;
 
     /**
      * @var integer
      *
-     * @ORM\Column(name="birthYear", type="integer", nullable=true)
-     * @Assert\Type(type="integer")
+     * @ORM\Column(
+     *      name="birthYear",
+     *      type="integer",
+     *      nullable=true
+     * )
+     * @Assert\Type(
+     *      type="integer"
+     * )
      * @Assert\Range(
      *      min = 0,
      *      max = 9999
@@ -74,8 +116,14 @@ class Person extends Entry
     /**
      * @var integer
      *
-     * @ORM\Column(name="birthMonth", type="integer", nullable=true)
-     * @Assert\Type(type="integer")
+     * @ORM\Column(
+     *      name="birthMonth",
+     *      type="integer",
+     *      nullable=true
+     * )
+     * @Assert\Type(
+     *      type="integer"
+     * )
      * @Assert\Range(
      *      min = 1,
      *      max = 12
@@ -86,8 +134,14 @@ class Person extends Entry
     /**
      * @var integer
      *
-     * @ORM\Column(name="birthDay", type="integer", nullable=true)
-     * @Assert\Type(type="integer")
+     * @ORM\Column(
+     *      name="birthDay",
+     *      type="integer",
+     *      nullable=true
+     * )
+     * @Assert\Type(
+     *      type="integer"
+     * )
      * @Assert\Range(
      *      min = 1,
      *      max = 31

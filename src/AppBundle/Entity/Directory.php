@@ -14,7 +14,10 @@ use \JsonSerializable;
  * @ORM\Table(
  *      name="Directory",
  *      indexes={
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -36,8 +39,10 @@ class Directory implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
@@ -50,24 +55,36 @@ class Directory implements JsonSerializable
      *      nullable=false,
      *      columnDefinition="ENUM('ADDRESS','EMAIL_PHONE','ANY') NOT NULL"
      * )
-     * @Assert\Choice(choices = {"ADDRESS", "EMAIL_PHONE", "ANY"})
-     * @Assert\NotBlank
+     * @Assert\Choice(
+     *      choices={"ADDRESS","EMAIL_PHONE","ANY"}
+     * )
+     * @Assert\NotBlank()
      */
     private $view;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $name;
 
     /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",

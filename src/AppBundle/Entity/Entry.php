@@ -14,12 +14,30 @@ use \JsonSerializable;
  * @ORM\Table(
  *      name="Entry",
  *      indexes={
- *          @ORM\Index(name="idx_externalId", columns={"externalId"}),
- *          @ORM\Index(name="idx_createdAt", columns={"createdAt"}),
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"}),
- *          @ORM\Index(name="idx_type_id", columns={"type_id"}),
- *          @ORM\Index(name="idx_createdBy_id", columns={"createdBy_id"}),
- *          @ORM\Index(name="idx_class", columns={"class"})
+ *          @ORM\Index(
+ *              name="idx_externalId",
+ *              columns={"externalId"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_createdAt",
+ *              columns={"createdAt"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_type_id",
+ *              columns={"type_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_createdBy_id",
+ *              columns={"createdBy_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_class",
+ *              columns={"class"}
+ *          )
  *      }
  * )
  * @ORM\InheritanceType("JOINED")
@@ -29,9 +47,9 @@ use \JsonSerializable;
  *      columnDefinition="ENUM('ORGANIZATION','PERSON','PLACE') NOT NULL"
  * )
  * @ORM\DiscriminatorMap({
- *      "ORGANIZATION" = "Organization",
- *      "PERSON" = "Person",
- *      "PLACE" = "Place"
+ *      "ORGANIZATION"="Organization",
+ *      "PERSON"="Person",
+ *      "PLACE"="Place"
  * })
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
@@ -48,8 +66,10 @@ abstract class Entry implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
@@ -68,24 +88,37 @@ abstract class Entry implements JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column(name="notes", type="string", length=255, nullable=true)
-     * @Assert\Length(max = 255)
+     * @ORM\Column(
+     *      name="notes",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      max = 255
+     * )
      */
     private $notes;
 
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="createdAt", type="datetime", nullable=false)
+     * @ORM\Column(
+     *      name="createdAt",
+     *      type="datetime",
+     *      nullable=false
+     * )
      * @Assert\DateTime()
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $createdAt;
 
     /**
      * @var User
      *
-     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\ManyToOne(
+     *      targetEntity="User"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="createdBy_id",
@@ -100,7 +133,9 @@ abstract class Entry implements JsonSerializable
     /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",
@@ -109,14 +144,16 @@ abstract class Entry implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $registry;
 
     /**
      * @var Type
      *
-     * @ORM\ManyToOne(targetEntity="Type")
+     * @ORM\ManyToOne(
+     *      targetEntity="Type"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="type_id",
@@ -125,7 +162,7 @@ abstract class Entry implements JsonSerializable
      *          onDelete="RESTRICT"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $type;
 
@@ -161,7 +198,10 @@ abstract class Entry implements JsonSerializable
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Address", mappedBy="entry")
+     * @ORM\OneToMany(
+     *      targetEntity="Address",
+     *      mappedBy="entry"
+     * )
      */
     private $addresses;
 
@@ -178,7 +218,10 @@ abstract class Entry implements JsonSerializable
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Connection", mappedBy="childEntry")
+     * @ORM\OneToMany(
+     *      targetEntity="Connection",
+     *      mappedBy="childEntry"
+     * )
      */
     private $parentConnections;
 

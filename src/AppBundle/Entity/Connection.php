@@ -19,25 +19,33 @@ use \JsonSerializable;
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
- *              columns={
- *                  "parentEntry_id",
- *                  "childEntry_id",
- *                  "connectionType_id"
- *              }
+ *              columns={"parentEntry_id","childEntry_id","connectionType_id"}
  *          )
  *      },
  *      indexes={
- *          @ORM\Index(name="idx_parent_id", columns={"parentEntry_id"}),
- *          @ORM\Index(name="idx_child_id", columns={"childEntry_id"}),
- *          @ORM\Index(name="idx_status_id", columns={"status_id"}),
- *          @ORM\Index(name="idx_connectionType_id", columns={"connectionType_id"})
+ *          @ORM\Index(
+ *              name="idx_parent_id",
+ *              columns={"parentEntry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_child_id",
+ *              columns={"childEntry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_status_id",
+ *              columns={"status_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_connectionType_id",
+ *              columns={"connectionType_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\ConnectionRepository"
  * )
  * @UniqueEntity(
- *      fields={"connectionType", "childEntry", "parentEntry"}
+ *      fields={"connectionType","childEntry","parentEntry"}
  * )
  */
 class Connection implements JsonSerializable
@@ -51,23 +59,36 @@ class Connection implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="notes", type="string", length=255, nullable=true)
-     * @Assert\Length(max = 255)
+     * @ORM\Column(
+     *      name="notes",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      max = 255
+     * )
      */
     private $notes;
 
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="start", type="datetime", nullable=true)
+     * @ORM\Column(
+     *      name="start",
+     *      type="datetime",
+     *      nullable=true
+     * )
      * @Assert\DateTime()
      */
     private $start;
@@ -75,7 +96,11 @@ class Connection implements JsonSerializable
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="end", type="datetime", nullable=true)
+     * @ORM\Column(
+     *      name="end",
+     *      type="datetime",
+     *      nullable=true
+     * )
      * @Assert\DateTime()
      */
     private $end;
@@ -83,23 +108,39 @@ class Connection implements JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column(name="startNotes", type="string", length=255, nullable=true)
-     * @Assert\Length(max = 255)
+     * @ORM\Column(
+     *      name="startNotes",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      max = 255
+     * )
      */
     private $startNotes;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="endNotes", type="string", length=255, nullable=true)
-     * @Assert\Length(max = 255)
+     * @ORM\Column(
+     *      name="endNotes",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      max = 255
+     * )
      */
     private $endNotes;
 
     /**
      * @var Status
      *
-     * @ORM\ManyToOne(targetEntity="Status")
+     * @ORM\ManyToOne(
+     *      targetEntity="Status"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="status_id",
@@ -108,14 +149,16 @@ class Connection implements JsonSerializable
      *          onDelete="RESTRICT"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $status;
 
     /**
      * @var ConnectionType
      *
-     * @ORM\ManyToOne(targetEntity="ConnectionType")
+     * @ORM\ManyToOne(
+     *      targetEntity="ConnectionType"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="connectionType_id",
@@ -124,7 +167,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $connectionType;
 
@@ -143,7 +186,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $childEntry;
 
@@ -162,7 +205,7 @@ class Connection implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $parentEntry;
 

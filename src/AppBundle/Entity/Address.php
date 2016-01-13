@@ -14,7 +14,10 @@ use \JsonSerializable;
  * @ORM\Table(
  *      name="Address",
  *      indexes={
- *          @ORM\Index(name="idx_entry_id", columns={"entry_id"})
+ *          @ORM\Index(
+ *              name="idx_entry_id",
+ *              columns={"entry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -32,56 +35,106 @@ class Address implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=128, nullable=true)
-     * @Assert\Length(min = 1, max = 128)
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=128,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 128
+     * )
      */
     private $name;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="street", type="string", length=128, nullable=true)
-     * @Assert\Length(min = 1, max = 128)
+     * @ORM\Column(
+     *      name="street",
+     *      type="string",
+     *      length=128,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 128
+     * )
      */
     private $street;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="postalCode", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 1, max = 32)
+     * @ORM\Column(
+     *      name="postalCode",
+     *      type="string",
+     *      length=32,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 32
+     * )
      */
     private $postalCode;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="town", type="string", length=64, nullable=true)
-     * @Assert\Length(min = 1, max = 64)
+     * @ORM\Column(
+     *      name="town",
+     *      type="string",
+     *      length=64,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
      */
     private $town;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="country", type="string", length=64, nullable=true)
-     * @Assert\Length(min = 1, max = 64)
+     * @ORM\Column(
+     *      name="country",
+     *      type="string",
+     *      length=64,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
      */
     private $country;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="email", type="string", length=128, nullable=true)
-     * @Assert\Length(min = 3, max = 128)
+     * @ORM\Column(
+     *      name="email",
+     *      type="string",
+     *      length=128,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 128
+     * )
      * @Assert\Email()
      */
     private $email;
@@ -89,23 +142,42 @@ class Address implements JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column(name="phone", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 1, max = 32)
+     * @ORM\Column(
+     *      name="phone",
+     *      type="string",
+     *      length=32,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 32
+     * )
      */
     private $phone;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="mobile", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 1, max = 32)
+     * @ORM\Column(
+     *      name="mobile",
+     *      type="string",
+     *      length=32,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 32
+     * )
      */
     private $mobile;
 
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry", inversedBy="addresses")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry",
+     *      inversedBy="addresses"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="entry_id",

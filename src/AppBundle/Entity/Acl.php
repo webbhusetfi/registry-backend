@@ -12,15 +12,18 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Table(
  *      name="Acl",
  *      indexes={
- *          @ORM\Index(name="idx_sourceEntry_id", columns={"sourceEntry_id"}),
- *          @ORM\Index(name="idx_targetEntry_id", columns={"targetEntry_id"}),
+ *          @ORM\Index(
+ *              name="idx_sourceEntry_id",
+ *              columns={"sourceEntry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_targetEntry_id",
+ *              columns={"targetEntry_id"}
+ *          ),
  *          @ORM\Index(
  *              name="idx_acl",
  *              columns={
- *                  "viewAccess",
- *                  "createAccess",
- *                  "editAccess",
- *                  "deleteAccess"
+ *                  "viewAccess","createAccess","editAccess","deleteAccess"
  *              }
  *          )
  *      }
@@ -43,8 +46,10 @@ class Acl
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
@@ -103,7 +108,9 @@ class Acl
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="targetEntry_id",
@@ -118,7 +125,9 @@ class Acl
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="sourceEntry_id",

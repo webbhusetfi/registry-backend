@@ -12,8 +12,14 @@ use \JsonSerializable;
  * @ORM\Table(
  *      name="Status",
  *      indexes={
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"}),
- *          @ORM\Index(name="idx_name", columns={"name"})
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -31,32 +37,36 @@ class Status implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $name;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="label", type="string", length=32, nullable=true)
-     * @Assert\Length(min = 3, max = 32)
-     */
-    private $label;
-
-    /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry", fetch="EXTRA_LAZY")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",
@@ -65,7 +75,7 @@ class Status implements JsonSerializable
      *          onDelete="CASCADE"
      *      )
      * })
-     * @Assert\NotBlank
+     * @Assert\NotBlank()
      */
     private $registry;
 
@@ -102,30 +112,6 @@ class Status implements JsonSerializable
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * Set label
-     *
-     * @param string $label
-     *
-     * @return self
-     */
-    public function setLabel($label)
-    {
-        $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * Get label
-     *
-     * @return string
-     */
-    public function getLabel()
-    {
-        return $this->label;
     }
 
     /**

@@ -11,7 +11,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(
  *      name="Place",
  *      indexes={
- *          @ORM\Index(name="idx_name", columns={"name"})
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -29,8 +32,11 @@ class Place extends Entry
      *      length=64,
      *      nullable=false
      * )
-     * @Assert\Length(min = 1, max = 64)
-     * @Assert\NotBlank
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $name;
 

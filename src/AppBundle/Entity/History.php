@@ -3,7 +3,6 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * History
@@ -12,15 +11,18 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Table(
  *      name="History",
  *      indexes={
- *          @ORM\Index(name="idx_entry_id", columns={"entry_id"}),
- *          @ORM\Index(name="idx_modifiedBy_id", columns={"modifiedBy_id"})
+ *          @ORM\Index(
+ *              name="idx_entry_id",
+ *              columns={"entry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_modifiedBy_id",
+ *              columns={"modifiedBy_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\HistoryRepository"
- * )
- * @UniqueEntity(
- *      fields={"enty", "modifiedBy"}
  * )
  */
 class History
@@ -34,32 +36,48 @@ class History
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="modifiedAt", type="datetime", nullable=false)
-     * @Assert\DateTime
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="modifiedAt",
+     *      type="datetime",
+     *      nullable=false
+     * )
+     * @Assert\DateTime()
+     * @Assert\NotBlank()
      */
     private $modifiedAt;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="description", type="string", length=255, nullable=true)
-     * @Assert\Length(min = 3, max = 255)
+     * @ORM\Column(
+     *      name="description",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 255
+     * )
      */
     private $description;
 
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="entry_id",
@@ -74,7 +92,9 @@ class History
     /**
      * @var User
      *
-     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\ManyToOne(
+     *      targetEntity="User"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="modifiedBy_id",

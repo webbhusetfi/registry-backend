@@ -16,27 +16,38 @@ use \JsonSerializable;
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
  *              columns={
- *                  "name",
- *                  "parentType_id",
- *                  "childType_id",
- *                  "ownerEntry_id"
+ *                  "registry_id","parentType_id","childType_id","ownerEntry_id"
  *              }
  *          )
  *      },
  *      indexes={
- *          @ORM\Index(name="idx_name", columns={"name"}),
- *          @ORM\Index(name="idx_label", columns={"label"}),
- *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"}),
- *          @ORM\Index(name="idx_parentType_id", columns={"parentType_id"}),
- *          @ORM\Index(name="idx_childType_id", columns={"childType_id"}),
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_ownerEntry_id",
+ *              columns={"ownerEntry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_parentType_id",
+ *              columns={"parentType_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_childType_id",
+ *              columns={"childType_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\ConnectionTypeRepository"
  * )
  * @UniqueEntity(
- *      fields={"registry", "childType", "parentType", "ownerEntry"}
+ *      fields={"registry","parentType","childType","ownerEntry"}
  * )
  */
 class ConnectionType implements JsonSerializable
@@ -50,32 +61,36 @@ class ConnectionType implements JsonSerializable
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=128, nullable=false)
-     * @Assert\Length(min = 3, max = 128)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=128,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 128
+     * )
+     * @Assert\NotBlank()
      */
     private $name;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="label", type="string", length=64, nullable=true)
-     * @Assert\Length(min = 3, max = 128)
-     */
-    private $label;
-
-    /**
      * @var Type
      *
-     * @ORM\ManyToOne(targetEntity="Type")
+     * @ORM\ManyToOne(
+     *      targetEntity="Type"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="childType_id",
@@ -89,7 +104,9 @@ class ConnectionType implements JsonSerializable
     /**
      * @var Type
      *
-     * @ORM\ManyToOne(targetEntity="Type")
+     * @ORM\ManyToOne(
+     *      targetEntity="Type"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="parentType_id",
@@ -104,7 +121,9 @@ class ConnectionType implements JsonSerializable
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="ownerEntry_id",
@@ -119,7 +138,9 @@ class ConnectionType implements JsonSerializable
     /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",
@@ -165,30 +186,6 @@ class ConnectionType implements JsonSerializable
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * Set label
-     *
-     * @param string $label
-     *
-     * @return self
-     */
-    public function setLabel($label)
-    {
-        $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * Get label
-     *
-     * @return string
-     */
-    public function getLabel()
-    {
-        return $this->label;
     }
 
     /**

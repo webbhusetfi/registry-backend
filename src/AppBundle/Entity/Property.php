@@ -13,10 +13,22 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Table(
  *      name="Property",
  *      indexes={
- *          @ORM\Index(name="idx_name", columns={"name"}),
- *          @ORM\Index(name="idx_propertyGroup_id", columns={"propertyGroup_id"}),
- *          @ORM\Index(name="idx_connectionType_id", columns={"connectionType_id"}),
- *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"})
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_propertyGroup_id",
+ *              columns={"propertyGroup_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_connectionType_id",
+ *              columns={"connectionType_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_ownerEntry_id",
+ *              columns={"ownerEntry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -34,32 +46,53 @@ class Property
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 1, max = 64)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
      */
     private $name;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="notes", type="string", length=255, nullable=true)
-     * @Assert\Length(min = 1, max = 255)
+     * @ORM\Column(
+     *      name="notes",
+     *      type="string",
+     *      length=255,
+     *      nullable=true
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 255
+     * )
      */
     private $notes;
 
     /**
      * @var PropertyGroup
      *
-     * @ORM\ManyToOne(targetEntity="PropertyGroup", inversedBy="properties")
+     * @ORM\ManyToOne(
+     *      targetEntity="PropertyGroup",
+     *      inversedBy="properties"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="propertyGroup_id",
@@ -74,7 +107,9 @@ class Property
     /**
      * @var ConnectionType
      *
-     * @ORM\ManyToOne(targetEntity="ConnectionType")
+     * @ORM\ManyToOne(
+     *      targetEntity="ConnectionType"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="connectionType_id",
@@ -89,7 +124,9 @@ class Property
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="ownerEntry_id",

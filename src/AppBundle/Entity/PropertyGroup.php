@@ -13,9 +13,18 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Table(
  *      name="PropertyGroup",
  *      indexes={
- *          @ORM\Index(name="idx_name", columns={"name"}),
- *          @ORM\Index(name="idx_ownerEntry_id", columns={"ownerEntry_id"}),
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_ownerEntry_id",
+ *              columns={"ownerEntry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -33,16 +42,26 @@ class PropertyGroup
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="name", type="string", length=64, nullable=false)
-     * @Assert\Length(min = 3, max = 64)
+     * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 3,
+     *      max = 64
+     * )
      * @Assert\NotBlank
      */
     private $name;
@@ -50,7 +69,9 @@ class PropertyGroup
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="ownerEntry_id",
@@ -65,7 +86,9 @@ class PropertyGroup
     /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",
@@ -80,7 +103,10 @@ class PropertyGroup
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Property", mappedBy="propertyGroup")
+     * @ORM\OneToMany(
+     *      targetEntity="Property",
+     *      mappedBy="propertyGroup"
+     * )
      */
     private $properties;
 

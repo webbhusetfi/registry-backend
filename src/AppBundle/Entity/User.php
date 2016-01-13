@@ -18,14 +18,18 @@ use \JsonSerializable;
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
- *              columns={
- *                  "username"
- *              }
+ *              columns={"username"}
  *          )
  *      },
  *      indexes={
- *          @ORM\Index(name="idx_entry_id", columns={"entry_id"}),
- *          @ORM\Index(name="idx_registry_id", columns={"registry_id"})
+ *          @ORM\Index(
+ *              name="idx_entry_id",
+ *              columns={"entry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          )
  *      }
  * )
  * @ORM\Entity(
@@ -48,32 +52,49 @@ class User implements JsonSerializable, UserInterface
      *      nullable=false,
      *      options={"unsigned"=true}
      * )
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id()
+     * @ORM\GeneratedValue(
+     *      strategy="IDENTITY"
+     * )
      */
     private $id;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="username", type="string", length=255, nullable=false)
-     * @Assert\Length(min = 5, max = 255)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="username",
+     *      type="string",
+     *      length=255,
+     *      nullable=false
+     * )
+     * @Assert\Length(
+     *      min = 5,
+     *      max = 255
+     * )
+     * @Assert\NotBlank()
      */
     private $username;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="password", type="string", length=64, nullable=false)
-     * @Assert\NotBlank
+     * @ORM\Column(
+     *      name="password",
+     *      type="string",
+     *      length=64,
+     *      nullable=false
+     * )
+     * @Assert\NotBlank()
      */
     private $password;
 
     /**
      * @var Entry
      *
-     * @ORM\ManyToOne(targetEntity="Entry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Entry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="entry_id",
@@ -88,7 +109,9 @@ class User implements JsonSerializable, UserInterface
     /**
      * @var Registry
      *
-     * @ORM\ManyToOne(targetEntity="Registry")
+     * @ORM\ManyToOne(
+     *      targetEntity="Registry"
+     * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
      *          name="registry_id",
@@ -109,8 +132,10 @@ class User implements JsonSerializable, UserInterface
      *      nullable=false,
      *      columnDefinition="ENUM('SUPER_ADMIN','ADMIN','USER') NOT NULL"
      * )
-     * @Assert\Choice(choices = {"SUPER_ADMIN", "ADMIN", "USER"})
-     * @Assert\NotBlank
+     * @Assert\Choice(
+     *      choices={"SUPER_ADMIN","ADMIN","USER"}
+     * )
+     * @Assert\NotBlank()
      */
     private $role;
 
