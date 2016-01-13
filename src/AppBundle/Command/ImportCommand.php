@@ -187,6 +187,8 @@ class ImportCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        ini_set('memory_limit','256M');
+
         $destinationID = (int)$input->getArgument('destination');
         $sourceID = (int)$input->getArgument('source');
 
@@ -235,6 +237,7 @@ class ImportCommand extends ContainerAwareCommand
                 $this->importConnections(
                     $output,
                     $registry,
+                    $organization,
                     $associations,
                     $members,
                     $sourceID
@@ -262,7 +265,7 @@ class ImportCommand extends ContainerAwareCommand
 
         $type = $this->getType([
             'class' => Type::CLASS_ORGANIZATION,
-            'name' => (empty($parent) ? 'Förbund' : 'Förening'),
+            'name' => 'Förbund',
             'registry' => $registry
         ]);
 
@@ -605,7 +608,7 @@ class ImportCommand extends ContainerAwareCommand
     protected function importAssociations(
         OutputInterface $output,
         Registry $registry,
-        Organization $parent,
+        Organization $organization,
         $sourceID
     ) {
         $sql = "SELECT * FROM association_ass"
@@ -620,20 +623,20 @@ class ImportCommand extends ContainerAwareCommand
             'name' => 'Aktiv',
             'registry' => $registry
         ]);
-        $parentType = $this->getType([
+        $organizationType = $this->getType([
             'class' => Type::CLASS_ORGANIZATION,
             'name' => 'Förbund',
             'registry' => $registry
         ]);
-        $childType = $this->getType([
+        $associationType = $this->getType([
             'class' => Type::CLASS_ORGANIZATION,
             'name' => 'Förening',
             'registry' => $registry
         ]);
-        $connectionType = $this->getConnectionType([
-            'name' => 'Förening',
-            'parentType' => $parentType,
-            'childType' => $childType,
+        $organizationMembership = $this->getConnectionType([
+            'name' => 'Förbundsmedlemskap',
+            'parentType' => $organizationType,
+            'childType' => $associationType,
             'registry' => $registry,
         ]);
 
@@ -645,7 +648,7 @@ class ImportCommand extends ContainerAwareCommand
             $association = new Organization();
             $association
                 ->setRegistry($registry)
-                ->setType($childType)
+                ->setType($associationType)
                 ->setExternalId((int)$row['id_ass'])
                 ->setName(
                     mb_convert_case(trim($row['name_ass']), MB_CASE_TITLE)
@@ -666,8 +669,8 @@ class ImportCommand extends ContainerAwareCommand
             $connection = new Connection();
             $connection
                 ->setStatus($status)
-                ->setConnectionType($connectionType)
-                ->setParentEntry($parent)
+                ->setConnectionType($organizationMembership)
+                ->setParentEntry($organization)
                 ->setChildEntry($association);
             $errors = $validator->validate($connection);
             if (count($errors)) {
@@ -688,24 +691,25 @@ class ImportCommand extends ContainerAwareCommand
     protected function importConnections(
         OutputInterface $output,
         Registry $registry,
+        Organization $organization,
         array $associations,
         array $members,
         $sourceID
     ) {
         $sql = "SELECT"
-            . " member_of_association_moa.*,"
             . " member_mem.*,"
             . " member_type_mty.*,"
-            . " member_status_mst.*"
-            . " FROM member_of_association_moa"
-            . " INNER JOIN association_ass"
-            . " ON id_ass = idass_moa"
-            . " INNER JOIN member_mem"
-            . " ON id_mem = idmem_moa"
+            . " member_status_mst.*,"
+            . " association_ass.*"
+            . " FROM member_mem"
             . " LEFT JOIN member_type_mty"
             . " ON id_mty = idmty_mem"
             . " LEFT JOIN member_status_mst"
             . " ON id_mst = idmst_mem"
+            . " LEFT JOIN member_of_association_moa"
+            . " ON id_mem = idmem_moa"
+            . " LEFT JOIN association_ass"
+            . " ON id_ass = idass_moa"
             . " WHERE idreg_moa={$sourceID}";
         $statement = $this->getPdo()->query($sql, Pdo::FETCH_ASSOC);
         if (!$statement) {
@@ -713,22 +717,35 @@ class ImportCommand extends ContainerAwareCommand
             return;
         }
 
-        $parentType = $this->getType([
+        $organizationType = $this->getType([
+            'class' => Type::CLASS_ORGANIZATION,
+            'name' => 'Förbund',
+            'registry' => $registry,
+        ]);
+        $associationType = $this->getType([
             'class' => Type::CLASS_ORGANIZATION,
             'name' => 'Förening',
             'registry' => $registry,
         ]);
-        $childType = $this->getType([
+        $memberType = $this->getType([
             'class' => Type::CLASS_PERSON,
             'name' => 'Medlem',
             'registry' => $registry,
         ]);
-        $connectionType = $this->getConnectionType([
-            'name' => 'Medlem',
-            'parentType' => $parentType,
-            'childType' => $childType,
+
+        $organizationMembership = $this->getConnectionType([
+            'name' => 'Förbundsmedlemskap',
+            'parentType' => $organizationType,
+            'childType' => $memberType,
             'registry' => $registry,
         ]);
+        $associationMembership = $this->getConnectionType([
+            'name' => 'Föreningsmedlemskap',
+            'parentType' => $associationType,
+            'childType' => $memberType,
+            'registry' => $registry,
+        ]);
+
         $propertyGroup = $this->getPropertyGroup([
             'name' => 'Typ',
             'registry' => $registry
@@ -761,9 +778,17 @@ class ImportCommand extends ContainerAwareCommand
             $connection = new Connection();
             $connection
                 ->setStatus($statuses[$status])
-                ->setConnectionType($connectionType)
-                ->setParentEntry($associations[$row['idass_moa']])
-                ->setChildEntry($members[$row['idmem_moa']]);
+                ->setChildEntry($members[$row['id_mem']]);
+            if (isset($row['id_ass'])
+                && isset($associations[$row['id_ass']])) {
+                $connection
+                    ->setConnectionType($associationMembership)
+                    ->setParentEntry($associations[$row['id_ass']]);
+            } else {
+                $connection
+                    ->setConnectionType($organizationMembership)
+                    ->setParentEntry($organization);
+            }
             if ($type) {
                 $connection->addProperty($types[$type]);
             }
