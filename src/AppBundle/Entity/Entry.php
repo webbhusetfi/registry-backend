@@ -456,6 +456,12 @@ abstract class Entry implements JsonSerializable
                 $attributes['properties'][] = $property->getId();
             }
         }
+        if ($this->addresses->isInitialized()) {
+            $attributes['addresses'] = [];
+            foreach ($this->addresses as $address) {
+                $attributes['addresses'][] = $address->jsonSerialize();
+            }
+        }
         return $attributes;
     }
 }

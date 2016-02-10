@@ -80,6 +80,9 @@ class EntryRepository extends Repository
             (isset($request['limit']) ? $request['limit'] : null),
             (isset($request['offset']) ? $request['offset'] : null)
         );
+        $qb
+            ->leftJoin('t.addresses', 'a')
+            ->addSelect('a');
         if (isset($request['filter']['parentEntry'])) {
             $qb
                 ->innerJoin('t.parentConnections', 'pc')
