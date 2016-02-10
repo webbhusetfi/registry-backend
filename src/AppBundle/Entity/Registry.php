@@ -12,6 +12,7 @@ use \JsonSerializable;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
  *      name="Registry",
+ *      options={"collate"="utf8_swedish_ci"},
  *      uniqueConstraints={
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",

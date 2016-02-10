@@ -12,6 +12,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
  *      name="Property",
+ *      options={"collate"="utf8_swedish_ci"},
  *      indexes={
  *          @ORM\Index(
  *              name="idx_name",

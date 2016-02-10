@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
  *      name="Organization",
+ *      options={"collate"="utf8_swedish_ci"},
  *      indexes={
  *          @ORM\Index(
  *              name="idx_name",

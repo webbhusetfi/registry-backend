@@ -13,6 +13,7 @@ use \JsonSerializable;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Table(
  *      name="Entry",
+ *      options={"collate"="utf8_swedish_ci"},
  *      indexes={
  *          @ORM\Index(
  *              name="idx_externalId",
