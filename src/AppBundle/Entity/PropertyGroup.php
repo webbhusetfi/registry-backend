@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * PropertyGroup
@@ -32,7 +33,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      repositoryClass="AppBundle\Entity\Repository\PropertyGroupRepository"
  * )
  */
-class PropertyGroup
+class PropertyGroup implements JsonSerializable
 {
     /**
      * @var integer
@@ -209,6 +210,20 @@ class PropertyGroup
     public function getProperties()
     {
         return $this->properties;
+    }
+
+    /**
+     * JSON serialize
+     *
+     * @return array
+     */
+    public function jsonSerialize() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'ownerEntry' => ($this->ownerEntry ? $this->ownerEntry->getId() : null),
+            'registry' => ($this->registry ? $this->registry->getId() : null)
+        ];
     }
 }
 

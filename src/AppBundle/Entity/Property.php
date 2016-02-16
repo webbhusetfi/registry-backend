@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use \JsonSerializable;
 
 /**
  * Property
@@ -36,7 +37,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      repositoryClass="AppBundle\Entity\Repository\PropertyRepository"
  * )
  */
-class Property
+class Property implements JsonSerializable
 {
     /**
      * @var integer
@@ -364,5 +365,21 @@ class Property
     public function getEntries()
     {
         return $this->entries;
+    }
+
+    /**
+     * JSON serialize
+     *
+     * @return array
+     */
+    public function jsonSerialize() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'notes' => $this->notes,
+            'propertyGroup' => ($this->propertyGroup ? $this->propertyGroup->getId() : null),
+            'connectionType' => ($this->connectionType ? $this->connectionType->getId() : null),
+            'ownerEntry' => ($this->ownerEntry ? $this->ownerEntry->getId() : null)
+        ];
     }
 }
