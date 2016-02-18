@@ -19,7 +19,8 @@
         "sensio/framework-extra-bundle": "^3.0.2",
         "incenteev/composer-parameter-handler": "~2.0",
         "shkm/jsend": "^1.2",
-        "nelmio/cors-bundle": "^1.4"
+        "nelmio/cors-bundle": "^1.4",
+        "beberlei/DoctrineExtensions": "^1.0"
     },
     "require-dev": {
         "sensio/generator-bundle": "~2.3"
