@@ -441,7 +441,8 @@ abstract class Entry implements JsonSerializable
      *
      * @return array
      */
-    public function jsonSerialize() {
+    public function jsonSerialize()
+    {
         $attributes = [
             'id' => $this->id,
             'registry' => ($this->registry ? $this->registry->getId() : null),

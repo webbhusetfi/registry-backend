@@ -18,6 +18,38 @@ use \JsonSerializable;
  *          @ORM\Index(
  *              name="idx_entry_id",
  *              columns={"entry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_street",
+ *              columns={"street"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_postalCode",
+ *              columns={"postalCode"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_town",
+ *              columns={"town"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_country",
+ *              columns={"country"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_email",
+ *              columns={"email"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_phone",
+ *              columns={"phone"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_mobile",
+ *              columns={"mobile"}
  *          )
  *      }
  * )

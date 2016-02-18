@@ -24,6 +24,8 @@ abstract class Repository extends EntityRepository implements
 //     use PrepareTrait;
     use FoundCountTrait;
 
+    protected $indexedAttributes;
+
     /**
      * Build a criteria.
      *
@@ -118,85 +120,124 @@ abstract class Repository extends EntityRepository implements
      */
     public function getIndexedAttributes()
     {
-        $em = $this->getEntityManager();
-        $class = $this->getEntityName();
-        $attributes = [];
+        if (!isset($this->indexedAttributes)) {
+            $em = $this->getEntityManager();
+            $class = $this->getEntityName();
+            $attributes = [];
 
-        do {
-            $metaData = $em->getClassMetadata($class);
-            foreach ($metaData->identifier as $id) {
-                $attributes[] = $id;
-            }
-            if ($indexes = $metaData->table['indexes']) {
-                foreach ($indexes as $index) {
-                    foreach ($index['columns'] as $column) {
-                        if ($column != $metaData->discriminatorColumn['name']) {
-                            $attributes[] = $metaData->getFieldForColumn(
-                                $column
-                            );
+            do {
+                $metaData = $em->getClassMetadata($class);
+                foreach ($metaData->identifier as $id) {
+                    $attributes[] = $id;
+                }
+                if ($indexes = $metaData->table['indexes']) {
+                    foreach ($indexes as $index) {
+                        foreach ($index['columns'] as $column) {
+                            $name = $metaData->discriminatorColumn['name'];
+                            if ($column != $name) {
+                                $attributes[] = $metaData->getFieldForColumn(
+                                    $column
+                                );
+                            }
                         }
                     }
                 }
-            }
-        } while(($class = get_parent_class($class))
-            && !$em->getMetadataFactory()->isTransient($class));
+            } while(($class = get_parent_class($class))
+                && !$em->getMetadataFactory()->isTransient($class));
 
-        if (!empty($attributes)) {
-            return array_unique($attributes);
+            if (!empty($attributes)) {
+                $this->indexedAttributes = array_unique($attributes);
+            } else {
+                $this->indexedAttributes = $attributes;
+            }
         }
-        return $attributes;
+        return $this->indexedAttributes;
     }
 
     /**
-     * Build a query.
+     * Prepare query builder where.
      *
-     * @param array|null $filter
-     * @param array|null $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
-     * @return QueryBuilder The query builder.
+     * @param QueryBuilder $qb
+     * @param string $alias
+     * @param array $where
      */
-    public function prepareQueryBuilder(
+    public function prepareQueryBuilderWhere(
+        QueryBuilder $qb,
         $alias,
-        $filter = null,
-        $order = null,
-        $limit = null,
-        $offset = null
+        array $where
     ) {
         $attributes = array_flip($this->getIndexedAttributes());
-
-        $qb = $this->createQueryBuilder($alias)->select($alias);
-        if (isset($filter)
-            && is_array($filter)
-            && ($filter = array_intersect_key($filter, $attributes))) {
+        if (!empty($attributes)
+            && ($attributes = array_intersect_key($where, $attributes))) {
             $metaData = $this->getClassMetadata();
-            foreach ($filter as $attr => $value) {
-                if (isset($metaData->associationMappings[$attr])
-                    || $metaData->isIdentifier($attr)) {
+            foreach ($attributes as $name => $value) {
+                if (isset($metaData->associationMappings[$name])
+                    || $metaData->isIdentifier($name)) {
                     $qb
                         ->andWhere(
-                            $qb->expr()->in("{$alias}.{$attr}",":{$attr}")
+                            $qb->expr()->in("{$alias}.{$name}", ":{$name}")
                         )
-                        ->setParameter($attr, $value);
+                        ->setParameter($name, $value);
                 } else {
                     $qb
                         ->andWhere(
-                            $qb->expr()->like("{$alias}.{$attr}", ":{$attr}")
+                            $qb->expr()->like("{$alias}.{$name}", ":{$name}")
                         )
-                        ->setParameter($attr, "%{$value}%");
+                        ->setParameter($name, "%{$value}%");
                 }
             }
         }
+    }
 
-        if (isset($order)
-            && is_array($order)
-            && ($order = array_intersect_key($order, $attributes))) {
-            foreach ($order as $attr => $direction) {
+    /**
+     * Prepare query builder order by.
+     *
+     * @param QueryBuilder $qb
+     * @param string $alias
+     * @param array $orderBy
+     */
+    public function prepareQueryBuilderOrderBy(
+        QueryBuilder $qb,
+        $alias,
+        array $orderBy
+    ) {
+        $attributes = array_flip($this->getIndexedAttributes());
+        if (!empty($attributes)
+            && ($attributes = array_intersect_key($orderBy, $attributes))) {
+            $metaData = $this->getClassMetadata();
+            foreach ($attributes as $name => $direction) {
                 $qb->addOrderBy(
-                    "{$alias}.{$attr}",
+                    "{$alias}.{$name}",
                     (strtolower($direction) == 'desc' ? 'DESC' : 'ASC')
                 );
             }
+        }
+    }
+
+    /**
+     * Prepare a query builder.
+     *
+     * @param array|null $where
+     * @param array|null $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return QueryBuilder The prepared query builder.
+     */
+    public function prepareQueryBuilder(
+        $alias,
+        $where = null,
+        $orderBy = null,
+        $limit = null,
+        $offset = null
+    ) {
+        $qb = $this->createQueryBuilder($alias)->select($alias);
+
+        if (isset($where) && is_array($where)) {
+            $this->prepareQueryBuilderWhere($qb, $alias, $where);
+        }
+
+        if (isset($orderBy) && is_array($orderBy)) {
+            $this->prepareQueryBuilderOrderBy($qb, $alias, $orderBy);
         }
 
         if (isset($offset)) {
@@ -217,13 +258,19 @@ abstract class Repository extends EntityRepository implements
      * @param QueryBuilder $queryBuilder
      * @return int The found count.
      */
-    public function getFoundCount(QueryBuilder $queryBuilder)
+    public function getFoundCount(QueryBuilder $queryBuilder, $column = null)
     {
         $qb = clone $queryBuilder;
+        if (!isset($column)) {
+            $aliases = $qb->getRootAliases();
+            $column = "{$aliases[0]}.id";
+        }
+
         $qb
-            ->select('count(t.id)')
+            ->select("count({$column})")
             ->setFirstResult(null)
-            ->setMaxResults(null);
+            ->setMaxResults(null)
+            ->resetDQLPart('groupBy');
 
         return (int)$qb->getQuery()->getSingleScalarResult();
     }
