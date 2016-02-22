@@ -255,23 +255,27 @@ abstract class Repository extends EntityRepository implements
     /**
      * Get found count.
      *
-     * @param QueryBuilder $queryBuilder
+     * @param QueryBuilder $queryBuilder The query builder.
+     * @param string $expression DQL expression
      * @return int The found count.
      */
-    public function getFoundCount(QueryBuilder $queryBuilder, $column = null)
-    {
+    public function getFoundCount(
+        QueryBuilder $queryBuilder,
+        $expression = null
+    ) {
         $qb = clone $queryBuilder;
-        if (!isset($column)) {
+        if (!isset($expression)) {
             $aliases = $qb->getRootAliases();
-            $column = "{$aliases[0]}.id";
+            $expression = "count({$aliases[0]}.id)";
         }
 
         $qb
-            ->select("count({$column})")
+            ->select($expression)
             ->setFirstResult(null)
             ->setMaxResults(null)
             ->resetDQLPart('groupBy');
 
+        //return $qb->getQuery()->getSQL();
         return (int)$qb->getQuery()->getSingleScalarResult();
     }
 }

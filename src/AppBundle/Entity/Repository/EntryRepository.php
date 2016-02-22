@@ -19,7 +19,7 @@ class EntryRepository extends Repository
             $class = $request['class'];
         } elseif (isset($request['type'])) {
             $type = $this->getEntityManager()->getRepository(
-                'AppBundle\Entity\Type'
+                'AppBundle:Type'
             )->find((int)$request['type']);
             if (!$type) {
                 return ['items' => [], 'foundCount' => 0];
@@ -66,36 +66,6 @@ class EntryRepository extends Repository
                     ->serialize($attributes['address']);
         }
         return $item;
-    }
-
-    public function read(array $request, $user, &$message)
-    {
-        if ($repo = $this->getMappedRepository($request)) {
-            return $repo->read($request, $user, $message);
-        }
-
-        $metaData = $this->getClassMetadata();
-        foreach ($metaData->identifier as $id) {
-            if (!isset($request[$id]) || !is_scalar($request[$id])) {
-                $message[$id] = 'Not found';
-            }
-        }
-        if (!empty($message)) {
-            return null;
-        }
-
-        $qb = $this->prepareQueryBuilder('t', $request);
-        $qb
-            ->leftJoin('t.properties', 'p')
-            ->addSelect('p');
-
-        $items = $qb->getQuery()->getResult();
-        if (count($items) !== 1) {
-            $message = array_fill_keys($metaData->identifier, 'Not found');
-            return null;
-        }
-
-        return ['item' => $items[0]];
     }
 
     public function search(array $request, $user, &$message)
@@ -162,15 +132,10 @@ class EntryRepository extends Repository
         }
 
         if (in_array('properties', $include)) {
-            $qb->leftJoin('entry.properties', 'property');
-            if (in_array('properties', $include)) {
-                $qb->addSelect('GROUP_CONCAT(property.id) AS properties');
-                if (in_array('address', $include)) {
-                    $qb->groupBy('address.id');
-                } else {
-                    $qb->groupBy('entry.id');
-                }
-            }
+            $dql = 'SELECT GROUP_CONCAT(property.id)'
+                . ' FROM AppBundle:Property property'
+                . ' WHERE entry MEMBER OF property.entries';
+            $qb->addSelect("($dql) as properties");
         }
 
         if (!empty($request['filter']['withProperty'])) {
@@ -214,14 +179,7 @@ class EntryRepository extends Repository
                     $request['filter']['parentEntry']
                 );
         }
-
-        if (in_array('address', $include)) {
-            $foundCount = $this->getFoundCount($qb, "DISTINCT address.id");
-        } elseif (in_array('properties', $include)) {
-            $foundCount = $this->getFoundCount($qb, "DISTINCT entry.id");
-        } else {
-            $foundCount = $this->getFoundCount($qb);
-        }
+        $foundCount = $this->getFoundCount($qb);
 
         $result = $qb->getQuery()
             ->setHint(Query::HINT_INCLUDE_META_COLUMNS, true)
@@ -242,4 +200,114 @@ class EntryRepository extends Repository
 
         return ['items' => $items, 'foundCount' => $foundCount];
     }
+
+//     public function create(array $request, $user, &$message)
+//     {
+//         if ($repo = $this->getMappedRepository($request)) {
+//             return $repo->create($request, $user, $message);
+//         }
+//
+//         $metaData = $this->getClassMetadata();
+//         foreach ($metaData->identifier as $id) {
+//             if (!isset($request[$id]) || !is_scalar($request[$id])) {
+//                 $message[$id] = 'Not found';
+//             }
+//         }
+//         if (!empty($message)) {
+//             return null;
+//         }
+//
+//         $qb = $this->prepareQueryBuilder('t', $request);
+//         $qb
+//             ->leftJoin('t.properties', 'p')
+//             ->addSelect('p');
+//
+//         $items = $qb->getQuery()->getResult();
+//         if (count($items) !== 1) {
+//             $message = array_fill_keys($metaData->identifier, 'Not found');
+//             return null;
+//         }
+//
+//         return ['item' => $items[0]];
+//     }
+//
+//     public function create(array $request, $user, &$message)
+//     {
+//         if ($repo = $this->getMappedRepository($request)) {
+//             return $repo->create($request, $user, $message);
+//         }
+//
+//         $className = $this->getClassName();
+//         $item = new $className();
+//
+//         if (!$this->prepare($item, $request, $user, $message)) {
+//             return null;
+//         }
+//
+//         $em = $this->getEntityManager();
+//         $em->persist($item);
+//         $em->flush();
+//
+//         return ['item' => $this->serialize($item->toArray())];
+//     }
+
+    public function read(array $request, $user, &$message)
+    {
+        if ($repo = $this->getMappedRepository($request)) {
+            return $repo->read($request, $user, $message);
+        }
+
+        $metaData = $this->getClassMetadata();
+        foreach ($metaData->identifier as $id) {
+            if (!isset($request[$id]) || !is_scalar($request[$id])) {
+                $message[$id] = 'Not found';
+            }
+        }
+        if (!empty($message)) {
+            return null;
+        }
+
+        $qb = $this->prepareQueryBuilder('t', $request);
+        $qb
+            ->leftJoin('t.properties', 'p')
+            ->addSelect('p');
+
+        $items = $qb->getQuery()->getResult();
+        if (count($items) !== 1) {
+            $message = array_fill_keys($metaData->identifier, 'Not found');
+            return null;
+        }
+
+        return ['item' => $items[0]];
+    }
+
+//     public function update(array $request, $user, &$message)
+//     {
+//         if ($repo = $this->getMappedRepository($request)) {
+//             return $repo->create($request, $user, $message);
+//         }
+//
+//         $metaData = $this->getClassMetadata();
+//         foreach ($metaData->identifier as $id) {
+//             if (!isset($request[$id]) || !is_scalar($request[$id])) {
+//                 $message[$id] = 'Not found';
+//             }
+//         }
+//         if (!empty($message)) {
+//             return null;
+//         }
+//
+//         $qb = $this->prepareQueryBuilder('t', $request);
+//         $qb
+//             ->leftJoin('t.properties', 'p')
+//             ->addSelect('p');
+//
+//         $items = $qb->getQuery()->getResult();
+//         if (count($items) !== 1) {
+//             $message = array_fill_keys($metaData->identifier, 'Not found');
+//             return null;
+//         }
+//
+//         return ['item' => $items[0]];
+//     }
 }
