@@ -24,6 +24,7 @@ class AddressRepository extends Repository
             'name' => $attributes['name'],
             'street' => $attributes['street'],
             'postalCode' => $attributes['postalCode'],
+            'town' => $attributes['town'],
             'country' => $attributes['country'],
             'email' => $attributes['email'],
             'phone' => $attributes['phone'],
