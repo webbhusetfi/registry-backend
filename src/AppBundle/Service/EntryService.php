@@ -19,7 +19,7 @@ class EntryService extends ScrudService
             $this->configuration[0] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Entry',
-                ['search', 'create', 'read', 'update', 'delete']
+                ['statistics', 'search', 'create', 'read', 'update', 'delete']
             )
             ->setCreateAttributes($entryAttrs)
             ->setUpdateAttributes($entryAttrs);
@@ -33,7 +33,7 @@ class EntryService extends ScrudService
             $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Organization',
-                ['search', 'create', 'read', 'update', 'delete']
+                ['statistics', 'search', 'create', 'read', 'update', 'delete']
             )
             ->setCreateAttributes($organizationAttrs)
             ->setUpdateAttributes($organizationAttrs);
@@ -48,7 +48,7 @@ class EntryService extends ScrudService
             $this->configuration['PERSON'] = ScrudConfiguration::create(
                 $this->getDoctrine(),
                 'AppBundle\Entity\Person',
-                ['search', 'create', 'read', 'update', 'delete']
+                ['statistics', 'search', 'create', 'read', 'update', 'delete']
             )
             ->setCreateAttributes($personAttrs)
             ->setUpdateAttributes($personAttrs);
@@ -66,9 +66,9 @@ class EntryService extends ScrudService
         return $this->getDoctrine()->getRepository($this->entityClass);
     }
 
-    public function read(array $request)
+    public function statistics(array $request)
     {
-        $response = $this->getRepository()->read(
+        $response = $this->getRepository()->statistics(
             $request,
             $this->getUser(),
             $message
@@ -91,4 +91,57 @@ class EntryService extends ScrudService
         }
         return JSendResponse::fail($message)->asArray();
     }
+
+//     public function create(array $request)
+//     {
+//         $response = $this->getRepository()->create(
+//             $request,
+//             $this->getUser(),
+//             $message,
+//             $this->container->get('form.factory')
+//         );
+//         if (isset($response)) {
+//             return JSendResponse::success($response)->asArray();
+//         }
+//         return JSendResponse::fail($message)->asArray();
+//     }
+
+    public function read(array $request)
+    {
+        $response = $this->getRepository()->read(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
+
+//     public function update(array $request)
+//     {
+//         $response = $this->getRepository()->update(
+//             $request,
+//             $this->getUser(),
+//             $message
+//         );
+//         if (isset($response)) {
+//             return JSendResponse::success($response)->asArray();
+//         }
+//         return JSendResponse::fail($message)->asArray();
+//     }
+//
+//     public function delete(array $request)
+//     {
+//         $response = $this->getRepository()->delete(
+//             $request,
+//             $this->getUser(),
+//             $message
+//         );
+//         if (isset($response)) {
+//             return JSendResponse::success($response)->asArray();
+//         }
+//         return JSendResponse::fail($message)->asArray();
+//     }
 }
