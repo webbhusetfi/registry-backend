@@ -24,5 +24,5 @@ interface ArrayInterface
      *
      * @return array
      */
-    public function toArray();
+    public function toArray($level = 0);
 }

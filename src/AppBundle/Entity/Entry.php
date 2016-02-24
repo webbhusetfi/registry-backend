@@ -1,8 +1,12 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Interfaces\ArrayInterface;
+use AppBundle\Entity\Common\Traits\ArrayTrait;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use \JsonSerializable;
@@ -56,8 +60,10 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
  */
-abstract class Entry implements JsonSerializable
+abstract class Entry implements ArrayInterface, JsonSerializable
 {
+    use ArrayTrait;
+
     /**
      * @var integer
      *
@@ -72,7 +78,7 @@ abstract class Entry implements JsonSerializable
      *      strategy="IDENTITY"
      * )
      */
-    private $id;
+    protected $id;
 
     /**
      * @var string
@@ -84,7 +90,7 @@ abstract class Entry implements JsonSerializable
      *      nullable=true
      * )
      */
-    private $externalId;
+    protected $externalId;
 
     /**
      * @var string
@@ -99,7 +105,7 @@ abstract class Entry implements JsonSerializable
      *      max = 255
      * )
      */
-    private $notes;
+    protected $notes;
 
     /**
      * @var \DateTime
@@ -112,7 +118,7 @@ abstract class Entry implements JsonSerializable
      * @Assert\DateTime()
      * @Assert\NotBlank()
      */
-    private $createdAt;
+    protected $createdAt;
 
     /**
      * @var User
@@ -129,7 +135,7 @@ abstract class Entry implements JsonSerializable
      *      )
      * })
      */
-    private $createdBy;
+    protected $createdBy;
 
     /**
      * @var Registry
@@ -147,7 +153,7 @@ abstract class Entry implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $registry;
+    protected $registry;
 
     /**
      * @var Type
@@ -165,7 +171,7 @@ abstract class Entry implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $type;
+    protected $type;
 
     /**
      * @var ArrayCollection
@@ -194,7 +200,7 @@ abstract class Entry implements JsonSerializable
      *      }
      * )
      */
-    private $properties;
+    protected $properties;
 
     /**
      * @var ArrayCollection
@@ -204,7 +210,7 @@ abstract class Entry implements JsonSerializable
      *      mappedBy="entry"
      * )
      */
-    private $addresses;
+    protected $addresses;
 
     /**
      * @var ArrayCollection
@@ -214,7 +220,7 @@ abstract class Entry implements JsonSerializable
      *      mappedBy="parentEntry"
      * )
      */
-    private $childConnections;
+    protected $childConnections;
 
     /**
      * @var ArrayCollection
@@ -224,7 +230,7 @@ abstract class Entry implements JsonSerializable
      *      mappedBy="childEntry"
      * )
      */
-    private $parentConnections;
+    protected $parentConnections;
 
     /**
      * Constructor
@@ -303,7 +309,7 @@ abstract class Entry implements JsonSerializable
      *
      * @return self
      */
-    public function setCreatedAt(\DateTime $createdAt)
+    public function setCreatedAt($createdAt)
     {
         $this->createdAt = $createdAt;
 
@@ -452,18 +458,18 @@ abstract class Entry implements JsonSerializable
             'externalId' => $this->externalId,
             'notes' => $this->notes
         ];
-        if ($this->properties->isInitialized()) {
-            $attributes['properties'] = [];
-            foreach ($this->properties as $property) {
-                $attributes['properties'][] = $property->getId();
-            }
-        }
-        if ($this->addresses->isInitialized()) {
-            $attributes['addresses'] = [];
-            foreach ($this->addresses as $address) {
-                $attributes['addresses'][] = $address->jsonSerialize();
-            }
-        }
+//         if ($this->properties->isInitialized()) {
+//             $attributes['properties'] = [];
+//             foreach ($this->properties as $property) {
+//                 $attributes['properties'][] = $property->getId();
+//             }
+//         }
+//         if ($this->addresses->isInitialized()) {
+//             $attributes['addresses'] = [];
+//             foreach ($this->addresses as $address) {
+//                 $attributes['addresses'][] = $address->jsonSerialize();
+//             }
+//         }
         return $attributes;
     }
 }

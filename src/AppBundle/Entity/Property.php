@@ -1,6 +1,9 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Interfaces\ArrayInterface;
+use AppBundle\Entity\Common\Traits\ArrayTrait;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -37,8 +40,10 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\PropertyRepository"
  * )
  */
-class Property implements JsonSerializable
+class Property implements ArrayInterface, JsonSerializable
 {
+    use ArrayTrait;
+
     /**
      * @var integer
      *

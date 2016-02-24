@@ -60,7 +60,7 @@ class Person extends Entry
      *      choices={"MALE","FEMALE"}
      * )
      */
-    private $gender;
+    protected $gender;
 
     /**
      * @var string
@@ -77,7 +77,7 @@ class Person extends Entry
      * )
      * @Assert\NotBlank()
      */
-    private $firstName;
+    protected $firstName;
 
     /**
      * @var string
@@ -94,7 +94,7 @@ class Person extends Entry
      * )
      * @Assert\NotBlank()
      */
-    private $lastName;
+    protected $lastName;
 
     /**
      * @var integer
@@ -112,7 +112,7 @@ class Person extends Entry
      *      max = 9999
      * )
      */
-    private $birthYear;
+    protected $birthYear;
 
     /**
      * @var integer
@@ -130,7 +130,7 @@ class Person extends Entry
      *      max = 12
      * )
      */
-    private $birthMonth;
+    protected $birthMonth;
 
     /**
      * @var integer
@@ -148,7 +148,7 @@ class Person extends Entry
      *      max = 31
      * )
      */
-    private $birthDay;
+    protected $birthDay;
 
     /**
      * Set gender

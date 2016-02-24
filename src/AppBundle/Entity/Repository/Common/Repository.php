@@ -10,7 +10,10 @@ use AppBundle\Entity\Repository\Common\Interfaces\FoundCountInterface;
 use AppBundle\Entity\Repository\Common\Traits\FoundCountTrait;
 
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\PersistentCollection;
+
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Persistence\Proxy;
 
 /**
  * Abstract repository base class
@@ -24,6 +27,7 @@ abstract class Repository extends EntityRepository implements
 //     use PrepareTrait;
     use FoundCountTrait;
 
+    protected $allAttributes;
     protected $indexedAttributes;
 
     /**
@@ -114,6 +118,40 @@ abstract class Repository extends EntityRepository implements
     }
 
     /**
+     * Get all attributes.
+     *
+     * @return array
+     */
+    public function getAllAttributes()
+    {
+        if (!isset($this->allAttributes)) {
+            $em = $this->getEntityManager();
+            $class = $this->getEntityName();
+            $attrs = [];
+            do {
+                $metaData = $em->getClassMetadata($class);
+                $discr = $metaData->discriminatorColumn;
+                if (isset($discr) && !isset($attrs[$discr['name']])) {
+                    $attrs[$discr['name']] = $discr['fieldName'];
+                }
+                $attrs = array_merge($attrs, $metaData->fieldNames);
+                foreach ($metaData->associationMappings as $name => $mapping) {
+                    if ($metaData->isAssociationWithSingleJoinColumn($name)
+                        && !isset($attrs[$mapping['joinColumns'][0]['name']])) {
+                        $attrs[$mapping['joinColumns'][0]['name']] = $name;
+                    } elseif (!isset($attrs[$name])) {
+                        $attrs[$name] = $name;
+                    }
+                }
+            } while(($class = get_parent_class($class))
+                && !$em->getMetadataFactory()->isTransient($class));
+
+            $this->allAttributes = $attrs;
+        }
+        return $this->allAttributes;
+    }
+
+    /**
      * Get indexed attributes.
      *
      * @return array
@@ -123,19 +161,18 @@ abstract class Repository extends EntityRepository implements
         if (!isset($this->indexedAttributes)) {
             $em = $this->getEntityManager();
             $class = $this->getEntityName();
-            $attributes = [];
-
+            $attrs = [];
             do {
                 $metaData = $em->getClassMetadata($class);
                 foreach ($metaData->identifier as $id) {
-                    $attributes[] = $id;
+                    $attrs[$metaData->columnNames[$id]] = $id;
                 }
                 if ($indexes = $metaData->table['indexes']) {
                     foreach ($indexes as $index) {
                         foreach ($index['columns'] as $column) {
                             $name = $metaData->discriminatorColumn['name'];
-                            if ($column != $name) {
-                                $attributes[] = $metaData->getFieldForColumn(
+                            if ($column != $name && !isset($attrs[$column])) {
+                                $attrs[$column] = $metaData->getFieldForColumn(
                                     $column
                                 );
                             }
@@ -145,13 +182,54 @@ abstract class Repository extends EntityRepository implements
             } while(($class = get_parent_class($class))
                 && !$em->getMetadataFactory()->isTransient($class));
 
-            if (!empty($attributes)) {
-                $this->indexedAttributes = array_unique($attributes);
-            } else {
-                $this->indexedAttributes = $attributes;
-            }
+            $this->indexedAttributes = $attrs;
         }
         return $this->indexedAttributes;
+    }
+
+    /**
+     * Get properties
+     *
+     * @return array
+     */
+    public function getProperties($object)
+    {
+        $reflect = new \ReflectionClass($object);
+        $props = $reflect->getProperties(
+            \ReflectionProperty::IS_PRIVATE
+            | \ReflectionProperty::IS_PROTECTED
+            | \ReflectionProperty::IS_PUBLIC
+        );
+        $em = $this->getEntityManager();
+
+        $values = [];
+        foreach ($props as $prop) {
+            $prop->setAccessible(true);
+            $name = $prop->getName();
+            $value = $prop->getValue($object);
+            if (is_object($value)) {
+                if ($value instanceof PersistentCollection) {
+                    if ($value->isInitialized()) {
+                        foreach ($value as $item) {
+                            $values[$name][] = $item->getId();
+                        }
+                    }
+                } elseif ($value instanceof Proxy) {
+                    if ($value->__isInitialized()) {
+                        $values[$name] = $em
+                            ->getRepository(get_parent_class($value))
+                                ->getProperties($value);
+                    } else {
+                        $values[$name] = $value->getId();
+                    }
+                } else {
+                    $values[$name] = $value;
+                }
+            } else {
+                $values[$name] = $value;
+            }
+        }
+        return $values;
     }
 
     /**
@@ -277,5 +355,16 @@ abstract class Repository extends EntityRepository implements
 
         //return $qb->getQuery()->getSQL();
         return (int)$qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * Serialize attributes
+     *
+     * @param array $attributes Input attributes
+     * @return array Output attributes
+     */
+    public function serialize(array $attributes)
+    {
+        return $attributes;
     }
 }

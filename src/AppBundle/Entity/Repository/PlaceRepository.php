@@ -8,19 +8,5 @@ namespace AppBundle\Entity\Repository;
  */
 class PlaceRepository extends EntryRepository
 {
-    /**
-     * Serialize attributes
-     *
-     * @param array $attributes Input attributes
-     * @return array Output attributes
-     */
-    public function serialize(array $attributes)
-    {
-        return array_merge(
-            parent::serialize($attributes),
-            [
-                'name' => $attributes['name'],
-            ]
-        );
-    }
+
 }

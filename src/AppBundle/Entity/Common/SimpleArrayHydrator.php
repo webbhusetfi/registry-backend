@@ -59,10 +59,18 @@ class SimpleArrayHydrator extends AbstractHydrator
 
         // 2) Now hydrate the data found in the current row.
         foreach ($rowData['data'] as $dqlAlias => $data) {
+            $fields = [];
+            foreach ($data as $key => $value) {
+                if (substr($key, -3) == '_id') {
+                    $fields[substr($key, 0, -3)] = $value;
+                } else {
+                    $fields[$key] = $value;
+                }
+            }
             if (isset($result[$resultKey])) {
-                $result[$resultKey][$dqlAlias] = $data;
+                $result[$resultKey][$dqlAlias] = $fields;
             } else {
-                $result[$resultKey] = $data;
+                $result[$resultKey] = $fields;
             }
         }
 
