@@ -8,7 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use \JsonSerializable;
 
 /**
@@ -443,6 +442,23 @@ abstract class Entry implements ArrayInterface, JsonSerializable
     }
 
     /**
+     * Set properties
+     *
+     * @param Property[] $properties
+     *
+     * @return ArrayCollection
+     */
+    public function setProperties(array $properties)
+    {
+        $this->properties->clear();
+        foreach ($properties as $property) {
+            $this->properties[] = $property;
+        }
+
+        return $this;
+    }
+
+    /**
      * JSON serialize
      *
      * @return array
@@ -458,18 +474,18 @@ abstract class Entry implements ArrayInterface, JsonSerializable
             'externalId' => $this->externalId,
             'notes' => $this->notes
         ];
-//         if ($this->properties->isInitialized()) {
-//             $attributes['properties'] = [];
-//             foreach ($this->properties as $property) {
-//                 $attributes['properties'][] = $property->getId();
-//             }
-//         }
-//         if ($this->addresses->isInitialized()) {
-//             $attributes['addresses'] = [];
-//             foreach ($this->addresses as $address) {
-//                 $attributes['addresses'][] = $address->jsonSerialize();
-//             }
-//         }
+        if ($this->properties->isInitialized()) {
+            $attributes['properties'] = [];
+            foreach ($this->properties as $property) {
+                $attributes['properties'][] = $property->getId();
+            }
+        }
+        if ($this->addresses->isInitialized()) {
+            $attributes['addresses'] = [];
+            foreach ($this->addresses as $address) {
+                $attributes['addresses'][] = $address->jsonSerialize();
+            }
+        }
         return $attributes;
     }
 }

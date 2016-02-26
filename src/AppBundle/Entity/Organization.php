@@ -39,7 +39,7 @@ class Organization extends Entry
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var string
@@ -52,7 +52,7 @@ class Organization extends Entry
      * )
      * @Assert\Length(max = 255)
      */
-    private $description;
+    protected $description;
 
     /**
      * @var string
@@ -65,7 +65,7 @@ class Organization extends Entry
      * )
      * @Assert\Length(max = 64)
      */
-    private $bank;
+    protected $bank;
 
     /**
      * @var string
@@ -78,7 +78,7 @@ class Organization extends Entry
      * )
      * @Assert\Length(max = 64)
      */
-    private $account;
+    protected $account;
 
     /**
      * @var string
@@ -91,7 +91,7 @@ class Organization extends Entry
      * )
      * @Assert\Length(max = 64)
      */
-    private $vat;
+    protected $vat;
 
     /**
      * Set name

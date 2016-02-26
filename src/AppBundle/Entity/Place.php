@@ -39,7 +39,7 @@ class Place extends Entry
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
 
     /**

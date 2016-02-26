@@ -103,8 +103,7 @@ class Registry implements JsonSerializable
     public function jsonSerialize() {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'label' => $this->label
+            'name' => $this->name
         ];
     }
 }
