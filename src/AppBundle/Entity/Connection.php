@@ -130,11 +130,10 @@ class Connection extends Entity
      *      @ORM\JoinColumn(
      *          name="status_id",
      *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="RESTRICT"
+     *          nullable=true,
+     *          onDelete="SET NULL"
      *      )
      * })
-     * @Assert\NotBlank()
      */
     protected $status;
 
