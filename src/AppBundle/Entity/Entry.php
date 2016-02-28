@@ -1,8 +1,7 @@
 <?php
 namespace AppBundle\Entity;
 
-use AppBundle\Entity\Common\Interfaces\ArrayInterface;
-use AppBundle\Entity\Common\Traits\ArrayTrait;
+use AppBundle\Entity\Common\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -59,26 +58,8 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
  */
-abstract class Entry implements ArrayInterface, JsonSerializable
+abstract class Entry extends Entity implements JsonSerializable
 {
-    use ArrayTrait;
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    protected $id;
-
     /**
      * @var string
      *
@@ -456,36 +437,5 @@ abstract class Entry implements ArrayInterface, JsonSerializable
         }
 
         return $this;
-    }
-
-    /**
-     * JSON serialize
-     *
-     * @return array
-     */
-    public function jsonSerialize()
-    {
-        $attributes = [
-            'id' => $this->id,
-            'registry' => ($this->registry ? $this->registry->getId() : null),
-            'type' => ($this->type ? $this->type->getId() : null),
-            'createdBy' => ($this->createdBy ? $this->createdBy->getId() : null),
-            'createdAt' => $this->createdAt->format(\DateTime::ISO8601),
-            'externalId' => $this->externalId,
-            'notes' => $this->notes
-        ];
-        if ($this->properties->isInitialized()) {
-            $attributes['properties'] = [];
-            foreach ($this->properties as $property) {
-                $attributes['properties'][] = $property->getId();
-            }
-        }
-        if ($this->addresses->isInitialized()) {
-            $attributes['addresses'] = [];
-            foreach ($this->addresses as $address) {
-                $attributes['addresses'][] = $address->jsonSerialize();
-            }
-        }
-        return $attributes;
     }
 }

@@ -3,17 +3,21 @@ namespace AppBundle\Entity\Repository\Common;
 
 use Doctrine\ORM\EntityRepository;
 
-// use AppBundle\Entity\Repository\Common\Interfaces\PrepareInterface;
-// use AppBundle\Entity\Repository\Common\Traits\PrepareTrait;
-
 use AppBundle\Entity\Repository\Common\Interfaces\FoundCountInterface;
 use AppBundle\Entity\Repository\Common\Traits\FoundCountTrait;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\PersistentCollection;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\EntityNotFoundException;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Persistence\Proxy;
+
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Validator\Validation;
 
 /**
  * Abstract repository base class
@@ -167,8 +171,8 @@ abstract class Repository extends EntityRepository implements
                 foreach ($metaData->identifier as $id) {
                     $attrs[$metaData->columnNames[$id]] = $id;
                 }
-                if ($indexes = $metaData->table['indexes']) {
-                    foreach ($indexes as $index) {
+                if (!empty($metaData->table['indexes'])) {
+                    foreach ($metaData->table['indexes'] as $index) {
                         foreach ($index['columns'] as $column) {
                             $name = $metaData->discriminatorColumn['name'];
                             if ($column != $name && !isset($attrs[$column])) {
@@ -230,6 +234,150 @@ abstract class Repository extends EntityRepository implements
             }
         }
         return $values;
+    }
+
+    protected function prepareFields(
+        Entity $item,
+        array $request,
+        $user,
+        &$message
+    ) {
+        $fields = array_diff_key(
+            $this->getClassMetadata()->fieldMappings,
+            array_flip($this->getClassMetadata()->identifier)
+        );
+        if (!$fields) {
+            return;
+        }
+
+        $accessor = PropertyAccess::createPropertyAccessor();
+        foreach ($fields as $key => $mapping) {
+            if (!array_key_exists($key, $request)) continue;
+
+            if (isset($request[$key])) {
+                switch ($mapping['type']) {
+                    case "boolean": {
+                        $accessor->setValue(
+                            $item,
+                            $key,
+                            (bool)$request[$key]
+                        );
+                    } break;
+                    case "integer":
+                    case "smallint": {
+                        $accessor->setValue(
+                            $item,
+                            $key,
+                            (int)$request[$key]
+                        );
+                    } break;
+                    case "float": {
+                        $accessor->setValue(
+                            $item,
+                            $key,
+                            (double)$request[$key]
+                        );
+                    } break;
+                    case "date":
+                    case "time":
+                    case "datetime":
+                    case "datetimetz": {
+                        $value = \DateTime::createFromFormat(
+                            \DateTime::ISO8601,
+                            $request[$key]
+                        );
+                        if ($value) {
+                            $accessor->setValue($item, $key, $value);
+                        } else {
+                            $message[$key] = "Invalid value";
+                        }
+                    } break;
+                    default: {
+                        $accessor->setValue($item, $key, $request[$key]);
+                    } break;
+                }
+            } else {
+                $accessor->setValue($item, $key, null);
+            }
+        }
+    }
+
+    protected function prepareAssociations(
+        Entity $item,
+        array $request,
+        $user,
+        &$message
+    ) {
+        $associations = $this->getClassMetadata()->associationMappings;
+        if (!$associations) {
+            return;
+        }
+
+        $accessor = PropertyAccess::createPropertyAccessor();
+        foreach ($associations as $key => $mapping) {
+            if (!array_key_exists($key, $request)) continue;
+
+            switch ($mapping['type']) {
+                case ClassMetadataInfo::MANY_TO_ONE: {
+                    if (isset($request[$key])) {
+                        $repo = $this->getEntityManager()->getRepository(
+                            $mapping['targetEntity']
+                        );
+                        if ($entity = $repo->find($request[$key])) {
+                            $accessor->setValue($item, $key, $entity);
+                        } else {
+                            $message[$key] = "Invalid entity";
+                        }
+                    } else {
+                        $accessor->setValue($item, $key, null);
+                    }
+                } break;
+                case ClassMetadataInfo::MANY_TO_MANY: {
+                    if (!is_array($request[$key])) {
+                        $message[$key] = "Invalid value";
+                    } else {
+                        $repo = $this->getEntityManager()->getRepository(
+                            $mapping['targetEntity']
+                        );
+                        $entities = [];
+                        foreach ($request[$key] as $i => $id) {
+                            if (isset($id)
+                                && is_scalar($id)
+                                && ($entity = $repo->find($id))) {
+                                $entities[$i] = $entity;
+                            } else {
+                                $message[$key][$i] = "Entity not found";
+                            }
+                        }
+                        $accessor->setValue($item, $key, $entities);
+                    }
+                } break;
+            }
+        }
+    }
+
+    protected function prepare(Entity $item, array $request, $user, &$message)
+    {
+        $this->prepareFields($item, $request, $user, $message);
+        $this->prepareAssociations($item, $request, $user, $message);
+
+        $validator = Validation::createValidatorBuilder()
+            ->enableAnnotationMapping()
+            ->getValidator();
+
+        $errors = $validator->validate($item);
+
+        foreach ($errors as $error) {
+            if (!isset($message[$error->getPropertyPath()])) {
+                $message[$error->getPropertyPath()] = $error->getMessage();
+            }
+        }
+
+        if (!empty($message)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

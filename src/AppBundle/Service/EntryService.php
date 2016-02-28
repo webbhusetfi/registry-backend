@@ -92,19 +92,18 @@ class EntryService extends ScrudService
         return JSendResponse::fail($message)->asArray();
     }
 
-//     public function create(array $request)
-//     {
-//         $response = $this->getRepository()->create(
-//             $request,
-//             $this->getUser(),
-//             $message,
-//             $this->container->get('form.factory')
-//         );
-//         if (isset($response)) {
-//             return JSendResponse::success($response)->asArray();
-//         }
-//         return JSendResponse::fail($message)->asArray();
-//     }
+    public function create(array $request)
+    {
+        $response = $this->getRepository()->create(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
 
     public function read(array $request)
     {
@@ -119,18 +118,18 @@ class EntryService extends ScrudService
         return JSendResponse::fail($message)->asArray();
     }
 
-//     public function update(array $request)
-//     {
-//         $response = $this->getRepository()->update(
-//             $request,
-//             $this->getUser(),
-//             $message
-//         );
-//         if (isset($response)) {
-//             return JSendResponse::success($response)->asArray();
-//         }
-//         return JSendResponse::fail($message)->asArray();
-//     }
+    public function update(array $request)
+    {
+        $response = $this->getRepository()->update(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
 //
 //     public function delete(array $request)
 //     {

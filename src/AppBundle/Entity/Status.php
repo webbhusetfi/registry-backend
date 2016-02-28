@@ -1,9 +1,10 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Status
@@ -27,24 +28,8 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\StatusRepository"
  * )
  */
-class Status implements JsonSerializable
+class Status extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -60,7 +45,7 @@ class Status implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var Registry
@@ -78,18 +63,7 @@ class Status implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $registry;
-
-
-    /**
-     * Get ID
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $registry;
 
     /**
      * Set name
@@ -148,7 +122,6 @@ class Status implements JsonSerializable
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'label' => $this->label,
             'registry' => ($this->registry ? $this->registry->getId() : null)
         ];
     }

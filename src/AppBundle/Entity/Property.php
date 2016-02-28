@@ -1,13 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
-use AppBundle\Entity\Common\Interfaces\ArrayInterface;
-use AppBundle\Entity\Common\Traits\ArrayTrait;
+use AppBundle\Entity\Common\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Property
@@ -39,26 +37,8 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\PropertyRepository"
  * )
  */
-class Property implements ArrayInterface, JsonSerializable
+class Property extends Entity
 {
-    use ArrayTrait;
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -74,7 +54,7 @@ class Property implements ArrayInterface, JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var string
@@ -90,7 +70,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      max = 255
      * )
      */
-    private $notes;
+    protected $notes;
 
     /**
      * @var PropertyGroup
@@ -108,7 +88,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      )
      * })
      */
-    private $propertyGroup;
+    protected $propertyGroup;
 
     /**
      * @var ConnectionType
@@ -125,7 +105,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      )
      * })
      */
-    private $connectionType;
+    protected $connectionType;
 
     /**
      * @var Entry
@@ -142,7 +122,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      )
      * })
      */
-    private $ownerEntry;
+    protected $ownerEntry;
 
     /**
      * @var ArrayCollection
@@ -152,7 +132,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      mappedBy="properties"
      * )
      */
-    private $connections;
+    protected $connections;
 
     /**
      * @var ArrayCollection
@@ -162,7 +142,7 @@ class Property implements ArrayInterface, JsonSerializable
      *      mappedBy="properties"
      * )
      */
-    private $entries;
+    protected $entries;
 
     /**
      * Constructor
@@ -171,16 +151,6 @@ class Property implements ArrayInterface, JsonSerializable
     {
         $this->connections = new ArrayCollection();
         $this->entries = new ArrayCollection();
-    }
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**

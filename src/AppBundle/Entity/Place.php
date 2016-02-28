@@ -65,16 +65,4 @@ class Place extends Entry
     {
         return $this->name;
     }
-
-    /**
-     * JSON serialize
-     *
-     * @return array
-     */
-    public function jsonSerialize() {
-        return array_merge(
-            parent::jsonSerialize(),
-            ['name' => $this->name]
-        );
-    }
 }

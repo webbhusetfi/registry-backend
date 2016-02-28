@@ -1,10 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use \JsonSerializable;
 
 /**
  * Registry
@@ -26,24 +27,8 @@ use \JsonSerializable;
  * @UniqueEntity("name")
  * )
  */
-class Registry implements JsonSerializable
+class Registry extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -59,17 +44,7 @@ class Registry implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
-
-    /**
-     * Get ID
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $name;
 
     /**
      * Set name

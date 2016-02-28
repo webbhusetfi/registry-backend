@@ -1,10 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use \JsonSerializable;
 
 /**
  * ConnectionType
@@ -51,24 +52,8 @@ use \JsonSerializable;
  *      fields={"registry","parentType","childType","ownerEntry"}
  * )
  */
-class ConnectionType implements JsonSerializable
+class ConnectionType extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -84,7 +69,7 @@ class ConnectionType implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var Type
@@ -100,7 +85,7 @@ class ConnectionType implements JsonSerializable
      *          onDelete="RESTRICT")
      * })
      */
-    private $childType;
+    protected $childType;
 
     /**
      * @var Type
@@ -117,7 +102,7 @@ class ConnectionType implements JsonSerializable
      *      )
      * })
      */
-    private $parentType;
+    protected $parentType;
 
     /**
      * @var Entry
@@ -134,7 +119,7 @@ class ConnectionType implements JsonSerializable
      *      )
      * })
      */
-    private $ownerEntry;
+    protected $ownerEntry;
 
     /**
      * @var Registry
@@ -151,19 +136,7 @@ class ConnectionType implements JsonSerializable
      *      )
      * })
      */
-    private $registry;
-
-
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $registry;
 
     /**
      * Set name

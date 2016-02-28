@@ -1,13 +1,14 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Role\Role;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use \JsonSerializable;
 
 /**
  * User
@@ -38,27 +39,11 @@ use \JsonSerializable;
  * )
  * @UniqueEntity("username")
  */
-class User implements JsonSerializable, UserInterface
+class User extends Entity implements UserInterface
 {
     const ROLE_USER = 'USER';
     const ROLE_ADMIN = 'ADMIN';
     const ROLE_SUPER_ADMIN = 'SUPER_ADMIN';
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
 
     /**
      * @var string
@@ -75,7 +60,7 @@ class User implements JsonSerializable, UserInterface
      * )
      * @Assert\NotBlank()
      */
-    private $username;
+    protected $username;
 
     /**
      * @var string
@@ -88,7 +73,7 @@ class User implements JsonSerializable, UserInterface
      * )
      * @Assert\NotBlank()
      */
-    private $password;
+    protected $password;
 
     /**
      * @var Entry
@@ -105,7 +90,7 @@ class User implements JsonSerializable, UserInterface
      *      )
      * })
      */
-    private $entry;
+    protected $entry;
 
     /**
      * @var Registry
@@ -122,7 +107,7 @@ class User implements JsonSerializable, UserInterface
      *      )
      * })
      */
-    private $registry;
+    protected $registry;
 
     /**
      * @var string
@@ -138,17 +123,7 @@ class User implements JsonSerializable, UserInterface
      * )
      * @Assert\NotBlank()
      */
-    private $role;
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $role;
 
     /**
      * Set username

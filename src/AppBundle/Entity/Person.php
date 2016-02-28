@@ -293,24 +293,4 @@ class Person extends Entry
     {
         return $this->birthDay;
     }
-
-    /**
-     * JSON serialize
-     *
-     * @return array
-     */
-    public function jsonSerialize() {
-        return array_merge(
-            parent::jsonSerialize(),
-            [
-                'class' => 'PERSON',
-                'gender' => $this->gender,
-                'firstName' => $this->firstName,
-                'lastName' => $this->lastName,
-                'birthYear' => $this->birthYear,
-                'birthMonth' => $this->birthMonth,
-                'birthDay' => $this->birthDay,
-            ]
-        );
-    }
 }

@@ -1,6 +1,8 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -36,24 +38,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      fields={"targetEntry", "sourceEntry"}
  * )
  */
-class Acl
+class Acl extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var boolean
      *
@@ -65,7 +51,7 @@ class Acl
      *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
-    private $viewAccess;
+    protected $viewAccess;
 
     /**
      * @var boolean
@@ -78,7 +64,7 @@ class Acl
      *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
-    private $createAccess;
+    protected $createAccess;
 
     /**
      * @var boolean
@@ -91,7 +77,7 @@ class Acl
      *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
-    private $editAccess;
+    protected $editAccess;
 
     /**
      * @var boolean
@@ -104,7 +90,7 @@ class Acl
      *      columnDefinition="TINYINT(1) UNSIGNED DEFAULT NULL"
      * )
      */
-    private $deleteAccess;
+    protected $deleteAccess;
 
     /**
      * @var Entry
@@ -121,7 +107,7 @@ class Acl
      *      )
      * })
      */
-    private $targetEntry;
+    protected $targetEntry;
 
     /**
      * @var Entry
@@ -138,18 +124,7 @@ class Acl
      *      )
      * })
      */
-    private $sourceEntry;
-
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $sourceEntry;
 
     /**
      * Set view access

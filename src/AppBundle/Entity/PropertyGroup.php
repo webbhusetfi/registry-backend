@@ -1,10 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * PropertyGroup
@@ -32,24 +33,8 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\PropertyGroupRepository"
  * )
  */
-class PropertyGroup implements JsonSerializable
+class PropertyGroup extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -65,7 +50,7 @@ class PropertyGroup implements JsonSerializable
      * )
      * @Assert\NotBlank
      */
-    private $name;
+    protected $name;
 
     /**
      * @var Entry
@@ -82,7 +67,7 @@ class PropertyGroup implements JsonSerializable
      *      )
      * })
      */
-    private $ownerEntry;
+    protected $ownerEntry;
 
     /**
      * @var Registry
@@ -99,7 +84,7 @@ class PropertyGroup implements JsonSerializable
      *      )
      * })
      */
-    private $registry;
+    protected $registry;
 
     /**
      * @var ArrayCollection
@@ -109,7 +94,7 @@ class PropertyGroup implements JsonSerializable
      *      mappedBy="propertyGroup"
      * )
      */
-    private $properties;
+    protected $properties;
 
     /**
      * Constructor
@@ -117,16 +102,6 @@ class PropertyGroup implements JsonSerializable
     public function __construct()
     {
         $this->properties = new ArrayCollection();
-    }
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**

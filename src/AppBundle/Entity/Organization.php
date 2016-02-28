@@ -212,22 +212,4 @@ class Organization extends Entry
     {
         return $this->vat;
     }
-
-    /**
-     * JSON serialize
-     *
-     * @return array
-     */
-    public function jsonSerialize() {
-        return array_merge(
-            parent::jsonSerialize(),
-            [
-                'class' => 'ORGANIZATION',
-                'name' => $this->name,
-                'bank' => $this->bank,
-                'account' => $this->account,
-                'vat' => $this->vat,
-            ]
-        );
-    }
 }

@@ -1,9 +1,10 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Type
@@ -27,27 +28,11 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\TypeRepository"
  * )
  */
-class Type implements JsonSerializable
+class Type extends Entity
 {
     const CLASS_ORGANIZATION = 'ORGANIZATION';
     const CLASS_PERSON = 'PERSON';
     const CLASS_PLACE = 'PLACE';
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
 
     /**
      * @var string
@@ -63,7 +48,7 @@ class Type implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $class;
+    protected $class;
 
     /**
      * @var string
@@ -80,7 +65,7 @@ class Type implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var Registry
@@ -98,18 +83,7 @@ class Type implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $registry;
-
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $registry;
 
     /**
      * Set class
@@ -193,7 +167,6 @@ class Type implements JsonSerializable
             'id' => $this->id,
             'class' => $this->class,
             'name' => $this->name,
-            'label' => $this->label,
             'registry' => ($this->registry ? $this->registry->getId() : null)
         ];
     }

@@ -2,12 +2,9 @@
 namespace AppBundle\Entity\Repository;
 
 use AppBundle\Entity\Repository\Common\Repository;
+
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
-use Symfony\Component\Form\Forms;
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
-use Symfony\Component\Validator\Validation;
 
 /**
  * Entry repository
@@ -302,77 +299,16 @@ class EntryRepository extends Repository
         return ['items' => $items, 'foundCount' => $foundCount];
     }
 
-    /**
-     * List all errors of a given form.
-     *
-     * @param Form $form
-     *
-     * @return array
-     */
-    protected function getFormErrors(Form $form)
-    {
-        $errors = [];
-        foreach ($form->getIterator() as $key => $child) {
-            foreach ($child->getErrors() as $error){
-                if ($message = $error->getMessage()) {
-                    $errors[$key] = $message;
-                }
-            }
-
-            if (count($child->getIterator()) > 0) {
-                if ($messages = $this->getFormErrors($child)) {
-                    $errors[$key] = $messages;
-                }
-            }
-        }
-        return $errors;
-    }
-
-    protected function prepare($item, array $request, $user, &$message, $factory)
-    {
-        //$attributes = $this->getAllAttributes();
-
-//         $validator = Validation::createValidator();
-//         $factory = Forms::createFormFactoryBuilder()
-//             ->addExtension(new ValidatorExtension($validator))
-//             ->getFormFactory();
-        $builder = $factory->createBuilder('form', $item);
-
-        $fields = $this->getClassMetadata()->fieldMappings;
-//        $assocs = $this->getClassMetadata()->associationMappings;
-
-//          $message = $fields;
-//          return false;
-        foreach ($fields as $name => $mapping) {
-//             if (isset($fields[$attribute])) {
-//                 $builder->add($attribute, $fields[$attribute]['type']);
-//             } else {
-            if ($mapping['type'] == 'datetime') {
-                $builder->add($name, $mapping['type']);
-            } else {
-                $builder->add($name);
-            }
-//             }
-        }
-
-        $form = $builder->getForm()->submit([], false);
-        if (!$form->isValid()) {
-            $message = $this->getFormErrors($form);
-            return false;
-        }
-        return true;
-    }
-
-    public function create(array $request, $user, &$message, $factory)
+    public function create(array $request, $user, &$message)
     {
         if ($repo = $this->getMappedRepository($request)) {
-            return $repo->create($request, $user, $message, $factory);
+            return $repo->create($request, $user, $message);
         }
 
         $className = $this->getClassName();
         $item = new $className();
 
-        if (!$this->prepare($item, $request, $user, $message, $factory)) {
+        if (!$this->prepare($item, $request, $user, $message)) {
             return null;
         }
 
@@ -380,7 +316,11 @@ class EntryRepository extends Repository
         $em->persist($item);
         $em->flush();
 
-        return ['item' => $this->serialize($item->toArray(1))];
+        return [
+            'item' => $this->serialize(
+                $item->toArray(["properties", "addresses"])
+            )
+        ];
     }
 
     public function read(array $request, $user, &$message)
@@ -405,7 +345,11 @@ class EntryRepository extends Repository
             ->from($this->getClassName(), 'entry')
             ->select('entry');
 
-        $this->prepareQueryBuilderWhere($qb, 'entry', $request);
+        $this->prepareQueryBuilderWhere(
+            $qb,
+            'entry',
+            array_intersect_key($request, array_flip($metaData->identifier))
+        );
 
         $include = [];
         if (isset($request['include']) && is_array($request['include'])) {
@@ -431,36 +375,63 @@ class EntryRepository extends Repository
             return null;
         }
 
-        return ['item' => $this->serialize($items[0]->toArray(1))];
+        return ['item' => $this->serialize($items[0]->toArray($include))];
     }
 
-//     public function update(array $request, $user, &$message)
-//     {
-//         if ($repo = $this->getMappedRepository($request)) {
-//             return $repo->create($request, $user, $message);
-//         }
-//
-//         $metaData = $this->getClassMetadata();
-//         foreach ($metaData->identifier as $id) {
-//             if (!isset($request[$id]) || !is_scalar($request[$id])) {
-//                 $message[$id] = 'Not found';
-//             }
-//         }
-//         if (!empty($message)) {
-//             return null;
-//         }
-//
-//         $qb = $this->prepareQueryBuilder('t', $request);
-//         $qb
-//             ->leftJoin('t.properties', 'p')
-//             ->addSelect('p');
-//
-//         $items = $qb->getQuery()->getResult();
-//         if (count($items) !== 1) {
-//             $message = array_fill_keys($metaData->identifier, 'Not found');
-//             return null;
-//         }
-//
-//         return ['item' => $items[0]];
-//     }
+    public function update(array $request, $user, &$message)
+    {
+        if ($repo = $this->getMappedRepository($request)) {
+            return $repo->update($request, $user, $message);
+        }
+
+        $metaData = $this->getClassMetadata();
+        foreach ($metaData->identifier as $id) {
+            if (!isset($request[$id]) || !is_scalar($request[$id])) {
+                $message[$id] = 'Not found';
+            }
+        }
+        if (!empty($message)) {
+            return null;
+        }
+
+        $em = $this->getEntityManager();
+
+        $qb = $em->createQueryBuilder()
+            ->from($this->getClassName(), 'entry')
+            ->select('entry');
+
+        $this->prepareQueryBuilderWhere(
+            $qb,
+            'entry',
+            array_intersect_key($request, array_flip($metaData->identifier))
+        );
+
+        if (isset($request['addresses'])) {
+            $qb->leftJoin('entry.addresses', 'addresses');
+            $qb->addSelect('addresses');
+        }
+
+        if (isset($request['properties'])) {
+            $qb->leftJoin('entry.properties', 'properties');
+            $qb->addSelect('properties');
+        }
+
+        $items = $qb->getQuery()->getResult();
+        if (count($items) !== 1) {
+            $message = array_fill_keys($metaData->identifier, 'Not found');
+            return null;
+        }
+
+        if (!$this->prepare($items[0], $request, $user, $message)) {
+            return null;
+        }
+
+        $em->flush();
+
+        return [
+            'item' => $this->serialize(
+                $items[0]->toArray(["properties", "addresses"])
+            )
+        ];
+    }
 }

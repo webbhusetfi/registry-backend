@@ -1,14 +1,14 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\Proxy;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-
-use \JsonSerializable;
 
 /**
  * Connection
@@ -49,24 +49,8 @@ use \JsonSerializable;
  *      fields={"connectionType","childEntry","parentEntry"}
  * )
  */
-class Connection implements JsonSerializable
+class Connection extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -80,7 +64,7 @@ class Connection implements JsonSerializable
      *      max = 255
      * )
      */
-    private $notes;
+    protected $notes;
 
     /**
      * @var \DateTime
@@ -92,7 +76,7 @@ class Connection implements JsonSerializable
      * )
      * @Assert\DateTime()
      */
-    private $start;
+    protected $start;
 
     /**
      * @var \DateTime
@@ -104,7 +88,7 @@ class Connection implements JsonSerializable
      * )
      * @Assert\DateTime()
      */
-    private $end;
+    protected $end;
 
     /**
      * @var string
@@ -119,7 +103,7 @@ class Connection implements JsonSerializable
      *      max = 255
      * )
      */
-    private $startNotes;
+    protected $startNotes;
 
     /**
      * @var string
@@ -134,7 +118,7 @@ class Connection implements JsonSerializable
      *      max = 255
      * )
      */
-    private $endNotes;
+    protected $endNotes;
 
     /**
      * @var Status
@@ -152,7 +136,7 @@ class Connection implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $status;
+    protected $status;
 
     /**
      * @var ConnectionType
@@ -170,7 +154,7 @@ class Connection implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $connectionType;
+    protected $connectionType;
 
     /**
      * @var Entry
@@ -189,7 +173,7 @@ class Connection implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $childEntry;
+    protected $childEntry;
 
     /**
      * @var Entry
@@ -208,7 +192,7 @@ class Connection implements JsonSerializable
      * })
      * @Assert\NotBlank()
      */
-    private $parentEntry;
+    protected $parentEntry;
 
     /**
      * @var ArrayCollection
@@ -237,7 +221,7 @@ class Connection implements JsonSerializable
      *      }
      * )
      */
-    private $properties;
+    protected $properties;
 
     /**
      * Constructor
@@ -245,16 +229,6 @@ class Connection implements JsonSerializable
     public function __construct()
     {
         $this->properties = new ArrayCollection();
-    }
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**

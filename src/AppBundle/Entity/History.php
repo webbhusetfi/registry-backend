@@ -1,6 +1,8 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -26,24 +28,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      repositoryClass="AppBundle\Entity\Repository\HistoryRepository"
  * )
  */
-class History
+class History extends Entity
 {
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var \DateTime
      *
@@ -55,7 +41,7 @@ class History
      * @Assert\DateTime()
      * @Assert\NotBlank()
      */
-    private $modifiedAt;
+    protected $modifiedAt;
 
     /**
      * @var string
@@ -71,7 +57,7 @@ class History
      *      max = 255
      * )
      */
-    private $description;
+    protected $description;
 
     /**
      * @var Entry
@@ -88,7 +74,7 @@ class History
      *      )
      * })
      */
-    private $entry;
+    protected $entry;
 
     /**
      * @var User
@@ -105,18 +91,7 @@ class History
      *      )
      * })
      */
-    private $modifiedBy;
-
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
+    protected $modifiedBy;
 
     /**
      * Set modified at

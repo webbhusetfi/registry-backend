@@ -1,13 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
-use AppBundle\Entity\Common\Interfaces\ArrayInterface;
-use AppBundle\Entity\Common\Traits\ArrayTrait;
+use AppBundle\Entity\Common\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Address
@@ -59,26 +57,8 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\AddressRepository"
  * )
  */
-class Address implements ArrayInterface, JsonSerializable
+class Address extends Entity
 {
-    use ArrayTrait;
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
-
     /**
      * @var string
      *
@@ -93,7 +73,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 128
      * )
      */
-    private $name;
+    protected $name;
 
     /**
      * @var string
@@ -109,7 +89,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 128
      * )
      */
-    private $street;
+    protected $street;
 
     /**
      * @var string
@@ -125,7 +105,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 32
      * )
      */
-    private $postalCode;
+    protected $postalCode;
 
     /**
      * @var string
@@ -141,7 +121,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 64
      * )
      */
-    private $town;
+    protected $town;
 
     /**
      * @var string
@@ -157,7 +137,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 64
      * )
      */
-    private $country;
+    protected $country;
 
     /**
      * @var string
@@ -174,7 +154,7 @@ class Address implements ArrayInterface, JsonSerializable
      * )
      * @Assert\Email()
      */
-    private $email;
+    protected $email;
 
     /**
      * @var string
@@ -190,7 +170,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 32
      * )
      */
-    private $phone;
+    protected $phone;
 
     /**
      * @var string
@@ -206,7 +186,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      max = 32
      * )
      */
-    private $mobile;
+    protected $mobile;
 
     /**
      * @var Entry
@@ -224,7 +204,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      )
      * })
      */
-    private $entry;
+    protected $entry;
 
     /**
      * @var ArrayCollection
@@ -234,7 +214,7 @@ class Address implements ArrayInterface, JsonSerializable
      *      mappedBy="addresses"
      * )
      */
-    private $directories;
+    protected $directories;
 
     /**
      * Constructor
@@ -242,16 +222,6 @@ class Address implements ArrayInterface, JsonSerializable
     public function __construct()
     {
         $this->directories = new ArrayCollection();
-    }
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**

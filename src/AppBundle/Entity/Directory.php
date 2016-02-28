@@ -1,10 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
+use AppBundle\Entity\Common\Entity;
+
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Directory
@@ -24,27 +25,11 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\DirectoryRepository"
  * )
  */
-class Directory implements JsonSerializable
+class Directory extends Entity
 {
     const VIEW_ADDRESS = 'ADDRESS';
     const VIEW_EMAIL_PHONE = 'EMAIL_PHONE';
     const VIEW_ANY = 'ANY';
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(
-     *      name="id",
-     *      type="integer",
-     *      nullable=false,
-     *      options={"unsigned"=true}
-     * )
-     * @ORM\Id()
-     * @ORM\GeneratedValue(
-     *      strategy="IDENTITY"
-     * )
-     */
-    private $id;
 
     /**
      * @var string
@@ -60,7 +45,7 @@ class Directory implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $view;
+    protected $view;
 
     /**
      * @var string
@@ -77,7 +62,7 @@ class Directory implements JsonSerializable
      * )
      * @Assert\NotBlank()
      */
-    private $name;
+    protected $name;
 
     /**
      * @var Registry
@@ -94,7 +79,7 @@ class Directory implements JsonSerializable
      *      )
      * })
      */
-    private $registry;
+    protected $registry;
 
     /**
      * @var ArrayCollection
@@ -123,7 +108,7 @@ class Directory implements JsonSerializable
      *      }
      * )
      */
-    private $addresses;
+    protected $addresses;
 
     /**
      * Constructor
@@ -131,16 +116,6 @@ class Directory implements JsonSerializable
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
-    }
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**
