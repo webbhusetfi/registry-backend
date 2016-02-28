@@ -59,6 +59,8 @@ class EntryRepository extends Repository
                     $property = $property['id'];
                 }
             }
+        } elseif (array_key_exists('properties', $attributes)) {
+            $attributes['properties'] = [];
         }
         if (!empty($attributes['address'])) {
             $attributes['address'] = $this->getEntityManager()->getRepository(

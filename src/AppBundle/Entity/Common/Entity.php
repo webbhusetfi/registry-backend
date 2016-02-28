@@ -67,6 +67,7 @@ abstract class Entity implements \JsonSerializable
             if (is_object($value)) {
                 if ($value instanceof PersistentCollection) {
                     if ($value->isInitialized()) {
+                        $values[$name] = [];
                         foreach ($value as $item) {
                             if (isset($assocs[$name])) {
                                 if (isset($include[$name])) {
@@ -105,8 +106,7 @@ abstract class Entity implements \JsonSerializable
                     } else {
                         $values[$name] = $value->getId();
                     }
-                }
-                elseif ($value instanceof \DateTime) {
+                } elseif ($value instanceof \DateTime) {
                     $values[$name] = $value;
                 }
             } else {
