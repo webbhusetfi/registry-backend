@@ -38,8 +38,11 @@ class UserService extends ScrudService
         return $this->configuration;
     }
 
-    protected function handlePost($item, array $request)
-    {
+    protected function prepareItem(
+        $item,
+        array $request,
+        ScrudConfiguration $config
+    ) {
         $messages = [];
         if (!empty($request['password'])) {
             if (strlen($request['password']) < 8) {
@@ -53,8 +56,14 @@ class UserService extends ScrudService
                 );
             }
         }
-        $result = parent::handlePost($item, $request);
-        $result = array_merge($result, $messages);
+        $result = parent::prepareItem($item, $request, $config);
+        if (!empty($messages)) {
+            if (!empty($result)) {
+                return array_merge($result, $messages);
+            } else {
+                return $messages;
+            }
+        }
         return $result;
     }
 }
