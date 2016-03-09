@@ -162,7 +162,7 @@ class CsvImportCommand extends ImportCommand
             $member = new Person();
             $member
                 ->setRegistry($registry)
-                ->setType($memberType)
+                ->setType($childType)
                 ->setFirstName(mb_convert_case($firstName, MB_CASE_TITLE))
                 ->setLastName(mb_convert_case($lastName, MB_CASE_TITLE));
 
