@@ -93,7 +93,7 @@ doctrine:
                 last_day: DoctrineExtensions\Query\Mysql\LastDay
                 minute: DoctrineExtensions\Query\Mysql\Minute
                 second: DoctrineExtensions\Query\Mysql\Second
-                strtodate: DoctrineExtensions\Query\Mysql\StrToDate
+                str_to_date: DoctrineExtensions\Query\Mysql\StrToDate
                 time: DoctrineExtensions\Query\Mysql\Time
                 timestampadd: DoctrineExtensions\Query\Mysql\TimestampAdd
                 timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
