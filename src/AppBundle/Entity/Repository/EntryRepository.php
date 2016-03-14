@@ -85,13 +85,16 @@ class EntryRepository extends Repository
             return $repo->statistics($request, $user, $message);
         }
 
+        $available = ['count', 'gender', 'age'];
         if (!isset($request['select'])) {
             $message['select'] = 'This value is required';
             return null;
-        } elseif (!in_array($request['select'], ['gender'])) {
+        }
+        if (!in_array($request['select'], $available)) {
             $message['select'] = 'This value is invalid';
             return null;
-        } elseif ($request['select'] == 'gender'
+        }
+        if (($request['select'] == 'gender' || $request['select'] == 'age')
             && $this->getClassName() != 'AppBundle\Entity\Person') {
             $message['select'] = 'This value is invalid';
             return null;
@@ -102,12 +105,23 @@ class EntryRepository extends Repository
         $qb = $em->createQueryBuilder()
             ->from($this->getClassName(), 'entry');
 
-        if ($request['select'] == 'gender') {
+        if ($request['select'] == 'count') {
+            $qb->select('count(entry.id) as found');
+        } elseif ($request['select'] == 'gender') {
             $qb->select(
                 'entry.gender',
-                'count(case when entry.gender > 0 then entry.gender else 1 end)'
-                . 'as found'
+                'count(entry.id) as found'
             )->groupBy('entry.gender');
+        } elseif ($request['select'] == 'age') {
+            $qb->select(
+                "timestampdiff(year, str_to_date("
+                . "concat(case when entry.birthDay > 0 "
+                . "then entry.birthDay else 1 end, '-', "
+                . "case when entry.birthMonth > 0 "
+                . "then entry.birthMonth else 1 end, '-', "
+                . "entry.birthYear), '%d-%m-%Y'), current_timestamp()) as age",
+                'count(entry.id) as found'
+            )->groupBy('age');
         }
 
         if (isset($request['filter']) && is_array($request['filter'])) {
