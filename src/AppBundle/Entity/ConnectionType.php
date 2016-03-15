@@ -267,7 +267,6 @@ class ConnectionType extends Entity
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'label' => $this->label,
             'childType' => (
                 $this->childType
                 ? $this->childType->getId()
