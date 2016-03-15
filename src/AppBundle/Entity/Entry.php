@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use \JsonSerializable;
 
 /**
  * Entry
@@ -58,7 +57,7 @@ use \JsonSerializable;
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
  */
-abstract class Entry extends Entity implements JsonSerializable
+abstract class Entry extends Entity
 {
     /**
      * @var string

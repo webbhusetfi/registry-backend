@@ -203,6 +203,7 @@ class CsvImportCommand extends ImportCommand
 
             // Address
             $address = new Address();
+            $address->setClass(Address::CLASS_PRIMARY);
             $address->setEntry($member);
             if (!empty($street)) {
                 $address->setStreet(

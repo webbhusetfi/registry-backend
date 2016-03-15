@@ -21,7 +21,7 @@ use AppBundle\Entity\Directory;
 use AppBundle\Entity\PropertyGroup;
 use AppBundle\Entity\Property;
 
-use AppBundle\Entity\Status;
+// use AppBundle\Entity\Status;
 use AppBundle\Entity\Connection;
 use AppBundle\Entity\ConnectionType;
 
@@ -182,6 +182,7 @@ class DbImportCommand extends ImportCommand
         $em->persist($organization);
 
         $address = new Address();
+        $address->setClass(Address::CLASS_PRIMARY);
         $address->setEntry($organization);
         if (trim($row['address_reg'])) {
             $address->setStreet(
@@ -303,11 +304,11 @@ class DbImportCommand extends ImportCommand
             'registry' => $registry,
         ]);
 
-        $billingDirectory = $this->getDirectory([
-            'name' => 'Fakturering',
-            'view' => Directory::VIEW_ADDRESS,
-            'registry' => $registry,
-        ]);
+//         $billingDirectory = $this->getDirectory([
+//             'name' => 'Fakturering',
+//             'view' => Directory::VIEW_ADDRESS,
+//             'registry' => $registry,
+//         ]);
 
         $members = [];
         $em = $this->getManager();
@@ -384,10 +385,11 @@ class DbImportCommand extends ImportCommand
             $members[$row['id_mem']] = $member;
 
             $address = new Address();
+            $address->setClass(Address::CLASS_PRIMARY);
             $address->setEntry($member);
-            if (!trim($row['inv_address_mem'])) {
-                $address->addDirectory($billingDirectory);
-            }
+//             if (!trim($row['inv_address_mem'])) {
+//                 $address->addDirectory($billingDirectory);
+//             }
             if (trim($row['address_mem'])) {
                 $address->setStreet(
                     mb_convert_case(trim($row['address_mem']), MB_CASE_TITLE)
@@ -431,8 +433,9 @@ class DbImportCommand extends ImportCommand
 
             if (trim($row['inv_address_mem'])) {
                 $billingAddress = new Address();
+                $billingAddress->setClass(Address::CLASS_INVOICE);
                 $billingAddress->setEntry($member);
-                $billingAddress->addDirectory($billingDirectory);
+//                 $billingAddress->addDirectory($billingDirectory);
                 if (trim($row['inv_name_mem'])) {
                     $billingAddress->setName(
                         mb_convert_case(
@@ -504,10 +507,10 @@ class DbImportCommand extends ImportCommand
             return [];
         }
 
-        $status = $this->getStatus([
-            'name' => 'Aktiv',
-            'registry' => $registry
-        ]);
+//         $status = $this->getStatus([
+//             'name' => 'Aktiv',
+//             'registry' => $registry
+//         ]);
         $organizationType = $this->getType([
             'class' => Type::CLASS_ORGANIZATION,
             'name' => 'Förbund',
@@ -553,7 +556,7 @@ class DbImportCommand extends ImportCommand
 
             $connection = new Connection();
             $connection
-                ->setStatus($status)
+//                 ->setStatus($status)
                 ->setConnectionType($organizationMembership)
                 ->setParentEntry($organization)
                 ->setChildEntry($association);
@@ -584,13 +587,13 @@ class DbImportCommand extends ImportCommand
         $sql = "SELECT"
             . " member_mem.*,"
             . " member_type_mty.*,"
-            . " member_status_mst.*,"
+//             . " member_status_mst.*,"
             . " association_ass.*"
             . " FROM member_mem"
             . " LEFT JOIN member_type_mty"
             . " ON id_mty = idmty_mem"
-            . " LEFT JOIN member_status_mst"
-            . " ON id_mst = idmst_mem"
+//             . " LEFT JOIN member_status_mst"
+//             . " ON id_mst = idmst_mem"
             . " LEFT JOIN member_of_association_moa"
             . " ON id_mem = idmem_moa"
             . " LEFT JOIN association_ass"
@@ -636,22 +639,23 @@ class DbImportCommand extends ImportCommand
             'registry' => $registry
         ]);
 
-        $statuses = $types = [];
+//        $statuses = [];
+        $types = [];
         $em = $this->getManager();
         $validator = $this->getValidator();
         $output->writeln("Importing connections...");
         $count = $connections = 0;
         foreach ($statement as $row) {
-            $status = trim($row['status_mst']);
-            if (!$status) {
-                $status = 'Aktiv';
-            }
-            if (!isset($statuses[$status])) {
-                $statuses[$status] = $this->getStatus([
-                    'name' => $status,
-                    'registry' => $registry
-                ]);
-            }
+//             $status = trim($row['status_mst']);
+//             if (!$status) {
+//                 $status = 'Aktiv';
+//             }
+//             if (!isset($statuses[$status])) {
+//                 $statuses[$status] = $this->getStatus([
+//                     'name' => $status,
+//                     'registry' => $registry
+//                 ]);
+//             }
             $type = trim($row['type_mty']);
             if ($type && !isset($types[$type])) {
                 $types[$type] = $this->getProperty([
@@ -662,7 +666,7 @@ class DbImportCommand extends ImportCommand
 
             $connection = new Connection();
             $connection
-                ->setStatus($statuses[$status])
+//                 ->setStatus($statuses[$status])
                 ->setChildEntry($members[$row['id_mem']]);
             if (isset($row['id_ass'])
                 && isset($associations[$row['id_ass']])) {

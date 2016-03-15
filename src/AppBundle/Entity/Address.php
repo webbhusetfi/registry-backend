@@ -20,6 +20,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  *              columns={"entry_id"}
  *          ),
  *          @ORM\Index(
+ *              name="idx_class",
+ *              columns={"class"}
+ *          ),
+ *          @ORM\Index(
  *              name="idx_name",
  *              columns={"name"}
  *          ),
@@ -59,6 +63,24 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Address extends Entity
 {
+    const CLASS_PRIMARY = 'PRIMARY';
+    const CLASS_INVOICE = 'INVOICE';
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(
+     *      name="class",
+     *      type="string",
+     *      nullable=true,
+     *      columnDefinition="ENUM('PRIMARY','INVOICE')"
+     * )
+     * @Assert\Choice(
+     *      choices={"PRIMARY","INVOICE"}
+     * )
+     */
+    protected $class;
+
     /**
      * @var string
      *
@@ -222,6 +244,30 @@ class Address extends Entity
     public function __construct()
     {
         $this->directories = new ArrayCollection();
+    }
+
+    /**
+     * Set class
+     *
+     * @param string $class
+     *
+     * @return self
+     */
+    public function setClass($class)
+    {
+        $this->class = $class;
+
+        return $this;
+    }
+
+    /**
+     * Get class
+     *
+     * @return string
+     */
+    public function getClass()
+    {
+        return $this->class;
     }
 
     /**

@@ -510,10 +510,14 @@ class Connection extends Entity
             'startNotes' => $this->startNotes,
             'endNotes' => $this->endNotes,
             'status' => (
-                $this->status instanceof Proxy
-                    && !$this->status->__isInitialized()
-                ? $this->status->getId()
-                : $this->status->jsonSerialize()
+                $this->status
+                ? (
+                    $this->status instanceof Proxy
+                        && !$this->status->__isInitialized()
+                    ? $this->status->getId()
+                    : $this->status->jsonSerialize()
+                )
+                : null
             ),
             'connectionType' => (
                 $this->connectionType instanceof Proxy
