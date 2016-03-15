@@ -220,14 +220,15 @@ class EntryRepository extends Repository
             $qb->setMaxResults((int)$request['limit']);
         }
 
-        if (isset($request['filter']['address'])
-            || isset($request['order']['address'])
+        if (isset($request['filter']['address']) && is_array($request['filter']['address'])
+            || isset($request['order']['address']) && is_array($request['order']['address'])
             || in_array('address', $include)) {
             $qb->leftJoin('entry.addresses', 'address');
             if (in_array('address', $include)) {
                 $qb->addSelect('address');
             }
-            if (isset($request['filter']['address'])) {
+            if (isset($request['filter']['address'])
+                && is_array($request['filter']['address'])) {
                 $em->getRepository('AppBundle:Address')
                     ->prepareQueryBuilderWhere(
                         $qb,
@@ -235,7 +236,8 @@ class EntryRepository extends Repository
                         $request['filter']['address']
                     );
             }
-            if (isset($request['order']['address'])) {
+            if (isset($request['order']['address'])
+                && is_array($request['order']['address'])) {
                 $em->getRepository('AppBundle:Address')
                     ->prepareQueryBuilderOrderBy(
                         $qb,
