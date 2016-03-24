@@ -2,6 +2,8 @@
 namespace AppBundle\Entity\Repository;
 
 use AppBundle\Entity\Repository\Common\Repository;
+use AppBundle\Entity\Repository\Common\Request;
+use AppBundle\Entity\Repository\Common\Response;
 
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
@@ -15,24 +17,16 @@ class EntryRepository extends Repository
 {
     protected function getMappedRepository(array $request)
     {
-        $class = null;
-        if (isset($request['class'])) {
-            $class = $request['class'];
-        } elseif (isset($request['type'])) {
-            $type = $this->getEntityManager()->getRepository(
-                'AppBundle:Type'
-            )->find((int)$request['type']);
-            if (!$type) {
-                return ['items' => [], 'foundCount' => 0];
-            }
-            $class = $type->getClass();
+        $type = null;
+        if (isset($request['type'])) {
+            $type = $request['type'];
         }
 
         $map = $this->getClassMetadata()->discriminatorMap;
-        if (isset($class)
-            && isset($map[$class])
-            && $map[$class] != $this->getEntityName()) {
-            return $this->getEntityManager()->getRepository($map[$class]);
+        if (isset($type)
+            && isset($map[$type])
+            && $map[$type] != $this->getEntityName()) {
+            return $this->getEntityManager()->getRepository($map[$type]);
         }
         return null;
     }
@@ -306,9 +300,9 @@ class EntryRepository extends Repository
 
         $items = [];
         foreach ($result as $row) {
-            $class = $map[$row['class']];
-            if ($class != $entityName) {
-                $items[] = $em->getRepository($class)->serialize($row);
+            $type = $map[$row['type']];
+            if ($type != $entityName) {
+                $items[] = $em->getRepository($type)->serialize($row);
             } else {
                 $items[] = $this->serialize($row);
             }
@@ -452,4 +446,101 @@ class EntryRepository extends Repository
             )
         ];
     }
+
+    protected function buildQuery(Request $request, $user, $method = null)
+    {
+        $em = $this->getEntityManager();
+
+        $builder = $em->createQueryBuilder()
+            ->from($this->getClassName(), 'entry');
+
+        $joins = [];
+
+        switch ($method) {
+            case 'read': {
+                $builder->addSelect('entry');
+                if ($include = $request->getInclude()) {
+                    if (in_array('address', $include)) {
+                        $joins[] = 'address';
+                        $builder->addSelect('address');
+                    }
+                    if (in_array('property', $include)) {
+                        $dql = 'SELECT GROUP_CONCAT(property.id)'
+                            . ' FROM AppBundle:Property property'
+                            . ' WHERE entry MEMBER OF property.entries';
+                        $builder->addSelect("($dql) as properties");
+                    }
+                }
+            } break;
+            case 'write': {
+                $joins = ['entry', 'address', 'property'];
+                $builder->select($joins);
+            } break;
+            case 'delete': {
+                $builder->select('entry');
+            } break;
+            default: {
+                $select[] = 'count(entry.id)';
+            }
+        }
+
+        if ($filter = $request->getFilter()) {
+            $this->prepareQueryBuilderWhere($builder, 'entry', $filter);
+            if (isset($filter['address']) && is_array($filter['address'])) {
+                $em->getRepository('AppBundle:Address')
+                    ->prepareQueryBuilderWhere(
+                        $builder,
+                        'address',
+                        $filter['address']
+                    );
+                $joins[] = 'address';
+            }
+        }
+
+        if (in_array('address', $joins)) {
+            $qb->leftJoin('entry.addresses', 'address');
+        }
+        if (in_array('property', $joins)) {
+            $qb->leftJoin('entry.properties', 'property');
+        }
+    }
+
+    // Write
+    public function write(Request $request, $user)//: Response
+    {
+        if ($repo = $this->getMappedRepository($request)) {
+            return $repo->write($request, $user);
+        }
+
+        $response = new Response();
+
+        if ($request->hasQuery()) {
+            $query = $this->buildQuery($request, $user, __FUNCTION__);
+            if (!$query) {
+                return $response->addMessage('error', 'Query failed');
+            }
+
+            $items = $query->getResult();
+            if (!count($items)) {
+                return $response->addMessage('error', 'No result');
+            }
+
+            foreach ($items as $item) {
+                if ($messages = $this->prepare($item, $request, $user)) {
+                    return $response->setMessages($messages);
+                }
+            }
+        } else {
+
+        }
+
+        $em->flush();
+
+        return [
+            'item' => $this->serialize(
+                $items[0]->toArray(["properties", "addresses"])
+            )
+        ];
+    }
+
 }

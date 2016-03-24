@@ -12,6 +12,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\Mapping\MappingException;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Persistence\Proxy;
@@ -174,11 +175,14 @@ abstract class Repository extends EntityRepository implements
                 if (!empty($metaData->table['indexes'])) {
                     foreach ($metaData->table['indexes'] as $index) {
                         foreach ($index['columns'] as $column) {
-                            $name = $metaData->discriminatorColumn['name'];
-                            if ($column != $name && !isset($attrs[$column])) {
+                            if (isset($attrs[$column])) continue;
+
+                            try {
                                 $attrs[$column] = $metaData->getFieldForColumn(
                                     $column
                                 );
+                            } catch (MappingException $e) {
+                                unset($attrs[$column]);
                             }
                         }
                     }
@@ -237,19 +241,24 @@ abstract class Repository extends EntityRepository implements
     }
 
     protected function prepareFields(
-        Entity $item,
-        array $request,
-        $user,
-        &$message
+        Entity $entity,
+        Request $request,
+        $user
     ) {
         $fields = array_diff_key(
             $this->getClassMetadata()->fieldMappings,
             array_flip($this->getClassMetadata()->identifier)
         );
         if (!$fields) {
-            return;
+            return null;
         }
 
+        $values = $request->getValues();
+        if (empty($values)) {
+            return null;
+        }
+
+        $messages = [];
         $accessor = PropertyAccess::createPropertyAccessor();
         foreach ($fields as $key => $mapping) {
             if (!array_key_exists($key, $request)) continue;
@@ -258,7 +267,7 @@ abstract class Repository extends EntityRepository implements
                 switch ($mapping['type']) {
                     case "boolean": {
                         $accessor->setValue(
-                            $item,
+                            $entity,
                             $key,
                             (bool)$request[$key]
                         );
@@ -266,14 +275,14 @@ abstract class Repository extends EntityRepository implements
                     case "integer":
                     case "smallint": {
                         $accessor->setValue(
-                            $item,
+                            $entity,
                             $key,
                             (int)$request[$key]
                         );
                     } break;
                     case "float": {
                         $accessor->setValue(
-                            $item,
+                            $entity,
                             $key,
                             (double)$request[$key]
                         );
@@ -287,32 +296,37 @@ abstract class Repository extends EntityRepository implements
                             $request[$key]
                         );
                         if ($value) {
-                            $accessor->setValue($item, $key, $value);
+                            $accessor->setValue($entity, $key, $value);
                         } else {
-                            $message[$key] = "Invalid value";
+                            $messages[$key] = "Invalid value";
                         }
                     } break;
                     default: {
-                        $accessor->setValue($item, $key, $request[$key]);
+                        $accessor->setValue($entity, $key, $request[$key]);
                     } break;
                 }
             } else {
                 $accessor->setValue($item, $key, null);
             }
         }
+
+        if (!empty($messages)) {
+            return $messages;
+        }
+        return null;
     }
 
     protected function prepareAssociations(
-        Entity $item,
-        array $request,
-        $user,
-        &$message
+        Entity $entity,
+        Request $request,
+        $user
     ) {
         $associations = $this->getClassMetadata()->associationMappings;
         if (!$associations) {
             return;
         }
 
+        $messages = [];
         $accessor = PropertyAccess::createPropertyAccessor();
         foreach ($associations as $key => $mapping) {
             if (!array_key_exists($key, $request)) continue;
@@ -323,37 +337,42 @@ abstract class Repository extends EntityRepository implements
                         $repo = $this->getEntityManager()->getRepository(
                             $mapping['targetEntity']
                         );
-                        if ($entity = $repo->find($request[$key])) {
-                            $accessor->setValue($item, $key, $entity);
+                        if ($item = $repo->find($request[$key])) {
+                            $accessor->setValue($entity, $key, $item);
                         } else {
-                            $message[$key] = "Invalid entity";
+                            $messages[$key] = "Invalid entity";
                         }
                     } else {
-                        $accessor->setValue($item, $key, null);
+                        $accessor->setValue($entity, $key, null);
                     }
                 } break;
                 case ClassMetadataInfo::MANY_TO_MANY: {
                     if (!is_array($request[$key])) {
-                        $message[$key] = "Invalid value";
+                        $messages[$key] = "Invalid value";
                     } else {
                         $repo = $this->getEntityManager()->getRepository(
                             $mapping['targetEntity']
                         );
-                        $entities = [];
+                        $items = [];
                         foreach ($request[$key] as $i => $id) {
                             if (isset($id)
                                 && is_scalar($id)
-                                && ($entity = $repo->find($id))) {
-                                $entities[$i] = $entity;
+                                && ($item = $repo->find($id))) {
+                                $items[$i] = $item;
                             } else {
-                                $message[$key][$i] = "Entity not found";
+                                $messages[$key][$i] = "Entity not found";
                             }
                         }
-                        $accessor->setValue($item, $key, $entities);
+                        $accessor->setValue($entity, $key, $items);
                     }
                 } break;
             }
         }
+
+        if (!empty($messages)) {
+            return $messages;
+        }
+        return null;
     }
 
     protected function prepare(Entity $item, array $request, $user, &$message)
@@ -365,15 +384,16 @@ abstract class Repository extends EntityRepository implements
             ->enableAnnotationMapping()
             ->getValidator();
 
-        $errors = $validator->validate($item);
-
-        foreach ($errors as $error) {
-            if (!isset($message[$error->getPropertyPath()])) {
-                $message[$error->getPropertyPath()] = $error->getMessage();
+        if ($errors = $validator->validate($item)) {
+            foreach ($errors as $error) {
+                if (!isset($message[$error->getPropertyPath()])) {
+                    $message[$error->getPropertyPath()] = $error->getMessage();
+                }
             }
         }
 
         if (!empty($message)) {
+
             return false;
         }
 

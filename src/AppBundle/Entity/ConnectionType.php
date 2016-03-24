@@ -18,30 +18,26 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          @ORM\UniqueConstraint(
  *              name="UNIQUE",
  *              columns={
- *                  "registry_id","parentType_id","childType_id","ownerEntry_id"
+ *                  "registry_id","parentType","childType","ownerEntry_id"
  *              }
  *          )
  *      },
  *      indexes={
  *          @ORM\Index(
- *              name="idx_name",
- *              columns={"name"}
+ *              name="idx_registry_id",
+ *              columns={"registry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_parentType",
+ *              columns={"parentType"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_childType",
+ *              columns={"childType"}
  *          ),
  *          @ORM\Index(
  *              name="idx_ownerEntry_id",
  *              columns={"ownerEntry_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_parentType_id",
- *              columns={"parentType_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_childType_id",
- *              columns={"childType_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_registry_id",
- *              columns={"registry_id"}
  *          )
  *      }
  * )
@@ -54,55 +50,64 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class ConnectionType extends Entity
 {
+    const TYPE_UNION = 'UNION';
+    const TYPE_ASSOCIATION = 'ASSOCIATION';
+    const TYPE_GROUP = 'GROUP';
+    const TYPE_PLACE = 'PLACE';
+    const TYPE_MEMBER_PERSON = 'MEMBER_PERSON';
+    const TYPE_MEMBER_ORGANIZATION = 'MEMBER_ORGANIZATION';
+    const TYPE_CONTACT_PERSON = 'CONTACT_PERSON';
+    const TYPE_CONTACT_ORGANIZATION = 'CONTACT_ORGANIZATION';
+
     /**
      * @var string
      *
      * @ORM\Column(
-     *      name="name",
+     *      name="parentType",
      *      type="string",
-     *      length=128,
-     *      nullable=false
+     *      nullable=false,
+     *      columnDefinition="ENUM('UNION','ASSOCIATION','GROUP','PLACE','MEMBER_PERSON','MEMBER_ORGANIZATION','CONTACT_PERSON','CONTACT_ORGANIZATION') NOT NULL"
      * )
-     * @Assert\Length(
-     *      min = 3,
-     *      max = 128
+     * @Assert\Choice(
+     *      choices={
+     *          "UNION",
+     *          "ASSOCIATION",
+     *          "GROUP",
+     *          "PLACE",
+     *          "MEMBER_PERSON",
+     *          "MEMBER_ORGANIZATION",
+     *          "CONTACT_PERSON",
+     *          "CONTACT_ORGANIZATION",
+     *      }
      * )
      * @Assert\NotBlank()
      */
-    protected $name;
+    protected $parentType;
 
     /**
-     * @var Type
+     * @var string
      *
-     * @ORM\ManyToOne(
-     *      targetEntity="Type"
+     * @ORM\Column(
+     *      name="childType",
+     *      type="string",
+     *      nullable=false,
+     *      columnDefinition="ENUM('UNION','ASSOCIATION','GROUP','PLACE','MEMBER_PERSON','MEMBER_ORGANIZATION','CONTACT_PERSON','CONTACT_ORGANIZATION') NOT NULL"
      * )
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="childType_id",
-     *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="RESTRICT")
-     * })
+     * @Assert\Choice(
+     *      choices={
+     *          "UNION",
+     *          "ASSOCIATION",
+     *          "GROUP",
+     *          "PLACE",
+     *          "MEMBER_PERSON",
+     *          "MEMBER_ORGANIZATION",
+     *          "CONTACT_PERSON",
+     *          "CONTACT_ORGANIZATION",
+     *      }
+     * )
+     * @Assert\NotBlank()
      */
     protected $childType;
-
-    /**
-     * @var Type
-     *
-     * @ORM\ManyToOne(
-     *      targetEntity="Type"
-     * )
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="parentType_id",
-     *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="RESTRICT"
-     *      )
-     * })
-     */
-    protected $parentType;
 
     /**
      * @var Entry
@@ -139,61 +144,13 @@ class ConnectionType extends Entity
     protected $registry;
 
     /**
-     * Set name
-     *
-     * @param string $name
-     *
-     * @return self
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * Get name
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Set child type
-     *
-     * @param Type $childType
-     *
-     * @return self
-     */
-    public function setChildType(Type $childType = null)
-    {
-        $this->childType = $childType;
-
-        return $this;
-    }
-
-    /**
-     * Get child type
-     *
-     * @return Type
-     */
-    public function getChildType()
-    {
-        return $this->childType;
-    }
-
-    /**
      * Set parent type
      *
-     * @param Type $parentType
+     * @param string $parentType
      *
      * @return self
      */
-    public function setParentType(Type $parentType = null)
+    public function setParentType($parentType = null)
     {
         $this->parentType = $parentType;
 
@@ -203,11 +160,35 @@ class ConnectionType extends Entity
     /**
      * Get parent type
      *
-     * @return Type
+     * @return string
      */
     public function getParentType()
     {
         return $this->parentType;
+    }
+
+    /**
+     * Set child type
+     *
+     * @param string $childType
+     *
+     * @return self
+     */
+    public function setChildType($childType = null)
+    {
+        $this->childType = $childType;
+
+        return $this;
+    }
+
+    /**
+     * Get child type
+     *
+     * @return string
+     */
+    public function getChildType()
+    {
+        return $this->childType;
     }
 
     /**

@@ -2,11 +2,11 @@
 namespace AppBundle\Entity\Repository;
 
 /**
- * Organization repository
+ * Group repository
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-class OrganizationRepository extends EntryRepository
+class GroupRepository extends EntryRepository
 {
 
 }

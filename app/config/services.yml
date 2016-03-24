@@ -27,12 +27,6 @@ services:
     registryapi.registry:
         class: AppBundle\Service\RegistryService
         parent: service
-    registryapi.status:
-        class: AppBundle\Service\StatusService
-        parent: service
-    registryapi.type:
-        class: AppBundle\Service\TypeService
-        parent: service
     registryapi.entry:
         class: AppBundle\Service\EntryService
         arguments: ['AppBundle\Entity\Entry']

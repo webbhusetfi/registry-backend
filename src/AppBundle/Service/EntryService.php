@@ -2,58 +2,62 @@
 namespace AppBundle\Service;
 
 use AppBundle\Service\Common\ScrudService;
-use AppBundle\Service\Configuration\ScrudConfiguration;
+use AppBundle\Service\Configuration\Configuration;
 use AppBundle\Entity\User;
 use JSend\JSendResponse;
 
 class EntryService extends ScrudService
 {
-    protected $entity;
+    protected $entityClass;
     protected $configuration;
 
     public function getConfiguration($name = null)
     {
         if (!isset($this->configuration)) {
-
-            $entryAttrs = ['externalId', 'registry', 'type', 'notes'];
-            $this->configuration[0] = ScrudConfiguration::create(
-                $this->getDoctrine(),
-                'AppBundle\Entity\Entry',
+            $this->configuration = Configuration::create();
+            $this->configuration->setMethods(
                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
-            )
-            ->setCreateAttributes($entryAttrs)
-            ->setUpdateAttributes($entryAttrs);
-
-            $organizationAttrs = $entryAttrs;
-            $organizationAttrs[] = 'name';
-            $organizationAttrs[] = 'description';
-            $organizationAttrs[] = 'bank';
-            $organizationAttrs[] = 'account';
-            $organizationAttrs[] = 'vat';
-            $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
-                $this->getDoctrine(),
-                'AppBundle\Entity\Organization',
-                ['statistics', 'search', 'create', 'read', 'update', 'delete']
-            )
-            ->setCreateAttributes($organizationAttrs)
-            ->setUpdateAttributes($organizationAttrs);
-
-            $personAttrs = $entryAttrs;
-            $personAttrs[] = 'gender';
-            $personAttrs[] = 'firstName';
-            $personAttrs[] = 'lastName';
-            $personAttrs[] = 'birthDay';
-            $personAttrs[] = 'birthMonth';
-            $personAttrs[] = 'birthYear';
-            $this->configuration['PERSON'] = ScrudConfiguration::create(
-                $this->getDoctrine(),
-                'AppBundle\Entity\Person',
-                ['statistics', 'search', 'create', 'read', 'update', 'delete']
-            )
-            ->setCreateAttributes($personAttrs)
-            ->setUpdateAttributes($personAttrs);
+            );
+//
+//             $entryAttrs = ['externalId', 'registry', 'type', 'notes'];
+//             $this->configuration[0] = ScrudConfiguration::create(
+//                 $this->getDoctrine(),
+//                 'AppBundle\Entity\Entry',
+//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
+//             )
+//             ->setCreateAttributes($entryAttrs)
+//             ->setUpdateAttributes($entryAttrs);
+//
+//             $organizationAttrs = $entryAttrs;
+//             $organizationAttrs[] = 'name';
+//             $organizationAttrs[] = 'description';
+//             $organizationAttrs[] = 'bank';
+//             $organizationAttrs[] = 'account';
+//             $organizationAttrs[] = 'vat';
+//             $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
+//                 $this->getDoctrine(),
+//                 'AppBundle\Entity\Organization',
+//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
+//             )
+//             ->setCreateAttributes($organizationAttrs)
+//             ->setUpdateAttributes($organizationAttrs);
+//
+//             $personAttrs = $entryAttrs;
+//             $personAttrs[] = 'gender';
+//             $personAttrs[] = 'firstName';
+//             $personAttrs[] = 'lastName';
+//             $personAttrs[] = 'birthDay';
+//             $personAttrs[] = 'birthMonth';
+//             $personAttrs[] = 'birthYear';
+//             $this->configuration['PERSON'] = ScrudConfiguration::create(
+//                 $this->getDoctrine(),
+//                 'AppBundle\Entity\Person',
+//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
+//             )
+//             ->setCreateAttributes($personAttrs)
+//             ->setUpdateAttributes($personAttrs);
         }
-        return $this->configuration[(!isset($name) ? 0 : $name)];
+        return $this->configuration;
     }
 
     public function __construct($entityClass)
@@ -129,6 +133,18 @@ class EntryService extends ScrudService
             return JSendResponse::success($response)->asArray();
         }
         return JSendResponse::fail($message)->asArray();
+    }
+
+    public function write(array $request)
+    {
+        $response = $this->getRepository()->update(
+            new Request($request),
+            $this->getUser()
+        );
+        if ($response->hasMessages()) {
+            return JSendResponse::fail($response->getMessages())->asArray();
+        }
+        return JSendResponse::success($response->getData())->asArray();
     }
 //
 //     public function delete(array $request)

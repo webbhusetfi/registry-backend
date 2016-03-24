@@ -4,25 +4,18 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use AppBundle\Entity\Common\Interfaces\OrganizationInterface;
+use AppBundle\Entity\Common\Traits\OrganizationTrait;
+
 /**
- * Organization
+ * Union
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
- * @ORM\Table(
- *      name="Organization",
- *      options={"collate"="utf8_swedish_ci"},
- *      indexes={
- *          @ORM\Index(
- *              name="idx_name",
- *              columns={"name"}
- *          )
- *      }
- * )
  * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\OrganizationRepository"
+ *      repositoryClass="AppBundle\Entity\Repository\UnionRepository"
  * )
  */
-class Organization extends Entry
+class Union extends Entry implements OrganizationInterface
 {
     /**
      * @var string
@@ -30,8 +23,7 @@ class Organization extends Entry
      * @ORM\Column(
      *      name="name",
      *      type="string",
-     *      length=64,
-     *      nullable=false
+     *      length=64
      * )
      * @Assert\Length(
      *      min = 1,
@@ -42,17 +34,52 @@ class Organization extends Entry
     protected $name;
 
     /**
+     * @inheritdoc
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
      * @var string
      *
      * @ORM\Column(
      *      name="description",
      *      type="string",
-     *      length=255,
-     *      nullable=true
+     *      length=255
      * )
      * @Assert\Length(max = 255)
      */
     protected $description;
+
+    /**
+     * @inheritdoc
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
 
     /**
      * @var string
@@ -60,8 +87,7 @@ class Organization extends Entry
      * @ORM\Column(
      *      name="bank",
      *      type="string",
-     *      length=64,
-     *      nullable=true
+     *      length=64
      * )
      * @Assert\Length(max = 64)
      */
@@ -73,8 +99,7 @@ class Organization extends Entry
      * @ORM\Column(
      *      name="account",
      *      type="string",
-     *      length=64,
-     *      nullable=true
+     *      length=64
      * )
      * @Assert\Length(max = 64)
      */
@@ -86,67 +111,14 @@ class Organization extends Entry
      * @ORM\Column(
      *      name="vat",
      *      type="string",
-     *      length=64,
-     *      nullable=true
+     *      length=64
      * )
      * @Assert\Length(max = 64)
      */
     protected $vat;
 
     /**
-     * Set name
-     *
-     * @param string $name
-     *
-     * @return self
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * Get name
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Set description
-     *
-     * @param string $description
-     *
-     * @return self
-     */
-    public function setDescription($description)
-    {
-        $this->description = $description;
-
-        return $this;
-    }
-
-    /**
-     * Get description
-     *
-     * @return string
-     */
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    /**
-     * Set bank
-     *
-     * @param string $bank
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setBank($bank)
     {
@@ -156,9 +128,7 @@ class Organization extends Entry
     }
 
     /**
-     * Get bank
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getBank()
     {
@@ -166,11 +136,7 @@ class Organization extends Entry
     }
 
     /**
-     * Set bank account
-     *
-     * @param string $account
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setAccount($account)
     {
@@ -180,9 +146,7 @@ class Organization extends Entry
     }
 
     /**
-     * Get bank account
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getAccount()
     {
@@ -190,11 +154,7 @@ class Organization extends Entry
     }
 
     /**
-     * Set VAT-number
-     *
-     * @param string $vat
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setVat($vat)
     {
@@ -204,9 +164,7 @@ class Organization extends Entry
     }
 
     /**
-     * Get VAT-number
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getVat()
     {

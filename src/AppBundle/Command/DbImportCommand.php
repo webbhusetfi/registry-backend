@@ -11,9 +11,9 @@ use \Pdo;
 
 use AppBundle\Entity\Registry;
 
-use AppBundle\Entity\Type;
-use AppBundle\Entity\Organization;
-use AppBundle\Entity\Person;
+use AppBundle\Entity\Union;
+use AppBundle\Entity\Association;
+use AppBundle\Entity\MemberPerson;
 
 use AppBundle\Entity\Address;
 use AppBundle\Entity\Directory;
@@ -21,7 +21,6 @@ use AppBundle\Entity\Directory;
 use AppBundle\Entity\PropertyGroup;
 use AppBundle\Entity\Property;
 
-// use AppBundle\Entity\Status;
 use AppBundle\Entity\Connection;
 use AppBundle\Entity\ConnectionType;
 
@@ -91,13 +90,13 @@ class DbImportCommand extends ImportCommand
             return;
         }
 
-        $organization = $this->importOrganization(
+        $union = $this->importUnion(
             $output,
             $registry,
             $sourceID
         );
 
-        if ($organization) {
+        if ($union) {
             $properties = $this->importProperties(
                 $output,
                 $registry,
@@ -114,7 +113,7 @@ class DbImportCommand extends ImportCommand
             $associations = $this->importAssociations(
                 $output,
                 $registry,
-                $organization,
+                $union,
                 $sourceID
             );
 
@@ -122,7 +121,7 @@ class DbImportCommand extends ImportCommand
                 $this->importConnections(
                     $output,
                     $registry,
-                    $organization,
+                    $union,
                     $associations,
                     $members,
                     $sourceID
@@ -131,7 +130,7 @@ class DbImportCommand extends ImportCommand
         }
     }
 
-    protected function importOrganization(
+    protected function importUnion(
         OutputInterface $output,
         Registry $registry,
         $sourceID
@@ -148,42 +147,35 @@ class DbImportCommand extends ImportCommand
             return null;
         }
 
-        $type = $this->getType([
-            'class' => Type::CLASS_ORGANIZATION,
-            'name' => 'Förbund',
-            'registry' => $registry
-        ]);
-
-        $organization = new Organization();
-        $organization
+        $union = new Union();
+        $union
             ->setRegistry($registry)
-            ->setType($type)
             ->setExternalId((int)$sourceID)
             ->setName(
                 mb_convert_case(trim($row['name_reg']), MB_CASE_TITLE)
             );
         if (trim($row['bank_reg'])) {
-            $organization->setBank(trim($row['bank_reg']));
+            $union->setBank(trim($row['bank_reg']));
         }
         if (trim($row['account_reg'])) {
-            $organization->setAccount(trim($row['account_reg']));
+            $union->setAccount(trim($row['account_reg']));
         }
         if (trim($row['fo_reg'])) {
-            $organization->setVat(trim($row['fo_reg']));
+            $union->setVat(trim($row['fo_reg']));
         }
 
-        $errors = $validator->validate($organization);
+        $errors = $validator->validate($union);
         if (count($errors)) {
             $output->writeln("Validation failed for organization:");
             $output->writeln(var_export($row) . PHP_EOL);
             $output->writeln((string)$errors);
             return;
         }
-        $em->persist($organization);
+        $em->persist($union);
 
         $address = new Address();
         $address->setClass(Address::CLASS_PRIMARY);
-        $address->setEntry($organization);
+        $address->setEntry($union);
         if (trim($row['address_reg'])) {
             $address->setStreet(
                 mb_convert_case(trim($row['address_reg']), MB_CASE_TITLE)
@@ -215,7 +207,7 @@ class DbImportCommand extends ImportCommand
         $em->flush();
         $em->clear('AppBundle\Entity\Address');
 
-        return $organization;
+        return $union;
     }
 
     protected function importProperties(
@@ -298,12 +290,6 @@ class DbImportCommand extends ImportCommand
             return [];
         }
 
-        $type = $this->getType([
-            'class' => Type::CLASS_PERSON,
-            'name' => 'Medlem',
-            'registry' => $registry,
-        ]);
-
 //         $billingDirectory = $this->getDirectory([
 //             'name' => 'Fakturering',
 //             'view' => Directory::VIEW_ADDRESS,
@@ -330,10 +316,9 @@ class DbImportCommand extends ImportCommand
                 $lastName = $firstName;
             }
 
-            $member = new Person();
+            $member = new MemberPerson();
             $member
                 ->setRegistry($registry)
-                ->setType($type)
                 ->setCreatedAt(new \DateTime($row['added_mem']))
                 ->setExternalId((int)$row['id_mem'])
                 ->setFirstName($firstName)
@@ -358,9 +343,9 @@ class DbImportCommand extends ImportCommand
             }
 
             if (trim($row['value_mge']) == 'Man') {
-                $member->setGender(Person::GENDER_MALE);
+                $member->setGender(MemberPerson::GENDER_MALE);
             } elseif (trim($row['value_mge']) == 'Kvinna') {
-                $member->setGender(Person::GENDER_FEMALE);
+                $member->setGender(MemberPerson::GENDER_FEMALE);
             }
 
             $propertySql = "SELECT * FROM member_property_mpr"
@@ -496,7 +481,7 @@ class DbImportCommand extends ImportCommand
     protected function importAssociations(
         OutputInterface $output,
         Registry $registry,
-        Organization $organization,
+        Union $union,
         $sourceID
     ) {
         $sql = "SELECT * FROM association_ass"
@@ -507,24 +492,9 @@ class DbImportCommand extends ImportCommand
             return [];
         }
 
-//         $status = $this->getStatus([
-//             'name' => 'Aktiv',
-//             'registry' => $registry
-//         ]);
-        $organizationType = $this->getType([
-            'class' => Type::CLASS_ORGANIZATION,
-            'name' => 'Förbund',
-            'registry' => $registry
-        ]);
-        $associationType = $this->getType([
-            'class' => Type::CLASS_ORGANIZATION,
-            'name' => 'Förening',
-            'registry' => $registry
-        ]);
-        $organizationMembership = $this->getConnectionType([
-            'name' => 'Förbundsmedlemskap',
-            'parentType' => $organizationType,
-            'childType' => $associationType,
+        $connectionType = $this->getConnectionType([
+            'parentType' => ConnectionType::TYPE_UNION,
+            'childType' => ConnectionType::TYPE_ASSOCIATION,
             'registry' => $registry,
         ]);
 
@@ -533,10 +503,9 @@ class DbImportCommand extends ImportCommand
         $validator = $this->getValidator();
         $output->writeln("Importing associations...");
         foreach ($statement as $row) {
-            $association = new Organization();
+            $association = new Association();
             $association
                 ->setRegistry($registry)
-                ->setType($associationType)
                 ->setExternalId((int)$row['id_ass'])
                 ->setName(
                     mb_convert_case(trim($row['name_ass']), MB_CASE_TITLE)
@@ -557,8 +526,8 @@ class DbImportCommand extends ImportCommand
             $connection = new Connection();
             $connection
 //                 ->setStatus($status)
-                ->setConnectionType($organizationMembership)
-                ->setParentEntry($organization)
+                ->setConnectionType($connectionType)
+                ->setParentEntry($union)
                 ->setChildEntry($association);
             $errors = $validator->validate($connection);
             if (count($errors)) {
@@ -579,7 +548,7 @@ class DbImportCommand extends ImportCommand
     protected function importConnections(
         OutputInterface $output,
         Registry $registry,
-        Organization $organization,
+        Union $union,
         array $associations,
         array $members,
         $sourceID
@@ -605,32 +574,14 @@ class DbImportCommand extends ImportCommand
             return;
         }
 
-        $organizationType = $this->getType([
-            'class' => Type::CLASS_ORGANIZATION,
-            'name' => 'Förbund',
-            'registry' => $registry,
-        ]);
-        $associationType = $this->getType([
-            'class' => Type::CLASS_ORGANIZATION,
-            'name' => 'Förening',
-            'registry' => $registry,
-        ]);
-        $memberType = $this->getType([
-            'class' => Type::CLASS_PERSON,
-            'name' => 'Medlem',
-            'registry' => $registry,
-        ]);
-
-        $organizationMembership = $this->getConnectionType([
-            'name' => 'Förbundsmedlemskap',
-            'parentType' => $organizationType,
-            'childType' => $memberType,
+        $unionMembership = $this->getConnectionType([
+            'parentType' => ConnectionType::TYPE_UNION,
+            'childType' => ConnectionType::TYPE_MEMBER_PERSON,
             'registry' => $registry,
         ]);
         $associationMembership = $this->getConnectionType([
-            'name' => 'Föreningsmedlemskap',
-            'parentType' => $associationType,
-            'childType' => $memberType,
+            'parentType' => ConnectionType::TYPE_UNION,
+            'childType' => ConnectionType::TYPE_ASSOCIATION,
             'registry' => $registry,
         ]);
 
@@ -639,23 +590,12 @@ class DbImportCommand extends ImportCommand
             'registry' => $registry
         ]);
 
-//        $statuses = [];
         $types = [];
         $em = $this->getManager();
         $validator = $this->getValidator();
         $output->writeln("Importing connections...");
         $count = $connections = 0;
         foreach ($statement as $row) {
-//             $status = trim($row['status_mst']);
-//             if (!$status) {
-//                 $status = 'Aktiv';
-//             }
-//             if (!isset($statuses[$status])) {
-//                 $statuses[$status] = $this->getStatus([
-//                     'name' => $status,
-//                     'registry' => $registry
-//                 ]);
-//             }
             $type = trim($row['type_mty']);
             if ($type && !isset($types[$type])) {
                 $types[$type] = $this->getProperty([
@@ -666,7 +606,6 @@ class DbImportCommand extends ImportCommand
 
             $connection = new Connection();
             $connection
-//                 ->setStatus($statuses[$status])
                 ->setChildEntry($members[$row['id_mem']]);
             if (isset($row['id_ass'])
                 && isset($associations[$row['id_ass']])) {
@@ -675,67 +614,46 @@ class DbImportCommand extends ImportCommand
                     ->setParentEntry($associations[$row['id_ass']]);
             } else {
                 $connection
-                    ->setConnectionType($organizationMembership)
-                    ->setParentEntry($organization);
+                    ->setConnectionType($unionMembership)
+                    ->setParentEntry($union);
             }
             if ($type) {
                 $connection->addProperty($types[$type]);
             }
 
-            $startYear = abs((int)trim($row['member_from_year_mem']));
-            if ($startYear) {
-                if ($startYear > (date("Y") + 100)) {
-                    $startYear = date("Y") + 100;
+            $createdYear = abs((int)trim($row['member_from_year_mem']));
+            if ($createdYear) {
+                if ($createdYear > (date("Y") + 100)) {
+                    $createdYear = date("Y") + 100;
                 }
-                $startMonth = abs((int)trim($row['member_from_month_mem']));
-                if (!$startMonth) {
-                    $startMonth = 1;
-                } elseif ($startMonth > 12) {
-                    $startMonth = 12;
+                $createdMonth = abs((int)trim($row['member_from_month_mem']));
+                if (!$createdMonth) {
+                    $createdMonth = 1;
+                } elseif ($createdMonth > 12) {
+                    $createdMonth = 12;
                 }
-                $startDay = abs((int)trim($row['member_from_day_mem']));
-                if (!$startDay) {
-                    $startDay = 1;
-                } elseif ($startDay > 31) {
-                    $startDay = 31;
+                $createdDay = abs((int)trim($row['member_from_day_mem']));
+                if (!$createdDay) {
+                    $createdDay = 1;
+                } elseif ($createdDay > 31) {
+                    $createdDay = 31;
                 }
-                $startDate = new \DateTime(
-                    "{$startYear}-{$startMonth}-{$startDay}"
+                $createdAt = new \DateTime(
+                    "{$createdYear}-{$createdMonth}-{$createdDay}"
                 );
-                $connection->setStart($startDate);
+                $connection->setCreatedAt($createdAt);
             }
 
             $startNotes = trim($row['member_from_cause_mem']);
-            if ($startNotes) {
-                $connection->setStartNotes($startNotes);
-            }
-
-            $endYear = abs((int)trim($row['member_to_year_mem']));
-            if ($endYear) {
-                if ($endYear > (date("Y") + 100)) {
-                    $endYear = date("Y") + 100;
-                }
-                $endMonth = abs((int)trim($row['member_to_month_mem']));
-                if (!$endMonth) {
-                    $endMonth = 1;
-                } elseif ($endMonth > 12) {
-                    $endMonth = 12;
-                }
-                $endDay = abs((int)trim($row['member_to_day_mem']));
-                if (!$endDay) {
-                    $endDay = 1;
-                } elseif ($endDay > 31) {
-                    $endDay = 31;
-                }
-                $endDate = new \DateTime(
-                    "{$endYear}-{$endMonth}-{$endDay}"
-                );
-                $connection->setEnd($endDate);
-            }
-
             $endNotes = trim($row['member_to_cause_mem']);
-            if ($endNotes) {
-                $connection->setEndNotes($endNotes);
+            if ($startNotes && $endNotes) {
+                $connection->setNotes(
+                    $startNotes . PHP_EOL . PHP_EOL . $endNotes
+                );
+            } elseif ($startNotes) {
+                $connection->setNotes($startNotes);
+            } elseif ($endNotes) {
+                $connection->setNotes($endNotes);
             }
 
             $errors = $validator->validate($connection);

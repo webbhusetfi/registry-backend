@@ -1,59 +1,22 @@
 <?php
-namespace AppBundle\Entity;
+namespace AppBundle\Entity\Common\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Person
+ * Person trait
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
- * @ORM\Table(
- *      name="Person",
- *      options={"collate"="utf8_swedish_ci"},
- *      indexes={
- *          @ORM\Index(
- *              name="idx_gender",
- *              columns={"gender"}
- *          ),
- *          @ORM\Index(
- *              name="idx_firstName",
- *              columns={"firstName"}
- *          ),
- *          @ORM\Index(
- *              name="idx_lastName",
- *              columns={"lastName"}
- *          ),
- *          @ORM\Index(
- *              name="idx_birthYear",
- *              columns={"birthYear"}
- *          ),
- *          @ORM\Index(
- *              name="idx_birthMonth",
- *              columns={"birthMonth"}
- *          ),
- *          @ORM\Index(
- *              name="idx_birthDay",
- *              columns={"birthDay"}
- *          )
- *      }
- * )
- * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\PersonRepository"
- * )
  */
-class Person extends Entry
+trait PersonTrait
 {
-    const GENDER_MALE = 'MALE';
-    const GENDER_FEMALE = 'FEMALE';
-
     /**
      * @var string
      *
      * @ORM\Column(
      *      name="gender",
      *      type="string",
-     *      nullable=true,
      *      columnDefinition="ENUM('MALE','FEMALE')"
      * )
      * @Assert\Choice(
@@ -68,8 +31,7 @@ class Person extends Entry
      * @ORM\Column(
      *      name="firstName",
      *      type="string",
-     *      length=64,
-     *      nullable=false
+     *      length=64
      * )
      * @Assert\Length(
      *      min = 1,
@@ -85,8 +47,7 @@ class Person extends Entry
      * @ORM\Column(
      *      name="lastName",
      *      type="string",
-     *      length=64,
-     *      nullable=false
+     *      length=64
      * )
      * @Assert\Length(
      *      min = 1,
@@ -101,8 +62,7 @@ class Person extends Entry
      *
      * @ORM\Column(
      *      name="birthYear",
-     *      type="integer",
-     *      nullable=true
+     *      type="integer"
      * )
      * @Assert\Type(
      *      type="integer"
@@ -119,8 +79,7 @@ class Person extends Entry
      *
      * @ORM\Column(
      *      name="birthMonth",
-     *      type="integer",
-     *      nullable=true
+     *      type="integer"
      * )
      * @Assert\Type(
      *      type="integer"
@@ -137,8 +96,7 @@ class Person extends Entry
      *
      * @ORM\Column(
      *      name="birthDay",
-     *      type="integer",
-     *      nullable=true
+     *      type="integer"
      * )
      * @Assert\Type(
      *      type="integer"
@@ -151,11 +109,7 @@ class Person extends Entry
     protected $birthDay;
 
     /**
-     * Set gender
-     *
-     * @param string $gender
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setGender($gender)
     {
@@ -165,9 +119,7 @@ class Person extends Entry
     }
 
     /**
-     * Get gender
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getGender()
     {
@@ -175,11 +127,7 @@ class Person extends Entry
     }
 
     /**
-     * Set first name
-     *
-     * @param string $firstName
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setFirstName($firstName)
     {
@@ -189,9 +137,7 @@ class Person extends Entry
     }
 
     /**
-     * Get first name
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getFirstName()
     {
@@ -199,11 +145,7 @@ class Person extends Entry
     }
 
     /**
-     * Set last name
-     *
-     * @param string $lastName
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setLastName($lastName)
     {
@@ -213,9 +155,7 @@ class Person extends Entry
     }
 
     /**
-     * Get last name
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getLastName()
     {
@@ -223,11 +163,7 @@ class Person extends Entry
     }
 
     /**
-     * Set birth year
-     *
-     * @param integer $birthYear
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setBirthYear($birthYear)
     {
@@ -237,9 +173,7 @@ class Person extends Entry
     }
 
     /**
-     * Get birth year
-     *
-     * @return integer
+     * @inheritdoc
      */
     public function getBirthYear()
     {
@@ -247,11 +181,7 @@ class Person extends Entry
     }
 
     /**
-     * Set birth month
-     *
-     * @param integer $birthMonth
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setBirthMonth($birthMonth)
     {
@@ -261,9 +191,7 @@ class Person extends Entry
     }
 
     /**
-     * Get birth month
-     *
-     * @return integer
+     * @inheritdoc
      */
     public function getBirthMonth()
     {
@@ -271,11 +199,7 @@ class Person extends Entry
     }
 
     /**
-     * Set birth day
-     *
-     * @param integer $birthDay
-     *
-     * @return self
+     * @inheritdoc
      */
     public function setBirthDay($birthDay)
     {
@@ -285,9 +209,7 @@ class Person extends Entry
     }
 
     /**
-     * Get birth day
-     *
-     * @return integer
+     * @inheritdoc
      */
     public function getBirthDay()
     {

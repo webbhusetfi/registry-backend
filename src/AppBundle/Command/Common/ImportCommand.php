@@ -3,14 +3,12 @@ namespace AppBundle\Command\Common;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 
-use AppBundle\Entity\Type;
+use AppBundle\Entity\ConnectionType;
 use AppBundle\Entity\Directory;
 
 use AppBundle\Entity\PropertyGroup;
 use AppBundle\Entity\Property;
 
-use AppBundle\Entity\Status;
-use AppBundle\Entity\ConnectionType;
 
 abstract class ImportCommand extends ContainerAwareCommand
 {
@@ -29,39 +27,6 @@ abstract class ImportCommand extends ContainerAwareCommand
         return $this->getContainer()->get('validator');
     }
 
-    protected function getStatus(array $attributes)
-    {
-        $status = $this->getRepository('AppBundle\Entity\Status')
-            ->findOneBy($attributes);
-        if (!$status) {
-            $status = new Status();
-            $status
-                ->setName($attributes['name'])
-                ->setRegistry($attributes['registry']);
-            $em = $this->getManager();
-            $em->persist($status);
-            $em->flush();
-        }
-        return $status;
-    }
-
-    protected function getType(array $attributes)
-    {
-        $type = $this->getRepository('AppBundle\Entity\Type')
-            ->findOneBy($attributes);
-        if (!$type) {
-            $type = new Type();
-            $type
-                ->setClass($attributes['class'])
-                ->setName($attributes['name'])
-                ->setRegistry($attributes['registry']);
-            $em = $this->getManager();
-            $em->persist($type);
-            $em->flush();
-        }
-        return $type;
-    }
-
     protected function getConnectionType(array $attributes)
     {
         $connectionType = $this
@@ -70,7 +35,6 @@ abstract class ImportCommand extends ContainerAwareCommand
         if (!$connectionType) {
             $connectionType = new ConnectionType();
             $connectionType
-                ->setName($attributes['name'])
                 ->setParentType($attributes['parentType'])
                 ->setChildType($attributes['childType'])
                 ->setRegistry($attributes['registry']);

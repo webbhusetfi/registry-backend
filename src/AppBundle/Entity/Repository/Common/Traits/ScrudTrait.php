@@ -1,7 +1,6 @@
 <?php
-namespace AppBundle\Service\Common\Traits;
+namespace AppBundle\Entity\Repository\Common\Traits;
 
-use AppBundle\Service\Configuration\ScrudConfiguration;
 
 /**
  * Trait for SCRUD services.
@@ -10,53 +9,14 @@ use AppBundle\Service\Configuration\ScrudConfiguration;
  */
 trait ScrudTrait
 {
-    use ScrudValidationTrait;
+    use ValidationTrait;
 
-    protected function getMappedConfiguration(
+    protected function search(
+        User $user,
         array $request,
         &$message,
-        $required = true
+        &$foundCount
     ) {
-        // Get default configuration
-        $config = $this->getConfiguration();
-
-        // Detect inheritance mapped abstract parent
-        $metaData = $config->getClassMetadata();
-        $map = $metaData->discriminatorMap;
-        if (!empty($map) && !$metaData->discriminatorValue) {
-            $column = $metaData->discriminatorColumn['name'];
-            if ($column && isset($request[$column])) {
-                if (isset($map[$request[$column]])) {
-                    $config = $this->getConfiguration(
-                        $request[$column]
-                    );
-                    if (!isset($config)) {
-                        $message[$column] = 'Configuration error';
-                        return null;
-                    }
-                } else {
-                    $message[$column] = 'Invalid value';
-                    return null;
-                }
-            } elseif ($required) {
-                $message[$column] = 'Required attribute';
-                return null;
-            }
-        }
-
-        return $config;
-    }
-
-    protected function searchItems(array $request, &$message, &$foundCount) {
-        $config = $this->getMappedConfiguration(
-            (!empty($request['filter']) ? $request['filter'] : []),
-            $message,
-            false
-        );
-        if (!$config) {
-            return null;
-        }
-
         if ($message = $this->validateSearch($request, $config)) {
             return null;
         }
@@ -65,20 +25,19 @@ trait ScrudTrait
         if (isset($request['filter'])) {
             $filter = array_intersect_key(
                 $request['filter'],
-                array_flip($config->getFilterAttributes())
+                $config->getFilterAttributes()
             );
         }
         if (isset($request['order'])) {
             $order = $request['order'];
         }
 
-        $offset = null;
-        $limit = 100;
+        $offset = $limit = null;
         if (isset($request['offset'])) {
-            $offset = (int)$request['offset'];
+            $offset = $request['offset'];
         }
-        if (isset($request['limit']) && (int)$request['limit'] < 100) {
-            $limit = (int)$request['limit'];
+        if (isset($request['limit'])) {
+            $limit = $request['limit'];
         }
 
         // Apply constraints
@@ -88,7 +47,7 @@ trait ScrudTrait
 
         $repo = $this->getDoctrine()->getRepository($config->getEntityClass());
 
-        return $repo->findByFilter(
+        return $this->findByFilter(
             $filter,
             $order,
             $limit,
@@ -97,7 +56,7 @@ trait ScrudTrait
         );
     }
 
-    protected function createItem(array $request, &$message)
+    public function create(User $user, array $request, &$message)
     {
         $config = $this->getMappedConfiguration($request, $message, true);
         if (!$config) {
@@ -120,14 +79,14 @@ trait ScrudTrait
             return null;
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->getManager();
         $em->persist($item);
         $em->flush();
 
         return $item;
     }
 
-    protected function readItem(array $request, &$message)
+    public function read(User $user, array $request, &$message)
     {
         $config = $this->getMappedConfiguration($request, $message, false);
         if (!$config) {
@@ -158,7 +117,7 @@ trait ScrudTrait
         return $items[0];
     }
 
-    protected function updateItem(array $request, &$message)
+    public function update(User $user, array $request, &$message)
     {
         $config = $this->getMappedConfiguration($request, $message, false);
         if (!$config) {
@@ -195,7 +154,7 @@ trait ScrudTrait
         return true;
     }
 
-    protected function deleteItem(array $request, &$message)
+    public function delete(User $user, array $request, &$message)
     {
         $config = $this->getMappedConfiguration($request, $message, false);
         if (!$config) {
@@ -206,7 +165,7 @@ trait ScrudTrait
             $request,
             array_flip($config->getReadAttributes())
         );
-        $item = $this->readItem($readRequest, $message);
+        $item = $this->read($user, $readRequest, $message);
         if (!isset($item)) {
             return JSendResponse::fail($message)->asArray();
         }
@@ -228,7 +187,7 @@ trait ScrudTrait
         return true;
     }
 
-    protected function prepareItem(
+    protected function prepare(
         $item,
         array $request,
         ScrudConfiguration $config
@@ -245,16 +204,8 @@ trait ScrudTrait
         $builder = $this->container->get('form.factory')
             ->createBuilder('form', $item);
 
-        $fields = $config->getClassMetadata()->fieldMappings;
-
         foreach ($attributes as $attribute) {
-            if (isset($fields[$attribute])
-                && $fields[$attribute]['type'] == 'datetime') {
-                $builder->add($attribute, 'datetime');
-            } else {
-                $builder->add($attribute);
-
-            }
+            $builder->add($attribute);
         }
 
         $form = $builder->getForm()->submit($request, $clearMissing);

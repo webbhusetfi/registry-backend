@@ -17,41 +17,70 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      options={"collate"="utf8_swedish_ci"},
  *      indexes={
  *          @ORM\Index(
- *              name="idx_externalId",
- *              columns={"externalId"}
- *          ),
- *          @ORM\Index(
- *              name="idx_createdAt",
- *              columns={"createdAt"}
- *          ),
- *          @ORM\Index(
  *              name="idx_registry_id",
  *              columns={"registry_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_type_id",
- *              columns={"type_id"}
  *          ),
  *          @ORM\Index(
  *              name="idx_createdBy_id",
  *              columns={"createdBy_id"}
  *          ),
  *          @ORM\Index(
- *              name="idx_class",
- *              columns={"class"}
+ *              name="idx_createdAt",
+ *              columns={"createdAt"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_type",
+ *              columns={"type"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_externalId",
+ *              columns={"externalId"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_name",
+ *              columns={"name"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_gender",
+ *              columns={"gender"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_firstName",
+ *              columns={"firstName"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_lastName",
+ *              columns={"lastName"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthYear",
+ *              columns={"birthYear"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthMonth",
+ *              columns={"birthMonth"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_birthDay",
+ *              columns={"birthDay"}
  *          )
  *      }
  * )
- * @ORM\InheritanceType("JOINED")
+ * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(
- *      name="class",
+ *      name="type",
  *      type="string",
- *      columnDefinition="ENUM('ORGANIZATION','PERSON','PLACE') NOT NULL"
+ *      columnDefinition="ENUM('UNION','ASSOCIATION','GROUP','PLACE','MEMBER_PERSON','MEMBER_ORGANIZATION','CONTACT_PERSON','CONTACT_ORGANIZATION') NOT NULL"
  * )
  * @ORM\DiscriminatorMap({
- *      "ORGANIZATION"="Organization",
- *      "PERSON"="Person",
- *      "PLACE"="Place"
+ *      "UNION"="Union",
+ *      "ASSOCIATION"="Association",
+ *      "GROUP"="Group",
+ *      "PLACE"="Place",
+ *      "MEMBER_PERSON"="MemberPerson",
+ *      "MEMBER_ORGANIZATION"="MemberOrganization",
+ *      "CONTACT_PERSON"="ContactPerson",
+ *      "CONTACT_ORGANIZATION"="ContactOrganization"
  * })
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
@@ -133,24 +162,6 @@ abstract class Entry extends Entity
      * @Assert\NotBlank()
      */
     protected $registry;
-
-    /**
-     * @var Type
-     *
-     * @ORM\ManyToOne(
-     *      targetEntity="Type"
-     * )
-     * @ORM\JoinColumns({
-     *      @ORM\JoinColumn(
-     *          name="type_id",
-     *          referencedColumnName="id",
-     *          nullable=false,
-     *          onDelete="RESTRICT"
-     *      )
-     * })
-     * @Assert\NotBlank()
-     */
-    protected $type;
 
     /**
      * @var ArrayCollection
@@ -351,30 +362,6 @@ abstract class Entry extends Entity
     public function getRegistry()
     {
         return $this->registry;
-    }
-
-    /**
-     * Set type
-     *
-     * @param Type $type
-     *
-     * @return self
-     */
-    public function setType(Type $type = null)
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * Get type
-     *
-     * @return Type
-     */
-    public function getType()
-    {
-        return $this->type;
     }
 
     /**

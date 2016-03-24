@@ -2,11 +2,11 @@
 namespace AppBundle\Entity\Repository;
 
 /**
- * Person repository
+ * Association repository
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-class PersonRepository extends EntryRepository
+class AssociationRepository extends EntryRepository
 {
 
 }

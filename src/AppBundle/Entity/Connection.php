@@ -25,20 +25,20 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *      },
  *      indexes={
  *          @ORM\Index(
- *              name="idx_parent_id",
+ *              name="idx_parentEntry_id",
  *              columns={"parentEntry_id"}
  *          ),
  *          @ORM\Index(
- *              name="idx_child_id",
+ *              name="idx_childEntry_id",
  *              columns={"childEntry_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_status_id",
- *              columns={"status_id"}
  *          ),
  *          @ORM\Index(
  *              name="idx_connectionType_id",
  *              columns={"connectionType_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_createdBy_id",
+ *              columns={"createdBy_id"}
  *          )
  *      }
  * )
@@ -70,72 +70,30 @@ class Connection extends Entity
      * @var \DateTime
      *
      * @ORM\Column(
-     *      name="start",
+     *      name="createdAt",
      *      type="datetime",
      *      nullable=true
      * )
      * @Assert\DateTime()
      */
-    protected $start;
+    protected $createdAt;
 
     /**
-     * @var \DateTime
-     *
-     * @ORM\Column(
-     *      name="end",
-     *      type="datetime",
-     *      nullable=true
-     * )
-     * @Assert\DateTime()
-     */
-    protected $end;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(
-     *      name="startNotes",
-     *      type="string",
-     *      length=255,
-     *      nullable=true
-     * )
-     * @Assert\Length(
-     *      max = 255
-     * )
-     */
-    protected $startNotes;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(
-     *      name="endNotes",
-     *      type="string",
-     *      length=255,
-     *      nullable=true
-     * )
-     * @Assert\Length(
-     *      max = 255
-     * )
-     */
-    protected $endNotes;
-
-    /**
-     * @var Status
+     * @var User
      *
      * @ORM\ManyToOne(
-     *      targetEntity="Status"
+     *      targetEntity="User"
      * )
      * @ORM\JoinColumns({
      *      @ORM\JoinColumn(
-     *          name="status_id",
+     *          name="createdBy_id",
      *          referencedColumnName="id",
      *          nullable=true,
      *          onDelete="SET NULL"
      *      )
      * })
      */
-    protected $status;
+    protected $createdBy;
 
     /**
      * @var ConnectionType
@@ -227,6 +185,7 @@ class Connection extends Entity
      */
     public function __construct()
     {
+        $this->createdAt = new \DateTime();
         $this->properties = new ArrayCollection();
     }
 
@@ -255,131 +214,51 @@ class Connection extends Entity
     }
 
     /**
-     * Set start
+     * Set created at
      *
-     * @param \DateTime|string|null $start
+     * @param \DateTime $createdAt
      *
      * @return self
      */
-    public function setStart($start)
+    public function setCreatedAt($createdAt)
     {
-        if (!isset($start) || $start instanceof \DateTime) {
-            $this->start = $start;
-        } else {
-            $this->start = new \DateTime($start);
-        }
+        $this->createdAt = $createdAt;
 
         return $this;
     }
 
     /**
-     * Get start
+     * Get created at
      *
      * @return \DateTime
      */
-    public function getStart()
+    public function getCreatedAt()
     {
-        return $this->start;
+        return $this->createdAt;
     }
 
     /**
-     * Set end
+     * Set created by
      *
-     * @param \DateTime|string|null $end
+     * @param User $createdBy
      *
      * @return self
      */
-    public function setEnd($end)
+    public function setCreatedBy(User $createdBy = null)
     {
-        if (!isset($end) || $end instanceof \DateTime) {
-            $this->end = $end;
-        } else {
-            $this->end = new \DateTime($end);
-        }
+        $this->createdBy = $createdBy;
 
         return $this;
     }
 
     /**
-     * Get end
+     * Get created by
      *
-     * @return \DateTime
+     * @return User
      */
-    public function getEnd()
+    public function getCreatedBy()
     {
-        return $this->end;
-    }
-
-    /**
-     * Set start notes
-     *
-     * @param string $startNotes
-     *
-     * @return self
-     */
-    public function setStartNotes($startNotes)
-    {
-        $this->startNotes = $startNotes;
-
-        return $this;
-    }
-
-    /**
-     * Get start notes
-     *
-     * @return string
-     */
-    public function getStartNotes()
-    {
-        return $this->startNotes;
-    }
-
-    /**
-     * Set end notes
-     *
-     * @param string $endNotes
-     *
-     * @return self
-     */
-    public function setEndNotes($endNotes)
-    {
-        $this->endNotes = $endNotes;
-
-        return $this;
-    }
-
-    /**
-     * Get end notes
-     *
-     * @return string
-     */
-    public function getEndNotes()
-    {
-        return $this->endNotes;
-    }
-
-    /**
-     * Set status
-     *
-     * @param Status $status
-     *
-     * @return self
-     */
-    public function setStatus(Status $status = null)
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    /**
-     * Get status
-     *
-     * @return Status
-     */
-    public function getStatus()
-    {
-        return $this->status;
+        return $this->createdBy;
     }
 
     /**
@@ -497,26 +376,9 @@ class Connection extends Entity
         return [
             'id' => $this->id,
             'notes' => $this->notes,
-            'start' => (
-                $this->start
-                ? $this->start->format(\DateTime::ISO8601)
-                : null
-            ),
-            'end' => (
-                $this->end
-                ? $this->end->format(\DateTime::ISO8601)
-                : null
-            ),
-            'startNotes' => $this->startNotes,
-            'endNotes' => $this->endNotes,
-            'status' => (
-                $this->status
-                ? (
-                    $this->status instanceof Proxy
-                        && !$this->status->__isInitialized()
-                    ? $this->status->getId()
-                    : $this->status->jsonSerialize()
-                )
+            'createdAt' => (
+                $this->createdAt
+                ? $this->createdAt->format(\DateTime::ISO8601)
                 : null
             ),
             'connectionType' => (

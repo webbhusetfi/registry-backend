@@ -10,14 +10,14 @@ use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
 use AppBundle\Entity\Common\Traits\DescriptionTrait;
 
 /**
- * Place
+ * Group
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  * @ORM\Entity(
- *      repositoryClass="AppBundle\Entity\Repository\PlaceRepository"
+ *      repositoryClass="AppBundle\Entity\Repository\GroupRepository"
  * )
  */
-class Place extends Entry implements NameInterface, DescriptionInterface
+class Group extends Entry implements NameInterface, DescriptionInterface
 {
     use NameTrait;
     use DescriptionTrait;
