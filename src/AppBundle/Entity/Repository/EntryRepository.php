@@ -89,7 +89,8 @@ class EntryRepository extends Repository
             return null;
         }
         if (($request['select'] == 'gender' || $request['select'] == 'age')
-            && $this->getClassName() != 'AppBundle\Entity\Person') {
+            && $this->getClassName() != 'AppBundle\Entity\MemberPerson'
+            && $this->getClassName() != 'AppBundle\Entity\ContactPerson') {
             $message['select'] = 'This value is invalid';
             return null;
         }
