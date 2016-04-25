@@ -174,7 +174,14 @@ class EntryRepository extends Repository
                 );
         }
 
-        return $qb->getQuery()->getResult();
+        $result = $qb->getQuery()->getResult();
+        foreach ($result as &$row) {
+            $row['found'] = (int)$row['found'];
+            if (isset($row['age'])) {
+                $row['age'] = (int)$row['age'];
+            }
+        }
+        return $result;
     }
 
     public function search(array $request, $user, &$message)
@@ -446,6 +453,46 @@ class EntryRepository extends Repository
                 $items[0]->toArray(["properties", "addresses"])
             )
         ];
+    }
+
+    public function delete(array $request, $user, &$message)
+    {
+        if ($repo = $this->getMappedRepository($request)) {
+            return $repo->delete($request, $user, $message);
+        }
+
+        $metaData = $this->getClassMetadata();
+        foreach ($metaData->identifier as $id) {
+            if (!isset($request[$id]) || !is_scalar($request[$id])) {
+                $message[$id] = 'Not found';
+            }
+        }
+        if (!empty($message)) {
+            return null;
+        }
+
+        $em = $this->getEntityManager();
+
+        $qb = $em->createQueryBuilder()
+            ->from($this->getClassName(), 'entry')
+            ->select('entry');
+
+        $this->prepareQueryBuilderWhere(
+            $qb,
+            'entry',
+            array_intersect_key($request, array_flip($metaData->identifier))
+        );
+
+        $items = $qb->getQuery()->getResult();
+        if (count($items) !== 1) {
+            $message = array_fill_keys($metaData->identifier, 'Not found');
+            return null;
+        }
+
+        $em->remove($items[0]);
+        $em->flush();
+
+        return true;
     }
 
     protected function buildQuery(Request $request, $user, $method = null)

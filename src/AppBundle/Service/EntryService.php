@@ -18,44 +18,6 @@ class EntryService extends ScrudService
             $this->configuration->setMethods(
                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
             );
-//
-//             $entryAttrs = ['externalId', 'registry', 'type', 'notes'];
-//             $this->configuration[0] = ScrudConfiguration::create(
-//                 $this->getDoctrine(),
-//                 'AppBundle\Entity\Entry',
-//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
-//             )
-//             ->setCreateAttributes($entryAttrs)
-//             ->setUpdateAttributes($entryAttrs);
-//
-//             $organizationAttrs = $entryAttrs;
-//             $organizationAttrs[] = 'name';
-//             $organizationAttrs[] = 'description';
-//             $organizationAttrs[] = 'bank';
-//             $organizationAttrs[] = 'account';
-//             $organizationAttrs[] = 'vat';
-//             $this->configuration['ORGANIZATION'] = ScrudConfiguration::create(
-//                 $this->getDoctrine(),
-//                 'AppBundle\Entity\Organization',
-//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
-//             )
-//             ->setCreateAttributes($organizationAttrs)
-//             ->setUpdateAttributes($organizationAttrs);
-//
-//             $personAttrs = $entryAttrs;
-//             $personAttrs[] = 'gender';
-//             $personAttrs[] = 'firstName';
-//             $personAttrs[] = 'lastName';
-//             $personAttrs[] = 'birthDay';
-//             $personAttrs[] = 'birthMonth';
-//             $personAttrs[] = 'birthYear';
-//             $this->configuration['PERSON'] = ScrudConfiguration::create(
-//                 $this->getDoctrine(),
-//                 'AppBundle\Entity\Person',
-//                 ['statistics', 'search', 'create', 'read', 'update', 'delete']
-//             )
-//             ->setCreateAttributes($personAttrs)
-//             ->setUpdateAttributes($personAttrs);
         }
         return $this->configuration;
     }
@@ -146,17 +108,17 @@ class EntryService extends ScrudService
         }
         return JSendResponse::success($response->getData())->asArray();
     }
-//
-//     public function delete(array $request)
-//     {
-//         $response = $this->getRepository()->delete(
-//             $request,
-//             $this->getUser(),
-//             $message
-//         );
-//         if (isset($response)) {
-//             return JSendResponse::success($response)->asArray();
-//         }
-//         return JSendResponse::fail($message)->asArray();
-//     }
+
+    public function delete(array $request)
+    {
+        $response = $this->getRepository()->delete(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if ($response) {
+            return JSendResponse::success()->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
 }
