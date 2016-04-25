@@ -242,7 +242,7 @@ abstract class Repository extends EntityRepository implements
 
     protected function prepareFields(
         Entity $entity,
-        Request $request,
+        array $request,
         $user
     ) {
         $fields = array_diff_key(
@@ -250,11 +250,6 @@ abstract class Repository extends EntityRepository implements
             array_flip($this->getClassMetadata()->identifier)
         );
         if (!$fields) {
-            return null;
-        }
-
-        $values = $request->getValues();
-        if (empty($values)) {
             return null;
         }
 
@@ -318,7 +313,7 @@ abstract class Repository extends EntityRepository implements
 
     protected function prepareAssociations(
         Entity $entity,
-        Request $request,
+        array $request,
         $user
     ) {
         $associations = $this->getClassMetadata()->associationMappings;
