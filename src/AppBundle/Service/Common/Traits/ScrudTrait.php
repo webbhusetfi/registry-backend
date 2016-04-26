@@ -172,7 +172,7 @@ trait ScrudTrait
 
         $item = $this->readItem($readRequest, $message);
         if (!isset($item)) {
-            return JSendResponse::fail($message)->asArray();
+            return false;
         }
 
         $message = $this->validateUpdate($request, $config);
@@ -208,7 +208,7 @@ trait ScrudTrait
         );
         $item = $this->readItem($readRequest, $message);
         if (!isset($item)) {
-            return JSendResponse::fail($message)->asArray();
+            return false;
         }
 
         $message = $this->validateDelete($request, $config);

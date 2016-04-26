@@ -247,15 +247,11 @@ class ConnectionType extends Entity
     public function jsonSerialize() {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'childType' => (
-                $this->childType
-                ? $this->childType->getId()
-                : null
-            ),
-            'parentType' => (
-                $this->parentType
-                ? $this->parentType->getId()
+            'childType' => $this->childType,
+            'parentType' => $this->parentType,
+            'registry' => (
+                $this->registry
+                ? $this->registry->getId()
                 : null
             ),
             'ownerEntry' => (
