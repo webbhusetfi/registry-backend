@@ -140,6 +140,7 @@ class ConnectionType extends Entity
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank()
      */
     protected $registry;
 

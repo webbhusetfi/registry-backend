@@ -301,7 +301,7 @@ abstract class Repository extends EntityRepository implements
                     } break;
                 }
             } else {
-                $accessor->setValue($item, $key, null);
+                $accessor->setValue($entity, $key, null);
             }
         }
 

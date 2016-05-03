@@ -336,11 +336,12 @@ class EntryRepository extends Repository
         $em->persist($item);
         $em->flush();
 
-        return [
-            'item' => $this->serialize(
-                $item->toArray(["properties", "addresses"])
-            )
-        ];
+        $values = $item->toArray(["properties", "addresses"]);
+        $values['type'] = array_search(
+            get_class($item),
+            $this->getClassMetadata()->discriminatorMap
+        );
+        return ['item' => $this->serialize($values)];
     }
 
     public function read(array $request, $user, &$message)
@@ -395,7 +396,12 @@ class EntryRepository extends Repository
             return null;
         }
 
-        return ['item' => $this->serialize($items[0]->toArray($include))];
+        $values = $items[0]->toArray($include);
+        $values['type'] = array_search(
+            get_class($items[0]),
+            $this->getClassMetadata()->discriminatorMap
+        );
+        return ['item' => $this->serialize($values)];
     }
 
     public function update(array $request, $user, &$message)
@@ -448,11 +454,12 @@ class EntryRepository extends Repository
 
         $em->flush();
 
-        return [
-            'item' => $this->serialize(
-                $items[0]->toArray(["properties", "addresses"])
-            )
-        ];
+        $values = $items[0]->toArray(["properties", "addresses"]);
+        $values['type'] = array_search(
+            get_class($items[0]),
+            $this->getClassMetadata()->discriminatorMap
+        );
+        return ['item' => $this->serialize($values)];
     }
 
     public function delete(array $request, $user, &$message)
