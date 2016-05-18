@@ -32,6 +32,23 @@ class EntryRepository extends Repository
     }
 
     /**
+     * Get entry type
+     *
+     * @return string Entry type
+     */
+    public function getType()
+    {
+        $type = array_search(
+            $this->getEntityName(),
+            $this->getClassMetadata()->discriminatorMap
+        );
+        if ($type === false) {
+            return null;
+        }
+        return $type;
+    }
+
+    /**
      * Serialize attributes
      *
      * @param array $attributes Input attributes
@@ -39,36 +56,38 @@ class EntryRepository extends Repository
      */
     public function serialize(array $attributes)
     {
-        $attributes['createdAt'] = $attributes['createdAt']
-            ->format(\DateTime::ISO8601);
+        $result = parent::serialize($attributes);
 
-        if (!empty($attributes['properties'])) {
-            if (is_string($attributes['properties'])) {
-                $attributes['properties'] = array_map(
+//         $attributes['createdAt'] = $attributes['createdAt']
+//             ->format(\DateTime::ISO8601);
+
+        if (!empty($result['properties'])) {
+            if (is_string($result['properties'])) {
+                $result['properties'] = array_map(
                     'intval',
-                    explode(',', $attributes['properties'])
+                    explode(',', $result['properties'])
                 );
-            } elseif (isset($attributes['properties'][0]['id'])) {
-                foreach ($attributes['properties'] as &$property) {
+            } elseif (isset($result['properties'][0]['id'])) {
+                foreach ($result['properties'] as &$property) {
                     $property = $property['id'];
                 }
             }
-        } elseif (array_key_exists('properties', $attributes)) {
-            $attributes['properties'] = [];
+        } elseif (array_key_exists('properties', $result)) {
+            $result['properties'] = [];
         }
-        if (!empty($attributes['address'])) {
-            $attributes['address'] = $this->getEntityManager()->getRepository(
+        if (!empty($result['address'])) {
+            $result['address'] = $this->getEntityManager()->getRepository(
                 'AppBundle:Address'
-            )->serialize($attributes['address']);
-        } elseif (!empty($attributes['addresses'])) {
+            )->serialize($result['address']);
+        } elseif (!empty($result['addresses'])) {
             $repo = $this->getEntityManager()->getRepository(
                 'AppBundle:Address'
             );
-            foreach ($attributes['addresses'] as &$address) {
+            foreach ($result['addresses'] as &$address) {
                 $address = $repo->serialize($address);
             }
         }
-        return $attributes;
+        return $result;
     }
 
     public function statistics(array $request, $user, &$message)

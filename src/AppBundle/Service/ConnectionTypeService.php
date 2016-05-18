@@ -19,7 +19,7 @@ class ConnectionTypeService extends ScrudService
                     'AppBundle\Entity\ConnectionType',
                     $methods
                 )
-                ->setConstraints($constraints)
+                //->setConstraints($constraints)
                 ;
         }
         return $this->configuration;

@@ -78,7 +78,7 @@ abstract class Entity implements \JsonSerializable
                                     $values[$name][] = $item->toArray();
                                 }
                             } else {
-                                $values[$name][] = $item->getId();
+                                $values["{$name}_ids"][] = $item->getId();
                             }
                         }
                     }
@@ -92,7 +92,7 @@ abstract class Entity implements \JsonSerializable
                             $values[$name] = $item->toArray();
                         }
                     } else {
-                        $values[$name] = $value->getId();
+                        $values["{$name}_id"] = $value->getId();
                     }
                 } elseif ($value instanceof self) {
                     if (isset($assocs[$name])) {
@@ -104,7 +104,7 @@ abstract class Entity implements \JsonSerializable
                             $values[$name] = $item->toArray();
                         }
                     } else {
-                        $values[$name] = $value->getId();
+                        $values["{$name}_id"] = $value->getId();
                     }
                 } elseif ($value instanceof \DateTime) {
                     $values[$name] = $value;

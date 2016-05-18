@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\Proxy;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * Connection
@@ -44,9 +43,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\ConnectionRepository"
- * )
- * @UniqueEntity(
- *      fields={"connectionType","childEntry","parentEntry"}
  * )
  */
 class Connection extends Entity

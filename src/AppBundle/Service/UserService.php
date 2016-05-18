@@ -30,8 +30,8 @@ class UserService extends ScrudService
                     'AppBundle\Entity\User',
                     $methods
                 )
-                ->setOrderAttributes($searchAttrs)
-                ->setFilterAttributes($searchAttrs)
+                //->setOrderAttributes($searchAttrs)
+                //->setFilterAttributes($searchAttrs)
                 ->setConstraints($constraints)
                 ;
         }

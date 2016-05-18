@@ -48,4 +48,56 @@ class ConnectionService extends ScrudService
         }
         return JSendResponse::fail($message)->asArray();
     }
+
+    public function create(array $request)
+    {
+        $response = $this->getRepository()->create(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
+
+    public function read(array $request)
+    {
+        $response = $this->getRepository()->read(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
+
+    public function update(array $request)
+    {
+        $response = $this->getRepository()->update(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if (isset($response)) {
+            return JSendResponse::success($response)->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
+
+    public function delete(array $request)
+    {
+        $response = $this->getRepository()->delete(
+            $request,
+            $this->getUser(),
+            $message
+        );
+        if ($response) {
+            return JSendResponse::success()->asArray();
+        }
+        return JSendResponse::fail($message)->asArray();
+    }
 }

@@ -286,10 +286,14 @@ abstract class Repository extends EntityRepository implements
                     case "time":
                     case "datetime":
                     case "datetimetz": {
-                        $value = \DateTime::createFromFormat(
-                            \DateTime::ISO8601,
-                            $request[$key]
-                        );
+                        $value = null;
+                        if (is_string($request[$key])) {
+                            $date = preg_replace("|\.\d+|", "", $request[$key]);
+                            $value = \DateTime::createFromFormat(
+                                \DateTime::ISO8601,
+                                $date
+                            );
+                        }
                         if ($value) {
                             $accessor->setValue($entity, $key, $value);
                         } else {
@@ -387,8 +391,35 @@ abstract class Repository extends EntityRepository implements
             }
         }
 
-        if (!empty($message)) {
+        $metaData = $this->getClassMetadata();
+        if ($uniqueConstraints = $metaData->table['uniqueConstraints']) {
+            $accessor = PropertyAccess::createPropertyAccessor();
+            foreach ($uniqueConstraints as $constraint) {
+                $values = [];
+                foreach ($constraint['columns'] as $column) {
+                    try {
+                        $field = $metaData->getFieldForColumn($column);
+                        $value = $accessor->getValue($item, $field);
+                        if ($value instanceof Entity) {
+                            $values[$field] = $value->getId();
+                        } else {
+                            $values[$field] = $value;
+                        }
+                    } catch (MappingException $e) {
+                        unset($values[$field]);
+                    }
+                }
+                if ($found = $this->findBy($values)) {
+                    if (count($found) > 1
+                        || !$item->getId()
+                        || $item->getId() != $found[0]->getId()) {
+                        $message['error'] = "Entity already exists";
+                    }
+                }
+            }
+        }
 
+        if (!empty($message)) {
             return false;
         }
 
@@ -528,6 +559,26 @@ abstract class Repository extends EntityRepository implements
      */
     public function serialize(array $attributes)
     {
-        return $attributes;
+        $all = $this->getAllAttributes();
+
+        $result = [];
+        foreach ($attributes as $key => $value) {
+            if (!isset($all[$key])) continue;
+
+            if ($value instanceof \DateTime) {
+                $result[$key] = $value->format(\DateTime::ISO8601);
+            } elseif (substr($key, -3) == '_id') {
+                $result[substr($key, 0, -3)] = $value;
+            } elseif (substr($key, -4) == '_ids') {
+                if (is_string($value)) {
+                    $result[substr($key, 0, -4)] = explode(',', $value);
+                } else {
+                    $result[substr($key, 0, -4)] = $value;
+                }
+            } else {
+                $result[$key] = $value;
+            }
+        }
+        return $result;
     }
 }
