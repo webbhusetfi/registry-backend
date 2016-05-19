@@ -409,18 +409,25 @@ class EntryRepository extends Repository
             $qb->addSelect('properties');
         }
 
-        $items = $qb->getQuery()->getResult();
+        $items = $qb->getQuery()
+            ->setHint(Query::HINT_INCLUDE_META_COLUMNS, true)
+            ->getArrayResult();
         if (count($items) !== 1) {
             $message = array_fill_keys($metaData->identifier, 'Not found');
             return null;
         }
+        $item = $items[0];
 
-        $values = $items[0]->toArray($include);
-        $values['type'] = array_search(
-            get_class($items[0]),
-            $this->getClassMetadata()->discriminatorMap
-        );
-        return ['item' => $this->serialize($values)];
+        $entityName = $this->getEntityName();
+        $type = $this->getClassMetadata()->discriminatorMap[$item['type']];
+
+        if ($type != $entityName) {
+            $item = $em->getRepository($type)->serialize($item);
+        } else {
+            $item = $this->serialize($item);
+        }
+
+        return ['item' => $item];
     }
 
     public function update(array $request, $user, &$message)
