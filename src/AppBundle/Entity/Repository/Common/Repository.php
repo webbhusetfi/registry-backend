@@ -392,7 +392,8 @@ abstract class Repository extends EntityRepository implements
         }
 
         $metaData = $this->getClassMetadata();
-        if ($uniqueConstraints = $metaData->table['uniqueConstraints']) {
+        if (!empty($metaData->table['uniqueConstraints'])) {
+            $uniqueConstraints = $metaData->table['uniqueConstraints'];
             $accessor = PropertyAccess::createPropertyAccessor();
             foreach ($uniqueConstraints as $constraint) {
                 $values = [];
