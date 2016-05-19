@@ -243,17 +243,17 @@ abstract class Repository extends EntityRepository implements
     protected function prepareFields(
         Entity $entity,
         array $request,
-        $user
+        $user,
+        &$message
     ) {
         $fields = array_diff_key(
             $this->getClassMetadata()->fieldMappings,
             array_flip($this->getClassMetadata()->identifier)
         );
         if (!$fields) {
-            return null;
+            return false;
         }
 
-        $messages = [];
         $accessor = PropertyAccess::createPropertyAccessor();
         foreach ($fields as $key => $mapping) {
             if (!array_key_exists($key, $request)) continue;
@@ -297,7 +297,7 @@ abstract class Repository extends EntityRepository implements
                         if ($value) {
                             $accessor->setValue($entity, $key, $value);
                         } else {
-                            $messages[$key] = "Invalid value";
+                            $message[$key] = "Invalid value";
                         }
                     } break;
                     default: {
@@ -309,23 +309,23 @@ abstract class Repository extends EntityRepository implements
             }
         }
 
-        if (!empty($messages)) {
-            return $messages;
+        if (!empty($message)) {
+            return false;
         }
-        return null;
+        return true;
     }
 
     protected function prepareAssociations(
         Entity $entity,
         array $request,
-        $user
+        $user,
+        &$message
     ) {
         $associations = $this->getClassMetadata()->associationMappings;
         if (!$associations) {
             return;
         }
 
-        $messages = [];
         $accessor = PropertyAccess::createPropertyAccessor();
         foreach ($associations as $key => $mapping) {
             if (!array_key_exists($key, $request)) continue;
@@ -339,7 +339,7 @@ abstract class Repository extends EntityRepository implements
                         if ($item = $repo->find($request[$key])) {
                             $accessor->setValue($entity, $key, $item);
                         } else {
-                            $messages[$key] = "Invalid entity";
+                            $message[$key] = "Invalid entity";
                         }
                     } else {
                         $accessor->setValue($entity, $key, null);
@@ -347,19 +347,28 @@ abstract class Repository extends EntityRepository implements
                 } break;
                 case ClassMetadataInfo::MANY_TO_MANY: {
                     if (!is_array($request[$key])) {
-                        $messages[$key] = "Invalid value";
+                        $message[$key] = "Invalid value";
                     } else {
                         $repo = $this->getEntityManager()->getRepository(
                             $mapping['targetEntity']
                         );
+                        $duplicates = array_unique(
+                            array_diff_assoc(
+                                $request[$key],
+                                array_unique($request[$key])
+                            )
+                        );
+
                         $items = [];
                         foreach ($request[$key] as $i => $id) {
-                            if (isset($id)
+                            if (isset($duplicates[$i])) {
+                                $message[$key][$i] = "Duplicate value";
+                            } elseif (isset($id)
                                 && is_scalar($id)
                                 && ($item = $repo->find($id))) {
                                 $items[$i] = $item;
                             } else {
-                                $messages[$key][$i] = "Entity not found";
+                                $message[$key][$i] = "Entity not found";
                             }
                         }
                         $accessor->setValue($entity, $key, $items);
@@ -368,10 +377,10 @@ abstract class Repository extends EntityRepository implements
             }
         }
 
-        if (!empty($messages)) {
-            return $messages;
+        if (!empty($message)) {
+            return false;
         }
-        return null;
+        return true;
     }
 
     protected function prepare(Entity $item, array $request, $user, &$message)
