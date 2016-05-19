@@ -12,3 +12,5 @@
 /BAK/
 *.kdev4
 /.kdev4/
+/nbproject/private/
+/nbproject
