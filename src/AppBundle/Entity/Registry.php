@@ -5,7 +5,6 @@ use AppBundle\Entity\Common\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * Registry
@@ -23,8 +22,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\RegistryRepository"
- * )
- * @UniqueEntity("name")
  * )
  */
 class Registry extends Entity
@@ -68,17 +65,5 @@ class Registry extends Entity
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * JSON serialize
-     *
-     * @return array
-     */
-    public function jsonSerialize() {
-        return [
-            'id' => $this->id,
-            'name' => $this->name
-        ];
     }
 }

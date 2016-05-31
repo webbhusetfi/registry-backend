@@ -23,30 +23,33 @@ services:
           - [setContainer, [@service_container]]
     registryapi.user:
         class: AppBundle\Service\UserService
+        arguments: ['AppBundle\Entity\User']
         parent: service
     registryapi.registry:
-        class: AppBundle\Service\RegistryService
+        class: AppBundle\Service\Common\JSendService
+        arguments: ['AppBundle\Entity\Registry']
         parent: service
     registryapi.entry:
-        class: AppBundle\Service\EntryService
+        class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Entry']
         parent: service
     registryapi.connectionType:
-        class: AppBundle\Service\ConnectionTypeService
+        class: AppBundle\Service\Common\JSendService
+        arguments: ['AppBundle\Entity\ConnectionType']
         parent: service
     registryapi.connection:
-        class: AppBundle\Service\ConnectionService
+        class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Connection']
         parent: service
     registryapi.address:
-        class: AppBundle\Service\AddressService
-        parent: service
-    registryapi.directory:
-        class: AppBundle\Service\DirectoryService
+        class: AppBundle\Service\Common\JSendService
+        arguments: ['AppBundle\Entity\Address']
         parent: service
     registryapi.property:
-        class: AppBundle\Service\PropertyService
+        class: AppBundle\Service\Common\JSendService
+        arguments: ['AppBundle\Entity\Property']
         parent: service
     registryapi.propertyGroup:
-        class: AppBundle\Service\PropertyGroupService
+        class: AppBundle\Service\Common\JSendService
+        arguments: ['AppBundle\Entity\PropertyGroup']
         parent: service

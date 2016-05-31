@@ -4,6 +4,8 @@ namespace AppBundle\Entity\Repository;
 use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Repository\Common\Request;
 use AppBundle\Entity\Repository\Common\Response;
+use AppBundle\Entity\User;
+use AppBundle\Entity\Entry;
 
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
@@ -15,10 +17,76 @@ use Doctrine\ORM\Query;
  */
 class EntryRepository extends Repository
 {
+    const METHOD_STATISTICS = 'statistics';
+    const METHOD_SEARCH = 'search';
+    const METHOD_READ = 'read';
+    const METHOD_CREATE = 'create';
+    const METHOD_UPDATE = 'update';
+    const METHOD_DELETE = 'delete';
+
+    protected function prepareRequest(array &$request, $user, &$message, $method)
+    {
+        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            return true;
+        }
+
+        if ($method == self::METHOD_SEARCH) {
+            if (!isset($request['filter']) || !is_array($request['filter'])) {
+                $request['filter'] = [];
+            }
+            $filter = &$request['filter'];
+        } else {
+            $filter = &$request;
+        }
+
+        $registryId = $user->getRegistry()->getId();
+        if (!$user->hasRole(User::ROLE_ADMIN)) {
+            $methods = [
+                self::METHOD_STATISTICS,
+                self::METHOD_SEARCH,
+                self::METHOD_READ
+            ];
+            if (!in_array($method, $methods)) {
+                if ($method == self::METHOD_DELETE) {
+                    $message['error'] = 'Access denied';
+                    return false;
+                }
+
+                $entry = $user->getEntry();
+                if (empty($filter['id']) || $filter['id'] != $entry->getId()) {
+                    $childTypes = $this->getChildTypes($entry);
+                    if (!empty($filter['type'])) {
+                        if (is_array($filter['type'])) {
+                            $diff = array_diff($filter['type'], $childTypes);
+                            if (!empty($diff)) {
+                                $message['error'] = 'Access denied';
+                                return false;
+                            }
+                        } elseif (!in_array($filter['type'], $childTypes)) {
+                            $message['error'] = 'Access denied';
+                            return false;
+                        }
+                    } else {
+                        $filter['type'] = $childTypes;
+                    }
+                }
+            }
+        }
+
+        if (!isset($filter['registry'])) {
+            $filter['registry'] = $registryId;
+        } elseif ($filter['registry'] != $registryId) {
+            $message['error'] = 'Access denied';
+            return false;
+        }
+
+        return true;
+    }
+
     protected function getMappedRepository(array $request)
     {
         $type = null;
-        if (isset($request['type'])) {
+        if (isset($request['type']) && !is_array($request['type'])) {
             $type = $request['type'];
         }
 
@@ -34,6 +102,7 @@ class EntryRepository extends Repository
     /**
      * Get entry type
      *
+     * @param Entry $entry The entry
      * @return string Entry type
      */
     public function getType()
@@ -49,6 +118,29 @@ class EntryRepository extends Repository
     }
 
     /**
+     * Get entry child types
+     *
+     * @param Entry $entry The entry
+     * @return string[] Child types
+     */
+    public function getChildTypes(Entry $entry)
+    {
+        $em = $this->getEntityManager();
+        $type = $em->getRepository(get_class($entry))->getType();
+        $items = $em->getRepository('AppBundle:ConnectionType')->findBy([
+            'registry' => $entry->getRegistry()->getId(),
+            'parentType' => $type
+        ]);
+        $childTypes = [];
+        if (count($items)) {
+            foreach ($items as $item) {
+                $childTypes[] = $item->getChildType();
+            }
+        }
+        return $childTypes;
+    }
+
+    /**
      * Serialize attributes
      *
      * @param array $attributes Input attributes
@@ -57,9 +149,6 @@ class EntryRepository extends Repository
     public function serialize(array $attributes)
     {
         $result = parent::serialize($attributes);
-
-//         $attributes['createdAt'] = $attributes['createdAt']
-//             ->format(\DateTime::ISO8601);
 
         if (!empty($result['properties'])) {
             if (is_string($result['properties'])) {
@@ -96,6 +185,10 @@ class EntryRepository extends Repository
             && is_array($request['filter'])
             && ($repo = $this->getMappedRepository($request['filter']))) {
             return $repo->statistics($request, $user, $message);
+        }
+
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $available = ['count', 'gender', 'age'];
@@ -193,6 +286,12 @@ class EntryRepository extends Repository
                 );
         }
 
+        if (isset($request['filter']['type'])) {
+            $qb->andWhere(
+                'entry INSTANCE OF :type'
+            )->setParameter('type', $request['filter']['type']);
+        }
+
         $result = $qb->getQuery()->getResult();
         foreach ($result as &$row) {
             $row['found'] = (int)$row['found'];
@@ -209,6 +308,10 @@ class EntryRepository extends Repository
             && is_array($request['filter'])
             && ($repo = $this->getMappedRepository($request['filter']))) {
             return $repo->search($request, $user, $message);
+        }
+
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $em = $this->getEntityManager();
@@ -266,6 +369,12 @@ class EntryRepository extends Repository
                         $request['order']['address']
                     );
             }
+        }
+
+        if (isset($request['filter']['type'])) {
+            $qb->andWhere(
+                'entry INSTANCE OF :type'
+            )->setParameter('type', $request['filter']['type']);
         }
 
         if (in_array('properties', $include)) {
@@ -342,6 +451,13 @@ class EntryRepository extends Repository
     {
         if ($repo = $this->getMappedRepository($request)) {
             return $repo->create($request, $user, $message);
+        } elseif ($this->getEntityName() == 'AppBundle\Entity\Entry') {
+            $message['error'] = 'Invalid type';
+            return null;
+        }
+
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $className = $this->getClassName();
@@ -369,15 +485,24 @@ class EntryRepository extends Repository
             return $repo->read($request, $user, $message);
         }
 
-        $metaData = $this->getClassMetadata();
-        foreach ($metaData->identifier as $id) {
-            if (!isset($request[$id]) || !is_scalar($request[$id])) {
-                $message[$id] = 'Not found';
-            }
-        }
-        if (!empty($message)) {
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
             return null;
         }
+
+        $metaData = $this->getClassMetadata();
+        $ids = $metaData->identifier;
+        foreach ($ids as $id) {
+            if (!isset($request[$id]) || !is_scalar($request[$id])) {
+                $message['error'] = 'Invalid identifier';
+                return null;
+            }
+        }
+        $ids[] = 'registry';
+        $ids[] = 'type';
+        $filter = array_intersect_key(
+            $request,
+            array_flip($ids)
+        );
 
         $em = $this->getEntityManager();
 
@@ -390,6 +515,12 @@ class EntryRepository extends Repository
             'entry',
             array_intersect_key($request, array_flip($metaData->identifier))
         );
+
+        if (isset($filter['type'])) {
+            $qb->andWhere(
+                'entry INSTANCE OF :type'
+            )->setParameter('type', $filter['type']);
+        }
 
         $include = [];
         if (isset($request['include']) && is_array($request['include'])) {
@@ -434,17 +565,29 @@ class EntryRepository extends Repository
     {
         if ($repo = $this->getMappedRepository($request)) {
             return $repo->update($request, $user, $message);
+        } elseif ($this->getEntityName() == 'AppBundle\Entity\Entry') {
+            $message['error'] = 'Invalid type';
+            return null;
+        }
+
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $metaData = $this->getClassMetadata();
-        foreach ($metaData->identifier as $id) {
+        $ids = $metaData->identifier;
+        foreach ($ids as $id) {
             if (!isset($request[$id]) || !is_scalar($request[$id])) {
-                $message[$id] = 'Not found';
+                $message['error'] = 'Invalid identifier';
+                return null;
             }
         }
-        if (!empty($message)) {
-            return null;
-        }
+        $ids[] = 'registry';
+        $ids[] = 'type';
+        $filter = array_intersect_key(
+            $request,
+            array_flip($ids)
+        );
 
         $em = $this->getEntityManager();
 
@@ -457,6 +600,12 @@ class EntryRepository extends Repository
             'entry',
             array_intersect_key($request, array_flip($metaData->identifier))
         );
+
+        if (isset($filter['type'])) {
+            $qb->andWhere(
+                'entry INSTANCE OF :type'
+            )->setParameter('type', $filter['type']);
+        }
 
         if (isset($request['addresses'])) {
             $qb->leftJoin('entry.addresses', 'addresses');
@@ -492,17 +641,29 @@ class EntryRepository extends Repository
     {
         if ($repo = $this->getMappedRepository($request)) {
             return $repo->delete($request, $user, $message);
+        } elseif ($this->getEntityName() == 'AppBundle\Entity\Entry') {
+            $message['error'] = 'Invalid type';
+            return null;
+        }
+
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $metaData = $this->getClassMetadata();
-        foreach ($metaData->identifier as $id) {
+        $ids = $metaData->identifier;
+        foreach ($ids as $id) {
             if (!isset($request[$id]) || !is_scalar($request[$id])) {
-                $message[$id] = 'Not found';
+                $message['error'] = 'Invalid identifier';
+                return null;
             }
         }
-        if (!empty($message)) {
-            return null;
-        }
+        $ids[] = 'registry';
+        $ids[] = 'type';
+        $filter = array_intersect_key(
+            $request,
+            array_flip($ids)
+        );
 
         $em = $this->getEntityManager();
 
@@ -515,6 +676,12 @@ class EntryRepository extends Repository
             'entry',
             array_intersect_key($request, array_flip($metaData->identifier))
         );
+
+        if (isset($filter['type'])) {
+            $qb->andWhere(
+                'entry INSTANCE OF :type'
+            )->setParameter('type', $filter['type']);
+        }
 
         $items = $qb->getQuery()->getResult();
         if (count($items) !== 1) {

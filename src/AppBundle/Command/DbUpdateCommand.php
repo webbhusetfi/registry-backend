@@ -36,6 +36,12 @@ class DbUpdateCommand extends ContainerAwareCommand
         $db->query("UPDATE ConnectionType SET parentType='UNION', childType='MEMBER_PERSON' WHERE parentType_id=1 AND childType_id=2");
         $db->query("UPDATE ConnectionType SET parentType='ASSOCIATION', childType='MEMBER_PERSON' WHERE parentType_id=3 AND childType_id=2");
 
+        // Fix invalid data
+        $db->query("UPDATE Address SET Address.class = 'PRIMARY' WHERE Address.id IN (SELECT id FROM (SELECT a1.id FROM Address a1 WHERE a1.class IS NULL AND NOT EXISTS(SELECT * FROM Address a2 WHERE a1.entry_id = a2.entry_id AND a2.class = 'PRIMARY')) AS tmptable)");
+        $db->query("UPDATE Connection SET connectionType_id = 1 WHERE id IN (SELECT id FROM (SELECT Connection.id FROM Connection INNER JOIN Entry ChildEntry ON childEntry_id = ChildEntry.id INNER JOIN Entry ParentEntry ON parentEntry_id = ParentEntry.id WHERE ParentEntry.type = 'UNION' AND ChildEntry.type = 'ASSOCIATION' AND connectionType_id != 1) AS tmptable)");
+        $db->query("UPDATE Connection SET connectionType_id = 2 WHERE id IN (SELECT id FROM (SELECT Connection.id FROM Connection INNER JOIN Entry ChildEntry ON childEntry_id = ChildEntry.id INNER JOIN Entry ParentEntry ON parentEntry_id = ParentEntry.id WHERE ParentEntry.type = 'UNION' AND ChildEntry.type = 'MEMBER_PERSON' AND connectionType_id != 2) AS tmptable)");
+        $db->query("UPDATE Connection SET connectionType_id = 3 WHERE id IN (SELECT id FROM (SELECT Connection.id FROM Connection INNER JOIN Entry ChildEntry ON childEntry_id = ChildEntry.id INNER JOIN Entry ParentEntry ON parentEntry_id = ParentEntry.id WHERE ParentEntry.type = 'ASSOCIATION' AND ChildEntry.type = 'MEMBER_PERSON' AND connectionType_id != 3) AS tmptable)");
+
         $stmt = $db->query("SELECT * FROM Person");
         while ($row = $stmt->fetch()) {
             $set = "firstName='{$row['firstName']}', lastName='{$row['lastName']}'";

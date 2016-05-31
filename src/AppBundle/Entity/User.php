@@ -8,7 +8,6 @@ use Symfony\Component\Security\Core\Role\Role;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * User
@@ -31,13 +30,16 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          @ORM\Index(
  *              name="idx_registry_id",
  *              columns={"registry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_role",
+ *              columns={"role"}
  *          )
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\UserRepository"
  * )
- * @UniqueEntity("username")
  */
 class User extends Entity implements UserInterface
 {
@@ -126,6 +128,11 @@ class User extends Entity implements UserInterface
     protected $role;
 
     /**
+     * @var array
+     */
+    protected $roles;
+
+    /**
      * Set username
      *
      * @param string $username
@@ -195,6 +202,35 @@ class User extends Entity implements UserInterface
     public function getRole()
     {
         return $this->role;
+    }
+
+    /**
+     * Returns all the roles granted to the user.
+     *
+     * @return string[] All roles
+     */
+    public function getAllRoles()
+    {
+        if (!isset($this->roles)) {
+            $this->roles = [$this->role];
+            if ($this->role == self::ROLE_SUPER_ADMIN) {
+                $this->roles[] = self::ROLE_ADMIN;
+                $this->roles[] = self::ROLE_USER;
+            } elseif ($this->role == self::ROLE_ADMIN) {
+                $this->roles[] = self::ROLE_USER;
+            }
+        }
+        return $this->roles;
+    }
+
+    /**
+     * Check if user is granted the supplied role.
+     *
+     * @return boolean
+     */
+    public function hasRole($role)
+    {
+        return in_array($role, $this->getAllRoles());
     }
 
     /**

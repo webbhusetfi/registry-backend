@@ -14,6 +14,48 @@ use Doctrine\ORM\Query;
  */
 class ConnectionRepository extends Repository
 {
+    const METHOD_SEARCH = 'search';
+    const METHOD_READ = 'read';
+    const METHOD_CREATE = 'create';
+    const METHOD_UPDATE = 'update';
+    const METHOD_DELETE = 'delete';
+
+    protected function prepareRequest(array &$request, $user, &$message, $method)
+    {
+        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            return true;
+        }
+
+        if ($method == self::METHOD_SEARCH) {
+            if (!isset($request['filter']) || !is_array($request['filter'])) {
+                $request['filter'] = [];
+            }
+            $filter = &$request['filter'];
+        } else {
+            $filter = &$request;
+        }
+
+        if (!$user->hasRole(User::ROLE_ADMIN)) {
+            $entryId = $user->getEntry()->getId();
+            if (!isset($filter['parentEntry'])) {
+                $filter['parentEntry'] = $entryId;
+            } elseif ($filter['parentEntry'] != $entryId) {
+                $message['error'] = 'Access denied';
+                return false;
+            }
+        }
+
+        $registryId = $user->getRegistry()->getId();
+        if (!isset($filter['registry'])) {
+            $filter['registry'] = $registryId;
+        } elseif ($filter['registry'] != $registryId) {
+            $message['error'] = 'Access denied';
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Serialize attributes
      *
@@ -44,25 +86,6 @@ class ConnectionRepository extends Repository
 
     protected function prepare(Entity $entity, array $request, $user, &$message)
     {
-        if ($user->getRole() != User::ROLE_SUPER_ADMIN) {
-            $registryId = $user->getRegistry()->getId();
-            if (isset($request['registry'])
-                && $request['registry'] != $registryId) {
-                $message['registry'] = 'Access denied';
-                return null;
-            }
-            $request['registry'] = $registryId;
-        }
-        if ($user->getRole() == User::ROLE_USER) {
-            $entryId = $user->getEntry()->getId();
-            if (isset($request['parentEntry'])
-                && $request['parentEntry'] != $entryId) {
-                $message['parentEntry'] = 'Access denied';
-                return null;
-            }
-            $request['parentEntry'] = $entryId;
-        }
-
         parent::prepare($entity, $request, $user, $message);
 
         // Validate connection type
@@ -90,23 +113,8 @@ class ConnectionRepository extends Repository
 
     public function search(array $request, $user, &$message)
     {
-        if ($user->getRole() != User::ROLE_SUPER_ADMIN) {
-            $registryId = $user->getRegistry()->getId();
-            if (isset($request['filter']['registry'])
-                && $request['filter']['registry'] != $registryId) {
-                $message['error'] = 'Access denied';
-                return null;
-            }
-            $request['filter']['registry'] = $registryId;
-        }
-        if ($user->getRole() == User::ROLE_USER) {
-            $entryId = $user->getEntry()->getId();
-            if (isset($request['filter']['parentEntry'])
-                && $request['filter']['parentEntry'] != $entryId) {
-                $message['error'] = 'Access denied';
-                return null;
-            }
-            $request['filter']['parentEntry'] = $entryId;
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
         }
 
         $em = $this->getEntityManager();
@@ -178,6 +186,10 @@ class ConnectionRepository extends Repository
 
     public function create(array $request, $user, &$message)
     {
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
+        }
+
         $className = $this->getClassName();
         $item = new $className();
 
@@ -194,6 +206,10 @@ class ConnectionRepository extends Repository
 
     public function read(array $request, $user, &$message)
     {
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
+        }
+
         $metaData = $this->getClassMetadata();
         foreach ($metaData->identifier as $id) {
             if (!isset($request[$id]) || !is_scalar($request[$id])) {
@@ -201,17 +217,13 @@ class ConnectionRepository extends Repository
                 return null;
             }
         }
+        $ids = $metaData->identifier;
+        $ids[] = 'registry';
+        $ids[] = 'parentEntry';
         $filter = array_intersect_key(
             $request,
-            array_flip($metaData->identifier)
+            array_flip($ids)
         );
-
-        if ($user->getRole() != User::ROLE_SUPER_ADMIN) {
-            $filter['registry'] = $user->getRegistry()->getId();
-        }
-        if ($user->getRole() == User::ROLE_USER) {
-            $filter['parentEntry'] = $user->getEntry()->getId();
-        }
 
         $em = $this->getEntityManager();
 
@@ -259,6 +271,10 @@ class ConnectionRepository extends Repository
 
     public function update(array $request, $user, &$message)
     {
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
+        }
+
         $metaData = $this->getClassMetadata();
         foreach ($metaData->identifier as $id) {
             if (!isset($request[$id]) || !is_scalar($request[$id])) {
@@ -266,17 +282,13 @@ class ConnectionRepository extends Repository
                 return null;
             }
         }
+        $ids = $metaData->identifier;
+        $ids[] = 'registry';
+        $ids[] = 'parentEntry';
         $filter = array_intersect_key(
             $request,
-            array_flip($metaData->identifier)
+            array_flip($ids)
         );
-
-        if ($user->getRole() != User::ROLE_SUPER_ADMIN) {
-            $filter['registry'] = $user->getRegistry()->getId();
-        }
-        if ($user->getRole() == User::ROLE_USER) {
-            $filter['parentEntry'] = $user->getEntry()->getId();
-        }
 
         $em = $this->getEntityManager();
 
@@ -312,6 +324,10 @@ class ConnectionRepository extends Repository
 
     public function delete(array $request, $user, &$message)
     {
+        if (!$this->prepareRequest($request, $user, $message, __FUNCTION__)) {
+            return null;
+        }
+
         $metaData = $this->getClassMetadata();
         foreach ($metaData->identifier as $id) {
             if (!isset($request[$id]) || !is_scalar($request[$id])) {
@@ -319,17 +335,13 @@ class ConnectionRepository extends Repository
                 return null;
             }
         }
+        $ids = $metaData->identifier;
+        $ids[] = 'registry';
+        $ids[] = 'parentEntry';
         $filter = array_intersect_key(
             $request,
-            array_flip($metaData->identifier)
+            array_flip($ids)
         );
-
-        if ($user->getRole() != User::ROLE_SUPER_ADMIN) {
-            $filter['registry'] = $user->getRegistry()->getId();
-        }
-        if ($user->getRole() == User::ROLE_USER) {
-            $filter['parentEntry'] = $user->getEntry()->getId();
-        }
 
         $em = $this->getEntityManager();
 

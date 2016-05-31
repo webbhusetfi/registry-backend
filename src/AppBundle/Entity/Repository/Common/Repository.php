@@ -26,11 +26,11 @@ use Symfony\Component\Validator\Validation;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
 abstract class Repository extends EntityRepository implements
-//     PrepareInterface,
     FoundCountInterface
+//     PrepareInterface,
 {
-//     use PrepareTrait;
     use FoundCountTrait;
+//     use PrepareTrait;
 
     protected $allAttributes;
     protected $indexedAttributes;
