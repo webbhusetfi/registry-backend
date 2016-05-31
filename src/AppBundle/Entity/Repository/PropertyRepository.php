@@ -56,10 +56,12 @@ class PropertyRepository extends Repository
         parent::prepare($entity, $request, $user, $message);
 
         // Validate property group
-        if ($propertyGroup = $entity->getPropertyGroup()) {
-            $registryId = $propertyGroup->getRegistry()->getId();
-            if ($registryId != $user->getRegistry()->getId()) {
-                $message['propertyGroup'] = 'Invalid value';
+        if ($registry = $user->getRegistry()) {
+            if ($propertyGroup = $entity->getPropertyGroup()) {
+                $registryId = $propertyGroup->getRegistry()->getId();
+                if ($registryId != $registry->getId()) {
+                    $message['propertyGroup'] = 'Invalid value';
+                }
             }
         }
 
