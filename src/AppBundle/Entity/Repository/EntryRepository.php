@@ -6,9 +6,11 @@ use AppBundle\Entity\Repository\Common\Request;
 use AppBundle\Entity\Repository\Common\Response;
 use AppBundle\Entity\User;
 use AppBundle\Entity\Entry;
+use AppBundle\Entity\Address;
 
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\Expr;
 
 /**
  * Entry repository
@@ -150,30 +152,32 @@ class EntryRepository extends Repository
     {
         $result = parent::serialize($attributes);
 
-        if (!empty($result['properties'])) {
-            if (is_string($result['properties'])) {
+        if (!empty($attributes['properties'])) {
+            if (is_string($attributes['properties'])) {
                 $result['properties'] = array_map(
                     'intval',
-                    explode(',', $result['properties'])
+                    explode(',', $attributes['properties'])
                 );
-            } elseif (isset($result['properties'][0]['id'])) {
-                foreach ($result['properties'] as &$property) {
-                    $property = $property['id'];
+            } elseif (isset($attributes['properties'][0]['id'])) {
+                $result['properties'] = [];
+                foreach ($attributes['properties'] as $property) {
+                    $result['properties'][] = $property['id'];
                 }
             }
-        } elseif (array_key_exists('properties', $result)) {
+        } elseif (array_key_exists('properties', $attributes)) {
             $result['properties'] = [];
         }
-        if (!empty($result['address'])) {
+        if (!empty($attributes['address'])) {
             $result['address'] = $this->getEntityManager()->getRepository(
                 'AppBundle:Address'
-            )->serialize($result['address']);
-        } elseif (!empty($result['addresses'])) {
+            )->serialize($attributes['address']);
+        } elseif (!empty($attributes['addresses'])) {
             $repo = $this->getEntityManager()->getRepository(
                 'AppBundle:Address'
             );
-            foreach ($result['addresses'] as &$address) {
-                $address = $repo->serialize($address);
+            $result['addresses'] = [];
+            foreach ($attributes['addresses'] as $address) {
+                $result['addresses'][] = $repo->serialize($address);
             }
         }
         return $result;
@@ -347,7 +351,12 @@ class EntryRepository extends Repository
         if (isset($request['filter']['address']) && is_array($request['filter']['address'])
             || isset($request['order']['address']) && is_array($request['order']['address'])
             || in_array('address', $include)) {
-            $qb->leftJoin('entry.addresses', 'address');
+            $qb->leftJoin(
+                'entry.addresses',
+                'address',
+                Expr\Join::WITH,
+                $qb->expr()->eq('address.class', ':class')
+            )->setParameter("class", Address::CLASS_PRIMARY);
             if (in_array('address', $include)) {
                 $qb->addSelect('address');
             }

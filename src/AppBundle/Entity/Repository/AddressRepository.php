@@ -4,6 +4,7 @@ namespace AppBundle\Entity\Repository;
 use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Common\Entity;
 use AppBundle\Entity\User;
+use AppBundle\Entity\Address;
 
 use Doctrine\ORM\Query;
 
@@ -101,6 +102,34 @@ class AddressRepository extends Repository
                     } elseif ($request['type'] != $type) {
                         $message['entry'] = 'Invalid value';
                     }
+                }
+            }
+            if ($entity->getClass() != Address::CLASS_PRIMARY) {
+                $primary = $this->findBy([
+                    'entry' => $entry,
+                    'class' => Address::CLASS_PRIMARY
+                ]);
+                if (!count($primary)
+                    || $primary[0]->getId() == $entity->getId()) {
+                    $entity->setClass(Address::CLASS_PRIMARY);
+                } elseif ($entity->getClass() == Address::CLASS_INVOICE) {
+                    $invoice = $this->findBy([
+                        'entry' => $entry,
+                        'class' => Address::CLASS_INVOICE
+                    ]);
+                    if (count($invoice)
+                        && $invoice[0]->getId() != $entity->getId()) {
+                        $invoice[0]->setClass(null);
+                    }
+                }
+            } else {
+                $primary = $this->findBy([
+                    'entry' => $entry,
+                    'class' => Address::CLASS_PRIMARY
+                ]);
+                if (count($primary)
+                    && $primary[0]->getId() != $entity->getId()) {
+                    $primary[0]->setClass(null);
                 }
             }
         }
