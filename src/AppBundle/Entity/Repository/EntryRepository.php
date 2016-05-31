@@ -240,7 +240,12 @@ class EntryRepository extends Repository
         }
 
         if (isset($request['filter']['address'])) {
-            $qb->leftJoin('entry.addresses', 'address');
+            $qb->leftJoin(
+                'entry.addresses',
+                'address',
+                Expr\Join::WITH,
+                $qb->expr()->eq('address.class', ':class')
+            )->setParameter("class", Address::CLASS_PRIMARY);
             $em->getRepository('AppBundle:Address')->prepareQueryBuilderWhere(
                 $qb,
                 'address',

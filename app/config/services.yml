@@ -30,7 +30,7 @@ services:
         arguments: ['AppBundle\Entity\Registry']
         parent: service
     registryapi.entry:
-        class: AppBundle\Service\Common\JSendService
+        class: AppBundle\Service\EntryService
         arguments: ['AppBundle\Entity\Entry']
         parent: service
     registryapi.connectionType:
