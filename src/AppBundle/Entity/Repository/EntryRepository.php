@@ -85,26 +85,35 @@ class EntryRepository extends Repository
         return true;
     }
 
-    protected function getMappedRepository(array $request)
+    public function getMappedRepository($type)
     {
-        $type = null;
-        if (isset($request['type']) && !is_array($request['type'])) {
-            $type = $request['type'];
+        // Handle legacy argument
+        if (is_array($type)) {
+            if (!isset($type['type']) || is_array($type['type'])) {
+                return null;
+            }
+            $type = $type['type'];
         }
 
-        $map = $this->getClassMetadata()->discriminatorMap;
-        if (isset($type)
-            && isset($map[$type])
-            && $map[$type] != $this->getEntityName()) {
-            return $this->getEntityManager()->getRepository($map[$type]);
+        if (($name = $this->getMappedEntityName($type))
+            && $name != $this->getEntityName()) {
+            return $this->getEntityManager()->getRepository($name);
         }
         return null;
+    }
+
+    public function getMappedEntityName($type)
+    {
+        $map = $this->getClassMetadata()->discriminatorMap;
+        if (!isset($map[$type])) {
+            return null;
+        }
+        return $map[$type];
     }
 
     /**
      * Get entry type
      *
-     * @param Entry $entry The entry
      * @return string Entry type
      */
     public function getType()

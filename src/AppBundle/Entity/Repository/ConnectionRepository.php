@@ -84,7 +84,7 @@ class ConnectionRepository extends Repository
         return $result;
     }
 
-    protected function prepare(Entity $entity, array $request, $user, &$message)
+    public function prepare(Entity $entity, array $request, $user, &$message)
     {
         parent::prepare($entity, $request, $user, $message);
 

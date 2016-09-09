@@ -82,13 +82,14 @@ class AddressRepository extends Repository
         return true;
     }
 
-    protected function prepare(Entity $entity, array $request, $user, &$message)
+    public function prepare(Entity $entity, array $request, $user, &$message)
     {
         parent::prepare($entity, $request, $user, $message);
 
         // Validate entry
         if ($entry = $entity->getEntry()) {
-            if ($registry = $user->getRegistry()) {
+            if (isset($user)
+                && ($registry = $user->getRegistry())) {
                 if ($entry->getRegistry()->getId() != $registry->getId()) {
                     $message['entry'] = 'Invalid value';
                 } elseif (!empty($request['type'])) {

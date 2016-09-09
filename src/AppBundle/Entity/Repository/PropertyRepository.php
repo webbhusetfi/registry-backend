@@ -51,12 +51,13 @@ class PropertyRepository extends Repository
         return true;
     }
 
-    protected function prepare(Entity $entity, array $request, $user, &$message)
+    public function prepare(Entity $entity, array $request, $user, &$message)
     {
         parent::prepare($entity, $request, $user, $message);
 
         // Validate property group
-        if ($registry = $user->getRegistry()) {
+        if (isset($user)
+            && ($registry = $user->getRegistry())) {
             if ($propertyGroup = $entity->getPropertyGroup()) {
                 $registryId = $propertyGroup->getRegistry()->getId();
                 if ($registryId != $registry->getId()) {

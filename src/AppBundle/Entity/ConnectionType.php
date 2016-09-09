@@ -5,7 +5,6 @@ use AppBundle\Entity\Common\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * ConnectionType
@@ -43,9 +42,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\ConnectionTypeRepository"
- * )
- * @UniqueEntity(
- *      fields={"registry","parentType","childType","ownerEntry"}
  * )
  */
 class ConnectionType extends Entity
