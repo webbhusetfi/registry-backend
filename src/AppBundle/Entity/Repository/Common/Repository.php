@@ -240,7 +240,7 @@ abstract class Repository extends EntityRepository implements
         return $values;
     }
 
-    protected function prepareFields(
+    public function prepareFields(
         Entity $entity,
         array $request,
         $user,
@@ -290,7 +290,7 @@ abstract class Repository extends EntityRepository implements
                         if (is_string($request[$key])) {
                             $date = preg_replace("|\.\d+|", "", $request[$key]);
                             $value = \DateTime::createFromFormat(
-                                \DateTime::ISO8601,
+                                \DateTime::ATOM,
                                 $date
                             );
                         }
@@ -315,7 +315,7 @@ abstract class Repository extends EntityRepository implements
         return true;
     }
 
-    protected function prepareAssociations(
+    public function prepareAssociations(
         Entity $entity,
         array $request,
         $user,
@@ -383,7 +383,7 @@ abstract class Repository extends EntityRepository implements
         return true;
     }
 
-    protected function prepare(Entity $item, array $request, $user, &$message)
+    public function prepare(Entity $item, array $request, $user, &$message)
     {
         $this->prepareFields($item, $request, $user, $message);
         $this->prepareAssociations($item, $request, $user, $message);
@@ -576,7 +576,7 @@ abstract class Repository extends EntityRepository implements
             if (!isset($all[$key])) continue;
 
             if ($value instanceof \DateTime) {
-                $result[$key] = $value->format(\DateTime::ISO8601);
+                $result[$key] = $value->format(\DateTime::ATOM);
             } elseif (substr($key, -3) == '_id') {
                 $result[substr($key, 0, -3)] = $value;
             } elseif (substr($key, -4) == '_ids') {
