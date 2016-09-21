@@ -292,16 +292,15 @@ class EntryRepository extends Repository
             }
         }
 
-        if (isset($request['filter']['parentEntry'])) {
-            $qb
-                ->innerJoin('entry.parentConnections', 'pc')
-                ->andWhere(
-                    $qb->expr()->in('pc.parentEntry', ':parentEntry')
-                )
-                ->setParameter(
-                    'parentEntry',
-                    $request['filter']['parentEntry']
-                );
+        if (array_key_exists('parentEntry', $request['filter'])) {
+            if (isset($request['filter']['parentEntry'])) {
+                $qb->innerJoin('entry.parentConnections', 'pc')
+                ->andWhere($qb->expr()->in('pc.parentEntry', ':parentEntry'))
+                ->setParameter('parentEntry', $request['filter']['parentEntry']);
+            } else {
+                $qb->leftJoin('entry.parentConnections', 'pc')
+                ->andWhere($qb->expr()->isNull('pc.id'));
+            }
         }
 
         if (isset($request['filter']['type'])) {
@@ -437,16 +436,15 @@ class EntryRepository extends Repository
             }
         }
 
-        if (isset($request['filter']['parentEntry'])) {
-            $qb
-                ->innerJoin('entry.parentConnections', 'pc')
-                ->andWhere(
-                    $qb->expr()->in('pc.parentEntry', ':parentEntry')
-                )
-                ->setParameter(
-                    'parentEntry',
-                    $request['filter']['parentEntry']
-                );
+        if (array_key_exists('parentEntry', $request['filter'])) {
+            if (isset($request['filter']['parentEntry'])) {
+                $qb->innerJoin('entry.parentConnections', 'pc')
+                ->andWhere($qb->expr()->in('pc.parentEntry', ':parentEntry'))
+                ->setParameter('parentEntry', $request['filter']['parentEntry']);
+            } else {
+                $qb->leftJoin('entry.parentConnections', 'pc')
+                ->andWhere($qb->expr()->isNull('pc.id'));
+            }
         }
         $foundCount = $this->getFoundCount($qb);
 
