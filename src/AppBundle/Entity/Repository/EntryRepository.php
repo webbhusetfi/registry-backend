@@ -436,7 +436,8 @@ class EntryRepository extends Repository
             }
         }
 
-        if (array_key_exists('parentEntry', $request['filter'])) {
+        if (isset($request['filter'])
+            && array_key_exists('parentEntry', $request['filter'])) {
             if (isset($request['filter']['parentEntry'])) {
                 $qb->innerJoin('entry.parentConnections', 'pc')
                 ->andWhere($qb->expr()->in('pc.parentEntry', ':parentEntry'))
