@@ -3,8 +3,8 @@ namespace AppBundle\Entity\Repository\Common;
 
 use Doctrine\ORM\EntityRepository;
 
-use AppBundle\Entity\Repository\Common\Interfaces\FoundCountInterface;
-use AppBundle\Entity\Repository\Common\Traits\FoundCountTrait;
+use AppBundle\Entity\Repository\Common\Interfaces\QueryHelperInterface;
+use AppBundle\Entity\Repository\Common\Traits\QueryHelperTrait;
 
 use AppBundle\Entity\Common\Entity;
 
@@ -26,10 +26,10 @@ use Symfony\Component\Validator\Validation;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
 abstract class Repository extends EntityRepository implements
-    FoundCountInterface
+    QueryHelperInterface
 //     PrepareInterface,
 {
-    use FoundCountTrait;
+    use QueryHelperTrait;
 //     use PrepareTrait;
 
     protected $allAttributes;
