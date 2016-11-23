@@ -1,28 +1,14 @@
 <?php
 namespace AppBundle\Entity\Common\Traits;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-
 /**
- * Description trait
+ * Trait implementing
+ * \AppBundle\Entity\Common\Interfaces\DescriptionInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
 trait DescriptionTrait
 {
-    /**
-     * @var string
-     *
-     * @ORM\Column(
-     *      name="description",
-     *      type="string",
-     *      length=255
-     * )
-     * @Assert\Length(max = 255)
-     */
-    protected $description;
-
     /**
      * @inheritdoc
      */

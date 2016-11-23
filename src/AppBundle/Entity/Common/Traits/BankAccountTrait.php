@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\BankAccountInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait BankAccountTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setBankAccount($bankAccount)
     {
-        $this->name = $name;
+        $this->bankAccount = $bankAccount;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getBankAccount()
     {
-        return $this->name;
+        return $this->bankAccount;
     }
 }

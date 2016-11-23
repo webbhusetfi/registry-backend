@@ -1,20 +1,22 @@
 <?php
 namespace AppBundle\Entity\Common\Traits;
 
+use AppBundle\Entity\Entry;
+
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\EntryInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait EntryTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setEntry(Entry $entry = null)
     {
-        $this->name = $name;
+        $this->entry = $entry;
 
         return $this;
     }
@@ -22,8 +24,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getEntry()
     {
-        return $this->name;
+        return $this->entry;
     }
 }

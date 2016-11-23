@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\CreatedAtInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait CreatedAtTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setCreatedAt($createdAt)
     {
-        $this->name = $name;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getCreatedAt()
     {
-        return $this->name;
+        return $this->createdAt;
     }
 }

@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\DueAtInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait DueAtTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setDueAt($dueAt)
     {
-        $this->name = $name;
+        $this->dueAt = $dueAt;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getDueAt()
     {
-        return $this->name;
+        return $this->dueAt;
     }
 }

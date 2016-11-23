@@ -117,6 +117,16 @@ abstract class Entity implements \JsonSerializable
     }
 
     /**
+     * Get all properties as an array.
+     *
+     * @return array
+     */
+    public function asArray()
+    {
+        return get_object_vars($this);
+    }
+
+    /**
      * JSON serialize
      *
      * @return array

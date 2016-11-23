@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\VatInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait VatTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setVat($vat)
     {
-        $this->name = $name;
+        $this->vat = $vat;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getVat()
     {
-        return $this->name;
+        return $this->vat;
     }
 }

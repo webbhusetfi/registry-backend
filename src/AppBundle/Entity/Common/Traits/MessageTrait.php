@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\MessageInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait MessageTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setMessage($message)
     {
-        $this->name = $name;
+        $this->message = $message;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getMessage()
     {
-        return $this->name;
+        return $this->message;
     }
 }

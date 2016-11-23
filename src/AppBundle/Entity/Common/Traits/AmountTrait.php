@@ -3,18 +3,18 @@ namespace AppBundle\Entity\Common\Traits;
 
 /**
  * Trait implementing
- * \AppBundle\Entity\Common\Interfaces\NameInterface
+ * \AppBundle\Entity\Common\Interfaces\AmountInterface
  *
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
-trait NameTrait
+trait AmountTrait
 {
     /**
      * @inheritdoc
      */
-    public function setName($name)
+    public function setAmount($amount)
     {
-        $this->name = $name;
+        $this->amount = $amount;
 
         return $this;
     }
@@ -22,8 +22,8 @@ trait NameTrait
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getAmount()
     {
-        return $this->name;
+        return $this->amount;
     }
 }
