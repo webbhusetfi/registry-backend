@@ -185,7 +185,7 @@ abstract class Entry extends Entity
      *              name="property_id",
      *              referencedColumnName="id",
      *              nullable=false,
-     *              onDelete="RESTRICT"
+     *              onDelete="CASCADE"
      *          )
      *      }
      * )
@@ -201,6 +201,16 @@ abstract class Entry extends Entity
      * )
      */
     protected $addresses;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(
+     *      targetEntity="EntryInvoice",
+     *      mappedBy="entry"
+     * )
+     */
+    protected $entryInvoices;
 
     /**
      * @var ArrayCollection
@@ -230,6 +240,7 @@ abstract class Entry extends Entity
         $this->createdAt = new \DateTime();
         $this->properties = new ArrayCollection();
         $this->addresses = new ArrayCollection();
+        $this->entryInvoices = new ArrayCollection();
         $this->childConnections = new ArrayCollection();
         $this->parentConnections = new ArrayCollection();
     }
@@ -372,6 +383,16 @@ abstract class Entry extends Entity
     public function getAddresses()
     {
         return $this->addresses;
+    }
+
+    /**
+     * Get entry invoices
+     *
+     * @return ArrayCollection
+     */
+    public function getEntryInvoices()
+    {
+        return $this->entryInvoices;
     }
 
     /**
