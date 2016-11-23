@@ -28,7 +28,6 @@ class CsvImportCommand extends ImportCommand
             ->addArgument('path', InputArgument::REQUIRED, 'Path to CSV file')
             ->addArgument('registryID', InputArgument::REQUIRED, 'Registry ID')
             ->addArgument('parentEntryID', InputArgument::OPTIONAL, 'Parent entry ID')
-            ->addArgument('removeChildEntries', InputArgument::OPTIONAL, 'Remove existing child entries')
         ;
     }
 
@@ -39,10 +38,10 @@ class CsvImportCommand extends ImportCommand
         ini_set('memory_limit','256M');
         extract($input->getArguments());
 
-        $entryRepository = $this->getManager()->getRepository(
+        $repository = $this->getManager()->getRepository(
             'AppBundle:Entry'
         )->getMappedRepository($type);
-        if (!isset($entryRepository)) {
+        if (!isset($repository)) {
             $output->writeln("Entry type:{$type} was not found.");
             return;
         }
@@ -57,72 +56,18 @@ class CsvImportCommand extends ImportCommand
         }
         $parentEntry = null;
         if (isset($parentEntryID)) {
-            $parentEntry = $this->getEntry($parentEntryID);
+            $parentEntry = $this->getEntry(
+                (int)$parentEntryID, 
+                $registry
+            );
             if (!$parentEntry) {
                 $output->writeln("Parent entry ID:{$parentEntryID} was not found.");
                 return;
             }
-            if (isset($removeChildEntries)
-                && filter_var($removeChildEntries, FILTER_VALIDATE_BOOLEAN)) {
-                $this->removeChildEntries($output, $entryRepository, $registry, $parentEntry);
-            }
         }
-        $this->importCsvFile($output, $entryRepository, $path, $registry, $parentEntry);
-    }
-
-
-
-    protected function getEntry(int $id)
-    {
-        return $this->getManager()->find('AppBundle:Entry', $id);
-    }
-
-    protected function getRegistry(int $id)
-    {
-        return $this->getManager()->find('AppBundle:Registry', $id);
-    }
-
-    protected function removeChildEntries(
-        OutputInterface $output,
-        EntryRepository $entryRepository,
-        Registry $registry,
-        Entry $parentEntry
-    ) {
-        $em = $this->getManager();
-
-        $qb = $em->createQueryBuilder();
-        $qb->select('entry')->from($entryRepository->getClassName(), 'entry');
-        $qb->innerJoin('entry.parentConnections', 'parentConnection');
-        $qb->andWhere(
-            $qb->expr()->eq('entry.registry', ':registry')
-        );
-        $qb->setParameter('registry', $registry);
-        $qb->andWhere(
-            $qb->expr()->in('parentConnection.parentEntry', ':parentEntry')
-        );
-        $qb->setParameter('parentEntry', $parentEntry);
-
-        $result = $qb->getQuery()->getResult();
-        foreach ($result as $entry) {
-            $em->remove($entry);
-        }
-        $em->flush();
-        $em->clear($entryRepository->getClassName());
-        $output->writeln("Deleted " . count($result) . " existing child entries.");
-    }
-
-    protected function importCsvFile(
-        OutputInterface $output,
-        EntryRepository $entryRepository,
-        string $path,
-        Registry $registry,
-        Entry $parentEntry = null
-    ) {
-        $em = $this->getManager();
-        $validator = $this->getValidator();
 
         $output->writeln(
-            "Importing CSV file:{$path}"
+            "Importing {$type} entries from {$path}"
             . " into registry ID:" . $registry->getId()
             . (
                 isset($parentEntry)
@@ -130,6 +75,148 @@ class CsvImportCommand extends ImportCommand
                 : null
             )
         );
+        $output->write("Performing dry run...");
+        $result = $this->importCsvFile(true, $repository, $path, $registry, $parentEntry);
+        if (empty($result['errors'])) {
+            $output->writeln("OK");
+            $output->write("Importing entries...");
+            $result = $this->importCsvFile(false, $repository, $path, $registry, $parentEntry);
+            if (empty($result['errors'])) {
+                $output->writeln("OK");
+                $output->writeln($result['imported'] . " entries imported");
+            } else {
+                $output->writeln("FAILED");
+                $output->writeln($result['imported'] . " entries imported - IMPORT INCOMPLETE");
+                $output->writeln(count($result['errors']) . " unexpected errors occurred:");
+                foreach ($result['errors'] as $error) {
+                    $output->writeln($error);
+                }
+            }
+        } else {
+            $output->writeln("FAILED");
+            $output->writeln("\n" . count($result['errors']) . " error(s) occurred:\n");
+            foreach ($result['errors'] as $error) {
+                $output->writeln($error);
+            }
+        }
+    }
+    
+    protected function getConnectionType(
+        string $parentType,
+        string $childType,
+        Registry $registry
+    ) {
+        $connectionType = $this
+            ->getRepository('AppBundle:ConnectionType')
+                ->findOneBy([
+                    'parentType' => $parentType,
+                    'childType' => $childType,
+                    'registry' => $registry
+                ]);
+        return $connectionType;
+    }
+
+    protected function getPrimaryAddress(Entry $entry)
+    {
+        // Find existing primary address
+        $addresses = $entry->getAddresses();
+        if (count($addresses)) {
+            foreach ($addresses as $address) {
+                if ($address->getClass() == Address::CLASS_PRIMARY) {
+                    return $address;
+                }
+            }
+        }
+
+        // No existing primary address
+        $address = new Address();
+        $address->setClass(Address::CLASS_PRIMARY);
+        $address->setEntry($entry);
+        $em->persist($address);
+        return $address;
+    }
+
+    protected function getProperty(int $id, Registry $registry)
+    {
+        $qb = $this->getManager()->createQueryBuilder();
+
+        $qb->select('property')
+        ->from('AppBundle:Property', 'property')
+        ->innerJoin('property.propertyGroup', 'propertyGroup')
+        ->andWhere($qb->expr()->eq('property.id', ':id'))
+        ->setParameter('id', $id)
+        ->andWhere($qb->expr()->eq('propertyGroup.registry', ':registry'))
+        ->setParameter('registry', $registry);
+
+        $result = $qb->getQuery()->getResult();
+        if (count($result) != 1) {
+            return null;
+        }
+        return $result[0];
+    }
+
+    protected function getEntry(
+        int $id,
+        Registry $registry,
+        string $type = null,
+        Entry $parentEntry = null
+    ) {
+        $qb = $this->getManager()->createQueryBuilder();
+
+        $qb->select('entry', 'properties', 'addresses')
+        ->from('AppBundle:Entry', 'entry')
+        ->leftJoin('entry.properties', 'properties')
+        ->leftJoin('entry.addresses', 'addresses')
+        ->andWhere($qb->expr()->eq('entry.id', ':id'))
+        ->setParameter('id', $id)
+        ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
+        ->setParameter('registry', $registry);
+
+        if (isset($type)) {
+            $qb->andWhere('entry INSTANCE OF :type')
+            ->setParameter('type', $type);
+        }
+
+        if (isset($parentEntry)) {
+            $qb->innerJoin('entry.parentConnections', 'pc')
+            ->andWhere($qb->expr()->eq('pc.parentEntry', ':parentEntry'))
+            ->setParameter('parentEntry', $parentEntry);
+        }
+
+        $result = $qb->getQuery()->getResult();
+        if (count($result) != 1) {
+            return null;
+        }
+        return $result[0];
+    }
+
+    protected function getRegistry(int $id)
+    {
+        return $this->getManager()->find('AppBundle:Registry', $id);
+    }
+
+    protected function importCsvFile(
+        bool $dryRun,
+        EntryRepository $entryRepository,
+        string $path,
+        Registry $registry,
+        Entry $parentEntry = null
+    ) {
+        $result = ['valid' => 0, 'imported' => 0, 'errors' => []];
+
+        $em = $this->getManager();
+        $validator = $this->getValidator();
+        $addressRepository = $em->getRepository('AppBundle:Address');
+
+        $membership = null;
+        if (isset($parentEntry)) {
+            $parentType = $em->getRepository(get_class($parentEntry))->getType();
+            $membership = $this->getConnectionType(
+                $parentType,
+                $entryRepository->getType(),
+                $registry
+            );
+        }
 
         $file = file($path);
         $labels = array_map('trim', str_getcsv(array_shift($file)));
@@ -140,31 +227,36 @@ class CsvImportCommand extends ImportCommand
             $schema[$entity][$field] = $key;
         }
 
-        $membership = null;
-        if (isset($parentEntry)) {
-            $parentType = $em->getRepository(get_class($parentEntry))->getType();
-            $membership = $this->getConnectionType([
-                'parentType' => $parentType,
-                'childType' => $entryRepository->getType(),
-                'registry' => $registry,
-            ]);
+        $properties = [];
+        if (isset($schema['property'])) {
+            foreach ($schema['property'] as $id => $key) {
+                if ($property = $this->getProperty($id, $registry)) {
+                    $properties[$id] = $property;
+                } else {
+                    $result['errors'][] = "Invalid property: {$id}";
+                }
+            }
         }
 
-        $addressRepository = $em->getRepository('AppBundle:Address');
+        if (!empty($result['errors'])) {
+            return $result;
+        }
 
-        $imported = $count = 0;
+        $count = 0;
         foreach ($file as $key => $row) {
             $values = array_map('trim', str_getcsv($row));
+            $values = array_map(function($value) {
+                return $value === "" ? null : $value;
+            }, $values);
+
             $errors = [];
 
             // Entry
-            $entryData = array_filter(
-                array_combine(
-                    array_keys($schema['entry']),
-                    array_intersect_key(
-                        $values, 
-                        array_flip($schema['entry'])
-                    )
+            $entryData = array_combine(
+                array_keys($schema['entry']),
+                array_intersect_key(
+                    $values, 
+                    array_flip($schema['entry'])
                 )
             );
             if (!empty($entryData['firstName'])) {
@@ -180,100 +272,133 @@ class CsvImportCommand extends ImportCommand
                 );
             }
 
-            $entityName = $entryRepository->getClassName();
-            $entry = new $entityName();
-            $entry->setRegistry($registry);
-            if (isset($schema['property'])) {
-                $propertyData = array_filter(
-                    array_combine(
+            $entry = null;
+            if (isset($entryData['id'])) {
+                if (isset($parentEntry)) {
+                    $entry = $this->getEntry(
+                        (int)$entryData['id'], 
+                        $registry,
+                        $entryRepository->getType(),
+                        $parentEntry
+                    );
+                } else {
+                    $entry = $this->getEntry(
+                        (int)$entryData['id'], 
+                        $registry,
+                        $entryRepository->getType()
+                    );
+                }
+                if (!$entry) {
+                    $errors['entry:id'] = "Not found";
+                }
+            } else {
+                $entityName = $entryRepository->getClassName();
+                $entry = new $entityName();
+                $entry->setRegistry($registry);
+                $em->persist($entry);
+
+                // Connection
+                if (isset($membership)) {
+                    $connection = new Connection();
+                    $connection
+                        ->setConnectionType($membership)
+                        ->setParentEntry($parentEntry)
+                        ->setChildEntry($entry);
+                    $em->persist($connection);
+                }
+            }
+
+            if ($entry) {
+                if (isset($schema['property'])) {
+                    $propertyData = array_combine(
                         array_keys($schema['property']),
                         array_intersect_key(
                             $values, 
                             array_flip($schema['property'])
                         )
-                    )
-                );
-                foreach ($propertyData as $id => $value) {
-                    $entry->addProperty(
-                        $em->find('AppBundle:Property', (int)$id)
                     );
+                    foreach ($propertyData as $id => $value) {
+                        $exists = $entry->getProperties()->contains(
+                            $properties[(int)$id]
+                        );
+                        if (filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+                            if (!$exists) {
+                                $entry->addProperty($properties[(int)$id]);
+                            }
+                        } else {
+                            if ($exists) {
+                                $entry->removeProperty($properties[(int)$id]);
+                            }
+                        }
+                    }
                 }
-            }
-            $messages = [];
-            if (!$entryRepository->prepare($entry, $entryData, null, $messages)) {
-                $errors['entry'] = $messages;
-            }
-            $em->persist($entry);
+                $messages = [];
+                if (!$entryRepository->prepare($entry, $entryData, null, $messages)) {
+                    foreach ($messages as $field => $message) {
+                        $errors["entry:{$field}"] = $message;
+                    }
+                }
 
-            // Address
-            if (isset($schema['address'])) {
-                $addressData = array_filter(
-                    array_combine(
+                // Address
+                if (isset($schema['address'])) {
+                    $addressData = array_combine(
                         array_keys($schema['address']),
                         array_intersect_key(
                             $values, 
                             array_flip($schema['address'])
                         )
-                    )
-                );
-                if (!empty($addressData['street'])) {
-                    $addressData['street'] = mb_convert_case(
-                        $addressData['street'],
-                        MB_CASE_TITLE
                     );
+                    if (!empty($addressData['street'])) {
+                        $addressData['street'] = mb_convert_case(
+                            $addressData['street'],
+                            MB_CASE_TITLE
+                        );
+                    }
+                    if (!empty($addressData['town'])) {
+                        $addressData['town'] = mb_convert_case(
+                            $addressData['town'],
+                            MB_CASE_TITLE
+                        );
+                    }
+                    $address = $this->getPrimaryAddress($entry);
+                    $messages = [];
+                    if (!$addressRepository->prepare($address, $addressData, null, $messages)) {
+                        foreach ($messages as $field => $message) {
+                            $errors["address:{$field}"] = $message;
+                        }
+                    }
                 }
-                if (!empty($addressData['town'])) {
-                    $addressData['town'] = mb_convert_case(
-                        $addressData['town'],
-                        MB_CASE_TITLE
-                    );
-                }
-                $address = new Address();
-                $address->setClass(Address::CLASS_PRIMARY);
-                $address->setEntry($entry);
-                $messages = [];
-                if (!$addressRepository->prepare($address, $addressData, null, $messages)) {
-                    $errors['address'] = $messages;
-                }
-                $em->persist($address);
             }
 
             if (!empty($errors)) {
-                $output->writeln("Validation failed for row " . ($key + 3) . ":");
-                foreach ($errors as $entity => $messages) {
-                    foreach ($messages as $field => $message) {
-                        $output->writeln("{$entity}:{$field} {$message}");
-                    }
+                $errorString = "Validation failed for row " . ($key + 3) . ":\n";
+                foreach ($errors as $field => $message) {
+                    $errorString .= "\t{$field} => {$message}\n";
                 }
-                $em->remove($entry);
-                if (isset($address)) {
-                    $em->remove($address);
-                }
-                continue;
-            } elseif (isset($membership)) {
-                // Connection
-                $connection = new Connection();
-                $connection
-                    ->setConnectionType($membership)
-                    ->setParentEntry($parentEntry)
-                    ->setChildEntry($entry);
-                $em->persist($connection);
+                $result['errors'][] = $errorString;
+            } else {
+                $result['valid']++;
             }
 
             if (++$count >= 100) {
-                $count = 0;
-                $em->flush();
+                if (!$dryRun && empty($result['errors'])) {
+                    $em->flush();
+                    $result['imported'] += $count;
+                }
                 $em->clear($entryRepository->getClassName());
                 $em->clear('AppBundle:Address');
                 $em->clear('AppBundle:Connection');
+                $count = 0;
             }
-            $imported++;
         }
-        $em->flush();
+        if (!$dryRun && empty($result['errors'])) {
+            $em->flush();
+            $result['imported'] += $count;
+        }
         $em->clear($entryRepository->getClassName());
         $em->clear('AppBundle:Address');
         $em->clear('AppBundle:Connection');
 
-        $output->writeln("{$imported} members imported.");
+        return $result;
     }
 }
