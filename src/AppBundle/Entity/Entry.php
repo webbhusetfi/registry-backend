@@ -8,6 +8,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
+use AppBundle\Entity\Common\Interfaces\ClassNameInterface;
+use AppBundle\Entity\Common\Traits\ClassNameTrait;
+
 /**
  * Entry
  *
@@ -86,8 +89,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
  */
-abstract class Entry extends Entity
+abstract class Entry extends Entity implements ClassNameInterface
 {
+    use ClassNameTrait;
+
     /**
      * @var string
      *

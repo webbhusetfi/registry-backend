@@ -80,6 +80,10 @@ class Invoice extends Entity implements EntryInterface, NameInterface,
      *      )
      * })
      * @Assert\NotBlank()
+     * @Assert\Expression(
+     *     "value.getClassName() in ['AppBundle\\Entity\\Union', 'AppBundle\\Entity\\Association']",
+     *     message="Invalid entry"
+     * )
      */
     protected $entry;
 
