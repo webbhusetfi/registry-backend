@@ -1,21 +1,21 @@
 <?php
 namespace AppBundle\Entity\Repository\Common;
 
-use Doctrine\ORM\EntityRepository;
+use AppBundle\Entity\Common\Entity;
 
 use AppBundle\Entity\Repository\Common\Interfaces\QueryHelperInterface;
 use AppBundle\Entity\Repository\Common\Traits\QueryHelperTrait;
 
-use AppBundle\Entity\Common\Entity;
+use Doctrine\Common\Collections\Criteria;
 
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\PersistentCollection;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Common\Persistence\Proxy;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\MappingException;
 
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Persistence\Proxy;
+use Doctrine\ORM\PersistentCollection;
+use Doctrine\ORM\QueryBuilder;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Validator\Validation;

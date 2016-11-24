@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity\Common;
 
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Common\Persistence\Proxy;
-
 use Doctrine\ORM\Mapping as ORM;
+
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * Abstract entity base class

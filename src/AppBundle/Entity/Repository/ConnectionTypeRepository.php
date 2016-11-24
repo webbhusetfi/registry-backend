@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
-use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Common\Entity;
-use AppBundle\Entity\User;
 use AppBundle\Entity\Entry;
+use AppBundle\Entity\Repository\Common\Repository;
+use AppBundle\Entity\User;
 
 use Doctrine\ORM\Query;
 

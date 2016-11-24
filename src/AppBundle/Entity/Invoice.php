@@ -3,39 +3,39 @@ namespace AppBundle\Entity;
 
 use AppBundle\Entity\Common\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Validator\Constraints as Assert;
-
-use AppBundle\Entity\Common\Interfaces\EntryInterface;
-use AppBundle\Entity\Common\Traits\EntryTrait;
-
-use AppBundle\Entity\Common\Interfaces\NameInterface;
-use AppBundle\Entity\Common\Traits\NameTrait;
-
-use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
-use AppBundle\Entity\Common\Traits\DescriptionTrait;
-
-use AppBundle\Entity\Common\Interfaces\MessageInterface;
-use AppBundle\Entity\Common\Traits\MessageTrait;
-
-use AppBundle\Entity\Common\Interfaces\BankInterface;
-use AppBundle\Entity\Common\Traits\BankTrait;
-
-use AppBundle\Entity\Common\Interfaces\BankAccountInterface;
-use AppBundle\Entity\Common\Traits\BankAccountTrait;
-
-use AppBundle\Entity\Common\Interfaces\VatInterface;
-use AppBundle\Entity\Common\Traits\VatTrait;
-
 use AppBundle\Entity\Common\Interfaces\AmountInterface;
-use AppBundle\Entity\Common\Traits\AmountTrait;
-
-use AppBundle\Entity\Common\Interfaces\DueAtInterface;
-use AppBundle\Entity\Common\Traits\DueAtTrait;
+use AppBundle\Entity\Common\Interfaces\BankAccountInterface;
+use AppBundle\Entity\Common\Interfaces\BankInterface;
 
 use AppBundle\Entity\Common\Interfaces\CreatedAtInterface;
+use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
+
+use AppBundle\Entity\Common\Interfaces\DueAtInterface;
+use AppBundle\Entity\Common\Interfaces\EntryInterface;
+
+use AppBundle\Entity\Common\Interfaces\MessageInterface;
+use AppBundle\Entity\Common\Interfaces\NameInterface;
+
+use AppBundle\Entity\Common\Interfaces\VatInterface;
+use AppBundle\Entity\Common\Traits\AmountTrait;
+
+use AppBundle\Entity\Common\Traits\BankAccountTrait;
+use AppBundle\Entity\Common\Traits\BankTrait;
+
 use AppBundle\Entity\Common\Traits\CreatedAtTrait;
+use AppBundle\Entity\Common\Traits\DescriptionTrait;
+
+use AppBundle\Entity\Common\Traits\DueAtTrait;
+use AppBundle\Entity\Common\Traits\EntryTrait;
+
+use AppBundle\Entity\Common\Traits\MessageTrait;
+use AppBundle\Entity\Common\Traits\NameTrait;
+
+use AppBundle\Entity\Common\Traits\VatTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Invoice

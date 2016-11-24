@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity\Repository\Common\Traits;
 
-use Symfony\Component\PropertyAccess\PropertyAccess;
+use AppBundle\Entity\Common\Entity;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
-use AppBundle\Entity\Common\Entity;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * Trait implementing

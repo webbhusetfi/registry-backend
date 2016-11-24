@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 use AppBundle\Entity\Common\Interfaces\PersonInterface;
+
 use AppBundle\Entity\Common\Traits\PersonTrait;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Contact person

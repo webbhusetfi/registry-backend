@@ -3,10 +3,10 @@ namespace AppBundle\Entity;
 
 use AppBundle\Entity\Common\Entity;
 
-use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\Role\Role;
 
-use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -41,7 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      repositoryClass="AppBundle\Entity\Repository\UserRepository"
  * )
  */
-class User extends Entity implements UserInterface
+class User extends Entity implements UserInterface, \Serializable
 {
     const ROLE_USER = 'USER';
     const ROLE_ADMIN = 'ADMIN';
@@ -308,6 +308,26 @@ class User extends Entity implements UserInterface
     public function eraseCredentials()
     {
 
+    }
+
+    /** @see \Serializable::serialize() */
+    public function serialize()
+    {
+        return serialize(array(
+            $this->id,
+            $this->username,
+            $this->password
+        ));
+    }
+
+    /** @see \Serializable::unserialize() */
+    public function unserialize($serialized)
+    {
+        list (
+            $this->id,
+            $this->username,
+            $this->password
+        ) = unserialize($serialized);
     }
 
     /**

@@ -11,7 +11,7 @@ services:
     #doctrine.cache.memcached:
         #class: Doctrine\Common\Cache\MemcachedCache
         #calls:
-            #- [setMemcached, [@memcached]]
+            #- [setMemcached, ['@memcached']]
     json_exception_listener:
         class: AppBundle\Kernel\JsonExceptionListener
         tags:
@@ -20,7 +20,7 @@ services:
         class: AppBundle\Common\Service
         abstract: true
         calls:
-          - [setContainer, [@service_container]]
+          - [setContainer, ['@service_container']]
     registryapi.user:
         class: AppBundle\Service\UserService
         arguments: ['AppBundle\Entity\User']

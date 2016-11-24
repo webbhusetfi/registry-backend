@@ -1,11 +1,11 @@
 <?php
 namespace AppBundle\Service;
 
+use AppBundle\Entity\Invoice;
+use AppBundle\Entity\User;
+
 use AppBundle\Service\Common\DoctrineService;
 use JSend\JSendResponse;
-
-use AppBundle\Entity\User;
-use AppBundle\Entity\Invoice;
 
 
 class InvoiceService extends DoctrineService

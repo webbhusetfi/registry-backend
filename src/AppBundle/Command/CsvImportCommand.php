@@ -3,19 +3,19 @@ namespace AppBundle\Command;
 
 use AppBundle\Command\Common\ImportCommand;
 
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-
-use AppBundle\Entity\Registry;
-use AppBundle\Entity\Entry;
-use AppBundle\Entity\Repository\EntryRepository;
-
 use AppBundle\Entity\Address;
-use AppBundle\Entity\Property;
-
 use AppBundle\Entity\Connection;
 use AppBundle\Entity\ConnectionType;
+
+use AppBundle\Entity\Entry;
+use AppBundle\Entity\Property;
+use AppBundle\Entity\Registry;
+
+use AppBundle\Entity\Repository\EntryRepository;
+use Symfony\Component\Console\Input\InputArgument;
+
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class CsvImportCommand extends ImportCommand
 {

@@ -1,14 +1,14 @@
 <?php
 namespace AppBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-
+use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
 use AppBundle\Entity\Common\Interfaces\NameInterface;
+
+use AppBundle\Entity\Common\Traits\DescriptionTrait;
 use AppBundle\Entity\Common\Traits\NameTrait;
 
-use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
-use AppBundle\Entity\Common\Traits\DescriptionTrait;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Place

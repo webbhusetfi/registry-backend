@@ -1,12 +1,12 @@
 <?php
 namespace AppBundle\Entity\Repository\Common\Traits;
 
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Validator\Validation;
-
+use AppBundle\Entity\Common\Entity;
 use Doctrine\ORM\Mapping\MappingException;
 
-use AppBundle\Entity\Common\Entity;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+
+use Symfony\Component\Validator\Validation;
 
 /**
  * Trait implementing 

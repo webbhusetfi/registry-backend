@@ -1,8 +1,8 @@
 <?php
 namespace AppBundle\Entity\Repository\Common\Traits;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use AppBundle\Entity\Common\Entity;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 /**
  * Trait implementing
