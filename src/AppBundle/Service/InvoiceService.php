@@ -18,7 +18,8 @@ class InvoiceService extends DoctrineService
     ) {
         $qb = $this->getManager()->createQueryBuilder()
             ->from('AppBundle:Invoice', 'invoice')
-            ->select('invoice');
+            ->select('invoice', 'entry')
+            ->innerJoin('invoice.entry', 'entry');
 
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
@@ -30,7 +31,6 @@ class InvoiceService extends DoctrineService
         $repo->applyWhereFilter($qb, 'invoice', $filter);
         if (isset($filter['registry'])) {
             $qb
-            ->innerJoin('invoice.entry', 'entry')
             ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
             ->setParameter('registry', $filter['registry']);
         }
@@ -46,7 +46,7 @@ class InvoiceService extends DoctrineService
 
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            $filter['entry'] = $user->getEntry();
+            $filter['entry'] = $user->getEntryId();
         }
 
         return $qb;
