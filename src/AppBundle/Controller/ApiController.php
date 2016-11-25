@@ -1,20 +1,20 @@
 <?php
 namespace AppBundle\Controller;
 
-use JSend\JSendResponse;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
-
 use Symfony\Component\HttpFoundation\Request;
+
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use JSend\JSendResponse;
 
 class ApiController extends Controller
 {
@@ -82,9 +82,10 @@ class ApiController extends Controller
             );
         }
 
-        $repo = $this->getDoctrine()->getRepository('AppBundle:User');
-        $user = $repo->findOneBy(['username' => $data['username']]);
-        if (empty($user)) {
+        $user = $this->get('user_provider')->loadUserByUsername(
+            $data['username']
+        );
+        if (!isset($user)) {
             throw new AccessDeniedHttpException('Invalid user.');
         }
 
@@ -93,7 +94,6 @@ class ApiController extends Controller
             $user,
             $data['password']
         );
-
         if (!$valid) {
             throw new AccessDeniedHttpException('Invalid user.');
         }

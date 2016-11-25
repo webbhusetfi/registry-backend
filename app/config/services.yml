@@ -16,43 +16,49 @@ services:
         class: AppBundle\Kernel\JsonExceptionListener
         tags:
             - {name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 200}
-    service:
+    user_provider:
+        class: AppBundle\Security\User\UserProvider
+        arguments:
+            - '@doctrine'
+            - 'AppBundle:User'
+            - 'username'
+    registryapi.service:
         class: AppBundle\Common\Service
         abstract: true
         calls:
-          - [setContainer, ['@service_container']]
+            - [setContainer, ['@service_container']]
     registryapi.user:
         class: AppBundle\Service\UserService
         arguments: ['AppBundle\Entity\User']
-        parent: service
+        parent: registryapi.service
     registryapi.registry:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Registry']
-        parent: service
+        parent: registryapi.service
     registryapi.entry:
         class: AppBundle\Service\EntryService
         arguments: ['AppBundle\Entity\Entry']
-        parent: service
+        parent: registryapi.service
     registryapi.connectionType:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\ConnectionType']
-        parent: service
+        parent: registryapi.service
     registryapi.connection:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Connection']
-        parent: service
+        parent: registryapi.service
     registryapi.address:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Address']
-        parent: service
+        parent: registryapi.service
     registryapi.property:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\Property']
-        parent: service
+        parent: registryapi.service
     registryapi.propertyGroup:
         class: AppBundle\Service\Common\JSendService
         arguments: ['AppBundle\Entity\PropertyGroup']
-        parent: service
+        parent: registryapi.service
     registryapi.invoice:
         class: AppBundle\Service\InvoiceService
-        parent: service
+        parent: registryapi.service
