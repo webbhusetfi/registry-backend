@@ -46,7 +46,13 @@ doctrine:
         user:     "%database_user%"
         password: "%database_password%"
         charset:  UTF8
+        types:
+            atomdatetime:  AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTimeType
         mapping_types:
+            date: atomdatetime
+            time: atomdatetime
+            datetime: atomdatetime
+            datetimetz: atomdatetime
             enum: string
             set: string
             varbinary: string
@@ -56,15 +62,15 @@ doctrine:
         auto_generate_proxy_classes: "%kernel.debug%"
         naming_strategy: doctrine.orm.naming_strategy.underscore
         auto_mapping: true
-        #metadata_cache_driver:
-            #type: service
-            #id: doctrine.cache.memcached
-        #query_cache_driver:
-            #type: service
-            #id: doctrine.cache.memcached
-        #result_cache_driver:
-            #type: service
-            #id: doctrine.cache.memcached
+        metadata_cache_driver:
+            type: service
+            id: doctrine.cache.memcached
+        query_cache_driver:
+            type: service
+            id: doctrine.cache.memcached
+        result_cache_driver:
+            type: service
+            id: doctrine.cache.memcached
         hydrators:
             SimpleArrayHydrator: AppBundle\Entity\Common\SimpleArrayHydrator
         dql:

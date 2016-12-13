@@ -4,14 +4,14 @@ parameters:
 #    parameter_name: value
 
 services:
-    #memcached:
-        #class: Memcached
-        #calls:
-            #- [addServers, [%memcached_servers%]]
-    #doctrine.cache.memcached:
-        #class: Doctrine\Common\Cache\MemcachedCache
-        #calls:
-            #- [setMemcached, ['@memcached']]
+    memcached:
+        class: Memcached
+        calls:
+            - [addServers, [%memcached_servers%]]
+    doctrine.cache.memcached:
+        class: Doctrine\Common\Cache\MemcachedCache
+        calls:
+            - [setMemcached, ['@memcached']]
     json_exception_listener:
         class: AppBundle\Kernel\JsonExceptionListener
         tags:
@@ -61,4 +61,7 @@ services:
         parent: registryapi.service
     registryapi.invoice:
         class: AppBundle\Service\InvoiceService
+        parent: registryapi.service
+    registryapi.entryInvoice:
+        class: AppBundle\Service\EntryInvoiceService
         parent: registryapi.service
