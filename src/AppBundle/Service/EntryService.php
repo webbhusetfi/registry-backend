@@ -87,8 +87,14 @@ class EntryService extends JSendService
             $filter['withParent'] = $filter['parentEntry'];
         }
 
-        $repo = $this->getDoctrine()->getRepository('AppBundle:Entry');
         $dbal = $this->get('database_connection');
+        $repo = $this->getDoctrine()->getRepository('AppBundle:Entry');
+        if (isset($filter['type'])) {
+            $mappedRepo = $repo->getMappedRepository($filter['type']);
+            if (isset($mappedRepo)) {
+                $repo = $mappedRepo;
+            }
+        }
 
         $qb = $dbal->createQueryBuilder();
         $qb->select('entry.*');
