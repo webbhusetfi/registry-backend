@@ -35,7 +35,7 @@ class History extends Entity
      *
      * @ORM\Column(
      *      name="modifiedAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=false
      * )
      * @Assert\DateTime()

@@ -2,8 +2,9 @@
 namespace AppBundle\Entity\Repository\Common\Traits;
 
 use AppBundle\Entity\Common\Entity;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTime;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -66,13 +67,17 @@ trait AssignerTrait
             case "date":
             case "time":
             case "datetime":
-            case "datetimetz": {
+            case "datetimetz":
+            case "atomdatetime": {
                 $date = null;
                 if (is_string($value)) {
                     $date = \DateTime::createFromFormat(
                         \DateTime::ATOM,
                         preg_replace("|\.\d+|", "", $value)
                     );
+                    if ($date) {
+                        $date = new AtomDateTime($date->format('Y-m-d H:i:s e'));
+                    }
                 }
                 if (!$date) {
                     return "Invalid value";

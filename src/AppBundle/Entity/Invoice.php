@@ -4,34 +4,36 @@ namespace AppBundle\Entity;
 use AppBundle\Entity\Common\Entity;
 
 use AppBundle\Entity\Common\Interfaces\AmountInterface;
-use AppBundle\Entity\Common\Interfaces\BankAccountInterface;
-use AppBundle\Entity\Common\Interfaces\BankInterface;
-
-use AppBundle\Entity\Common\Interfaces\CreatedAtInterface;
-use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
-
-use AppBundle\Entity\Common\Interfaces\DueAtInterface;
-use AppBundle\Entity\Common\Interfaces\EntryInterface;
-
-use AppBundle\Entity\Common\Interfaces\MessageInterface;
-use AppBundle\Entity\Common\Interfaces\NameInterface;
-
-use AppBundle\Entity\Common\Interfaces\VatInterface;
 use AppBundle\Entity\Common\Traits\AmountTrait;
 
+use AppBundle\Entity\Common\Interfaces\BankAccountInterface;
 use AppBundle\Entity\Common\Traits\BankAccountTrait;
+
+use AppBundle\Entity\Common\Interfaces\BankInterface;
 use AppBundle\Entity\Common\Traits\BankTrait;
 
+use AppBundle\Entity\Common\Interfaces\CreatedAtInterface;
 use AppBundle\Entity\Common\Traits\CreatedAtTrait;
+
+use AppBundle\Entity\Common\Interfaces\DescriptionInterface;
 use AppBundle\Entity\Common\Traits\DescriptionTrait;
 
+use AppBundle\Entity\Common\Interfaces\DueAtInterface;
 use AppBundle\Entity\Common\Traits\DueAtTrait;
+
+use AppBundle\Entity\Common\Interfaces\EntryInterface;
 use AppBundle\Entity\Common\Traits\EntryTrait;
 
+use AppBundle\Entity\Common\Interfaces\MessageInterface;
 use AppBundle\Entity\Common\Traits\MessageTrait;
+
+use AppBundle\Entity\Common\Interfaces\NameInterface;
 use AppBundle\Entity\Common\Traits\NameTrait;
 
+use AppBundle\Entity\Common\Interfaces\VatInterface;
 use AppBundle\Entity\Common\Traits\VatTrait;
+
+use AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -188,7 +190,7 @@ class Invoice extends Entity implements EntryInterface, NameInterface,
      *
      * @ORM\Column(
      *      name="dueAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=true
      * )
      * @Assert\DateTime()
@@ -200,7 +202,7 @@ class Invoice extends Entity implements EntryInterface, NameInterface,
      *
      * @ORM\Column(
      *      name="createdAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=false
      * )
      * @Assert\DateTime()
@@ -223,7 +225,7 @@ class Invoice extends Entity implements EntryInterface, NameInterface,
      */
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new AtomDateTime();
         $this->entryInvoices = new ArrayCollection();
     }
 

@@ -15,25 +15,37 @@ trait SerializerTrait
     /**
      * {@inheritdoc}
      */
-    public function serialize(Entity $entity, array $associations = null)
+    public function serialize(Entity $entity)
     {
         $properties = $entity->asArray();
-        $assocs = $this->getAssociationMappings();
+        $associations = $this->getClassMetadata()->associationMappings;
 
-        $result = [];
+        $serialized = [];
         foreach ($properties as $name => $value) {
-            if (isset($assocs[$name])) {
-                if ($assocs[$name]['type'] == ClassMetadataInfo::MANY_TO_ONE) {
-                    $result[$name] = $value->getId();
+            if (isset($associations[$name])) {
+                if ($associations[$name]['type'] & ClassMetadataInfo::TO_ONE) {
+                    $serialized[$name] = $value->getId();
                 }
             } else {
-                if ($value instanceof \DateTime) {
-                    $result[$name] = $value->format(\DateTime::ATOM);
-                } else {
-                    $result[$name] = $value;
-                }
+                $serialized[$name] = $value;
             }
         }
-        return $result;
+        return $serialized;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function serializeArray(array $values)
+    {
+        $serialized = [];
+        foreach ($values as $name => $value) {
+            if (substr($name, -3) == '_id') {
+                $serialized[substr($name, -3)] = $value;
+            } else {
+                $serialized[$name] = $value;
+            }
+        }
+        return $serialized;
     }
 }

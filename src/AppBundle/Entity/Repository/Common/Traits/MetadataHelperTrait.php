@@ -11,20 +11,42 @@ use Doctrine\ORM\Mapping\MappingException;
  */
 trait MetadataHelperTrait
 {
+    protected $fieldMappings;
+    protected $fieldNames;
+
+    protected $tableMetadata;
+    protected $discriminatorFieldNames;
+    protected $indexes;
+    protected $uniqueConstraints;
+
+    protected $singleValuedAssociationMappings;
+    protected $collectionValuedAssociationMappings;
+
     /**
      * {@inheritdoc}
      */
-    protected function getFieldMappings(bool $excludeIdentifiers = true)
+    public function getFieldMappings()
     {
-        $metadata = $this->getClassMetadata();
-        if (!$excludeIdentifiers) {
-            return $metadata->fieldMappings;
-        } else {
-            return array_diff_key(
-                $metadata->fieldMappings,
-                array_flip($metadata->identifier)
-            );
+        if (!isset($this->fieldMappings)) {
+            $metadata = $this->getClassMetadata();
+            $fieldMappings = array_reverse($metadata->fieldMappings);
+            $map = $metadata->discriminatorMap;
+            if (!empty($map)
+                && !in_array($this->getEntityName(), $map)) {
+                $em = $this->getEntityManager();
+                $fieldMappings = array_reverse($metadata->fieldMappings);
+                foreach ($map as $entity) {
+                    $fieldMappings = array_merge(
+                        $fieldMappings,
+                        array_reverse(
+                            $em->getClassMetadata($entity)->fieldMappings
+                        )
+                    );
+                }
+            }
+            $this->fieldMappings = $fieldMappings;
         }
+        return $this->fieldMappings;
     }
 
     /**
@@ -38,9 +60,78 @@ trait MetadataHelperTrait
     /**
      * {@inheritdoc}
      */
+    protected function getSingleValuedAssociationMappings()
+    {
+        if (!isset($this->singleValuedAssociationMappings)) {
+            $metadata = $this->getClassMetadata();
+            $mappings = [];
+            foreach ($metadata->associationMappings as $name => $mapping) {
+                if ($metadata->isSingleValuedAssociation($name)) {
+                    $mappings[$name] = $mapping;
+                }
+            }
+            $this->singleValuedAssociationMappings = $mappings;
+        }
+        return $this->singleValuedAssociationMappings;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getCollectionValuedAssociationMappings()
+    {
+        if (!isset($this->collectionValuedAssociationMappings)) {
+            $metadata = $this->getClassMetadata();
+            $mappings = [];
+            foreach ($metadata->associationMappings as $name => $mapping) {
+                if ($metadata->isCollectionValuedAssociation($name)) {
+                    $mappings[$name] = $mapping;
+                }
+            }
+            $this->collectionValuedAssociationMappings = $mappings;
+        }
+        return $this->collectionValuedAssociationMappings;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getFieldNames()
     {
-        return $this->getClassMetadata()->fieldNames;
+        if (!isset($this->fieldNames)) {
+            $metadata = $this->getClassMetadata();
+            $map = $metadata->discriminatorMap;
+            if (!empty($map)) {
+                $column = $metadata->discriminatorColumn;
+                $fieldNames = [$column['name'] => $column['fieldName']];
+                if (in_array($this->getEntityName(), $map)) {
+                    $fieldNames = array_merge(
+                        $fieldNames,
+                        $metadata->fieldNames
+                    );
+                } else {
+                    $em = $this->getEntityManager();
+                    foreach ($map as $entity) {
+                        $fieldNames = array_merge(
+                            $fieldNames,
+                            $em->getClassMetadata($entity)->fieldNames
+                        );
+                    }
+                }
+                $this->fieldNames = $fieldNames;
+            } else {
+                $this->fieldNames = $metadata->fieldNames;
+            }
+        }
+        return $this->fieldNames;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getColumnNames()
+    {
+        return array_flip($this->getFieldNames());
     }
 
     /**
@@ -74,11 +165,12 @@ trait MetadataHelperTrait
         $fieldNames = [];
         $metaData = $this->getClassMetadata();
         foreach ($metaData->identifier as $id) {
-            $fieldNames[] = $id;
+            $column = $metaData->columnNames[$id];
+            $fieldNames[$column] = $id;
         }
         $indexes = $this->getIndexes();
         foreach ($indexes as $fields) {
-            $fieldNames[] = $fields[0];
+            $fieldNames[array_keys($fields)[0]] = array_values($fields)[0];
         }
         return $fieldNames;
     }
@@ -137,7 +229,7 @@ trait MetadataHelperTrait
                     foreach ($constraint['columns'] as $column) {
                         try {
                             $field = $metaData->getFieldForColumn($column);
-                            $constraints[$key][] = $field;
+                            $constraints[$key][$column] = $field;
                         } catch (MappingException $e) {}
                     }
                 }
@@ -163,7 +255,7 @@ trait MetadataHelperTrait
                     foreach ($index['columns'] as $column) {
                         try {
                             $field = $metaData->getFieldForColumn($column);
-                            $indexes[$key][] = $field;
+                            $indexes[$key][$column] = $field;
                         } catch (MappingException $e) {}
                     }
                 }

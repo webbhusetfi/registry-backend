@@ -6,10 +6,12 @@ use AppBundle\Entity\Common\Entity;
 use AppBundle\Entity\Common\Interfaces\ClassNameInterface;
 use AppBundle\Entity\Common\Traits\ClassNameTrait;
 
+use AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * Entry
@@ -125,7 +127,7 @@ abstract class Entry extends Entity implements ClassNameInterface
      *
      * @ORM\Column(
      *      name="createdAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=false
      * )
      * @Assert\DateTime()
@@ -242,7 +244,7 @@ abstract class Entry extends Entity implements ClassNameInterface
      */
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new AtomDateTime();
         $this->properties = new ArrayCollection();
         $this->addresses = new ArrayCollection();
         $this->entryInvoices = new ArrayCollection();

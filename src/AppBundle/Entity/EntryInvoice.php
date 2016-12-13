@@ -6,6 +6,7 @@ use AppBundle\Entity\Common\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * EntryInvoice
@@ -14,6 +15,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(
  *      name="EntryInvoice",
  *      options={"collate"="utf8_swedish_ci"},
+ *      uniqueConstraints={
+ *          @ORM\UniqueConstraint(
+ *              name="UNIQUE",
+ *              columns={"invoice_id","entry_id"}
+ *          )
+ *      },
  *      indexes={
  *          @ORM\Index(
  *              name="idx_paid",
@@ -22,15 +29,15 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          @ORM\Index(
  *              name="idx_entry_id",
  *              columns={"entry_id"}
- *          ),
- *          @ORM\Index(
- *              name="idx_invoice_id",
- *              columns={"invoice_id"}
  *          )
  *      }
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\EntryInvoiceRepository"
+ * )
+ * @UniqueEntity(
+ *     fields={"invoice", "entry"},
+ *     message="This invoice is already assigned."
  * )
  */
 class EntryInvoice extends Entity
@@ -45,6 +52,7 @@ class EntryInvoice extends Entity
      *      options={"unsigned"=true},
      *      columnDefinition="TINYINT(1) UNSIGNED NOT NULL"
      * )
+     * @Assert\NotBlank()
      */
     protected $paid;
 
@@ -63,6 +71,7 @@ class EntryInvoice extends Entity
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank()
      */
     protected $entry;
 
@@ -81,6 +90,7 @@ class EntryInvoice extends Entity
      *          onDelete="CASCADE"
      *      )
      * })
+     * @Assert\NotBlank()
      */
     protected $invoice;
 

@@ -14,10 +14,18 @@ interface SerializerInterface
      * Serialize an entity
      *
      * @param Entity $entity The input entity
-     * @param array $associations Associations to include
      *
      * @return array The serialized properties
      */
-    public function serialize(Entity $entity, array $associations = null);
+    public function serialize(Entity $entity);
+
+    /**
+     * Serialize an array of properties
+     *
+     * @param array $properties The input properties
+     *
+     * @return array The serialized properties
+     */
+    public function serializeArray(array $properties);
 }
 

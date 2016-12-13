@@ -646,6 +646,7 @@ class EntryRepository extends Repository
         }
 
         if (!$this->prepare($items[0], $request, $user, $message)) {
+            $message['debug'] = gettype($items[0]->getCreatedAt());
             return null;
         }
 

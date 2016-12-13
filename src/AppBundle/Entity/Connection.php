@@ -67,7 +67,7 @@ class Connection extends Entity
      *
      * @ORM\Column(
      *      name="createdAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=true
      * )
      * @Assert\DateTime()
