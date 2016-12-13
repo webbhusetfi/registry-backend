@@ -23,7 +23,7 @@ class InvoiceService extends DoctrineService
 
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            $filter['registry'] = $user->getRegistry();
+            $filter['registry'] = $user->getRegistryId();
         }
 
         $repo = $this->getRepository('AppBundle:Invoice');
@@ -52,12 +52,12 @@ class InvoiceService extends DoctrineService
         return $qb;
     }
 
-    protected function createEntity()
+    public function createEntity()
     {
         return $this->getRepository('AppBundle:Invoice')->createEntity();
     }
 
-    protected function fetchEntity(array $filter, $method = 'read')
+    public function fetchEntity(array $filter, $method = 'read')
     {
         if (!isset($filter['id'])) {
             return null;
@@ -67,7 +67,7 @@ class InvoiceService extends DoctrineService
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
             if ($method != 'read') {
-                $params['entry'] = $user->getEntry();
+                $params['entry'] = $user->getEntryId();
             }
         }
         $qb = $this->buildQuery($params);
