@@ -65,3 +65,6 @@ services:
     registryapi.entryInvoice:
         class: AppBundle\Service\EntryInvoiceService
         parent: registryapi.service
+    registryapi.mail:
+        class: AppBundle\Service\MailService
+        parent: registryapi.service

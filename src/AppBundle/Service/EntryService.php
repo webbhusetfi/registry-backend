@@ -71,8 +71,8 @@ class EntryService extends JSendService
         }
     }
 
-    protected function buildQuery(
-        array $joins = [],
+    public function buildQuery(
+        array $include = [],
         array $filter = [],
         array $orderBy = [],
         $offset = null,
@@ -86,6 +86,18 @@ class EntryService extends JSendService
             && !array_key_exists('withParent', $filter)) {
             $filter['withParent'] = $filter['parentEntry'];
         }
+        if (array_key_exists('address', $filter)
+            && !array_key_exists('primaryAddress', $filter)) {
+            $filter['primaryAddress'] = $filter['address'];
+        }
+        if (array_key_exists('address', $orderBy)
+            && !array_key_exists('primaryAddress', $orderBy)) {
+            $orderBy['primaryAddress'] = $orderBy['address'];
+        }
+        if (in_array('address', $include)
+            && !in_array('primaryAddress', $include)) {
+            $include[] = 'primaryAddress';
+        }
 
         $dbal = $this->get('database_connection');
         $repo = $this->getDoctrine()->getRepository('AppBundle:Entry');
@@ -95,49 +107,67 @@ class EntryService extends JSendService
                 $repo = $mappedRepo;
             }
         }
+        $addressRepo = $this->getRepository('AppBundle:Address');
 
         $qb = $dbal->createQueryBuilder();
         $qb->select('entry.*');
-
         $qb->from('Entry', 'entry');
-        $repo->applyDbalWhereFilter($qb, 'entry', $filter);
 
-        if (in_array('address', $joins) || isset($filter['address'])) {
-            $qb->leftJoin(
-                'entry',
-                'Address',
-                'address',
-                "address.entry_id = entry.id AND address.class = 'PRIMARY'"
-            );
-            if (isset($filter['address']) && is_array($filter['address'])) {
-                $this->getDoctrine()->getRepository('AppBundle:Address')
-                    ->applyDbalWhereFilter($qb, 'address', $filter['address']);
+        $joins = [];
+        if (in_array('primaryAddress', $include)) {
+            $qb->addSelect('primaryAddress.*');
+            $joins = array_merge($joins, ['primaryAddress']);
+        }
+
+        if (!empty($filter) && is_array($filter)) {
+            $repo->applyDbalWhereFilter($qb, 'entry', $filter);
+            if (!empty($filter['type'])) {
+                $qb->andWhere($qb->expr()->eq('entry.type', ':type'));
+                $qb->setParameter('type', $filter['type']);
+            }
+
+            $query = "SELECT * FROM EntryProperty";
+            $query .= " WHERE EntryProperty.entry_id = entry.id";
+            $column = "EntryProperty.property_id";
+            $this->applyExistsFilter($qb, $filter, 'property', $query, $column);
+
+            $query = "SELECT * FROM EntryInvoice";
+            $query .= " WHERE EntryInvoice.entry_id = entry.id";
+            $column = "EntryInvoice.invoice_id";
+            $this->applyExistsFilter($qb, $filter, 'invoice', $query, $column);
+
+            $query = "SELECT * FROM Connection";
+            $query .= " WHERE Connection.childEntry_id = entry.id";
+            $column = "Connection.parentEntry_id";
+            $this->applyExistsFilter($qb, $filter, 'parent', $query, $column);
+
+            if (!empty($filter['primaryAddress'])
+                && is_array($filter['primaryAddress'])
+                && !isset($filter[0])) {
+                $addressRepo->applyDbalWhereFilter($qb, 'primaryAddress', $filter['primaryAddress']);
+                $joins = array_merge($joins, ['primaryAddress']);
             }
         }
 
-        if (!empty($filter['type'])) {
-            $qb->andWhere($qb->expr()->eq('entry.type', ':type'));
-            $qb->setParameter('type', $filter['type']);
-        }
-
-        $query = "SELECT * FROM EntryProperty";
-        $query .= " WHERE EntryProperty.entry_id = entry.id";
-        $column = "EntryProperty.property_id";
-        $this->applyExistsFilter($qb, $filter, 'property', $query, $column);
-
-        $query = "SELECT * FROM EntryInvoice";
-        $query .= " WHERE EntryInvoice.entry_id = entry.id";
-        $column = "EntryInvoice.invoice_id";
-        $this->applyExistsFilter($qb, $filter, 'invoice', $query, $column);
-
-        $query = "SELECT * FROM Connection";
-        $query .= " WHERE Connection.childEntry_id = entry.id";
-        $column = "Connection.parentEntry_id";
-        $this->applyExistsFilter($qb, $filter, 'parent', $query, $column);
-
-        if (!empty($orderBy)) {
+        if (!empty($orderBy) && is_array($orderBy)) {
             $repo->applyDbalOrderBy($qb, 'entry', $orderBy);
+            if (!empty($orderBy['entry']['primaryAddress'])
+                && is_array($orderBy['entry']['primaryAddress'])) {
+                $addressRepo->applyDbalOrderBy($qb, 'primaryAddress', $orderBy['entry']['primaryAddress']);
+                $joins = array_merge($joins, ['primaryAddress']);
+            }
         }
+
+        if (in_array('primaryAddress', $joins)) {
+            $qb->leftJoin(
+                'entry',
+                'Address',
+                'primaryAddress',
+                "primaryAddress.entry_id = entry.id"
+                . " AND primaryAddress.class = 'PRIMARY'"
+            );
+        }
+
         if (isset($offset)) {
             $qb->setFirstResult($offset);
         }
