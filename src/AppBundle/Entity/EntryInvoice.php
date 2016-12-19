@@ -29,6 +29,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          @ORM\Index(
  *              name="idx_entry_id",
  *              columns={"entry_id"}
+ *          ),
+ *          @ORM\Index(
+ *              name="idx_invoice_id",
+ *              columns={"invoice_id"}
  *          )
  *      }
  * )
