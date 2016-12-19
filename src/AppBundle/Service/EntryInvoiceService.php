@@ -226,8 +226,7 @@ class EntryInvoiceService extends DoctrineService
                 [
                     $column['fieldName'] => [
                         $column['name'],
-                        $column['type'],
-                        $types
+                        $column['type']
                     ]
                 ],
                 $columnMappings
