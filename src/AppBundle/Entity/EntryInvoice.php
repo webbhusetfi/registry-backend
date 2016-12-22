@@ -51,7 +51,7 @@ class EntryInvoice extends Entity
      *      options={"unsigned"=true},
      *      columnDefinition="TINYINT(1) UNSIGNED NOT NULL"
      * )
-     * @Assert\NotBlank()
+     * @Assert\NotNull()
      */
     protected $paid;
 
