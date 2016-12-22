@@ -6,7 +6,6 @@ use AppBundle\Entity\Common\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * EntryInvoice
@@ -38,10 +37,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * )
  * @ORM\Entity(
  *      repositoryClass="AppBundle\Entity\Repository\EntryInvoiceRepository"
- * )
- * @UniqueEntity(
- *     fields={"invoice", "entry"},
- *     message="This invoice is already assigned."
  * )
  */
 class EntryInvoice extends Entity
