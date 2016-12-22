@@ -22,7 +22,10 @@ trait AssignerTrait
     {
         $errors = [];
         $accessor = PropertyAccess::createPropertyAccessor();
-        $fieldMappings = $this->getFieldMappings();
+        $fieldMappings = array_diff_key(
+            $this->getFieldMappings(),
+            array_flip($this->getClassMetadata()->identifier)
+        );
         $associationMappings = $this->getAssociationMappings();
 
         foreach ($properties as $key => $value) {
