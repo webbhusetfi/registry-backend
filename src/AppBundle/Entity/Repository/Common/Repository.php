@@ -292,19 +292,20 @@ abstract class Repository extends EntityRepository implements
                     case "datetimetz":
                     case "atomdatetime": {
                         $date = null;
-                        if (is_string($value)) {
+                        if (is_string($request[$key])) {
                             $date = \DateTime::createFromFormat(
                                 \DateTime::ATOM,
-                                preg_replace("|\.\d+|", "", $value)
+                                preg_replace("|\.\d+|", "", $request[$key])
                             );
                             if ($date) {
                                 $date = new AtomDateTime($date->format('Y-m-d H:i:s e'));
                             }
                         }
-                        if (!$date) {
-                            return "Invalid value";
+                        if ($date) {
+                            $accessor->setValue($entity, $key, $date);
+                        } else {
+                            $message[$key] = "Invalid value";
                         }
-                        $value = $date;
                     } break;
                     default: {
                         $accessor->setValue($entity, $key, $request[$key]);
