@@ -43,6 +43,10 @@ class ConnectionRepository extends Repository
                 $message['error'] = 'Access denied';
                 return false;
             }
+        } elseif (isset($filter['parentEntry'])
+            && !is_integer($filter['parentEntry'])) {
+            $message['parentEntry'] = 'Invalid value';
+            return false;
         }
 
         $registryId = $user->getRegistry()->getId();
@@ -79,6 +83,21 @@ class ConnectionRepository extends Repository
             $result['parentEntry'] = $em->getRepository(
                 $map[$attributes['parentEntry']['type']]
             )->serialize($attributes['parentEntry']);
+        }
+        if (!empty($attributes['properties'])) {
+            if (is_string($attributes['properties'])) {
+                $result['properties'] = array_map(
+                    'intval',
+                    explode(',', $attributes['properties'])
+                );
+            } elseif (isset($attributes['properties'][0]['id'])) {
+                $result['properties'] = [];
+                foreach ($attributes['properties'] as $property) {
+                    $result['properties'][] = $property['id'];
+                }
+            }
+        } elseif (array_key_exists('properties', $attributes)) {
+            $result['properties'] = [];
         }
 
         return $result;
@@ -201,7 +220,7 @@ class ConnectionRepository extends Repository
         $em->persist($item);
         $em->flush();
 
-        return ['item' => $this->serialize($item->toArray())];
+        return ['item' => $this->serialize($item->toArray(["properties"]))];
     }
 
     public function read(array $request, $user, &$message)
@@ -245,7 +264,7 @@ class ConnectionRepository extends Repository
         $include = [];
         if (isset($request['include']) && is_array($request['include'])) {
             $include = array_intersect(
-                ['parentEntry', 'childEntry'],
+                ['parentEntry', 'childEntry', 'properties'],
                 $request['include']
             );
         }
@@ -256,6 +275,11 @@ class ConnectionRepository extends Repository
 
         if (in_array('childEntry', $include)) {
             $qb->addSelect('childEntry');
+        }
+
+        if (in_array('properties', $include)) {
+            $qb->leftJoin('connection.properties', 'properties');
+            $qb->addSelect('properties');
         }
 
         $items = $qb->getQuery()
@@ -307,6 +331,11 @@ class ConnectionRepository extends Repository
             )->setParameter('registry', $filter['registry']);
         }
 
+        if (isset($request['properties'])) {
+            $qb->leftJoin('connection.properties', 'properties');
+            $qb->addSelect('properties');
+        }
+
         $items = $qb->getQuery()->getResult();
         if (count($items) !== 1) {
             $message['error'] = 'Not found';
@@ -319,7 +348,7 @@ class ConnectionRepository extends Repository
 
         $em->flush();
 
-        return ['item' => $this->serialize($items[0]->toArray())];
+        return ['item' => $this->serialize($items[0]->toArray(["properties"]))];
     }
 
     public function delete(array $request, $user, &$message)
