@@ -181,6 +181,15 @@ class MailService extends DoctrineService
         $data = [];
         $data['apikey'] = $this->getParameter('elastic_apikey');
         $data['transactionID'] = $transactionId;
+        $data['showAbuse'] = 'true';
+        $data['showClicked'] = 'true';
+        $data['showDelivered'] = 'true';
+        $data['showErrors'] = 'true';
+        $data['showFailed'] = 'true';
+        //$data['showMessageIDs'] = 'true';
+        $data['showOpened'] = 'true';
+        $data['showPending'] = 'true';
+        $data['showUnsubscribed'] = 'true';
 
         $query = http_build_query($data);
         $options = [
@@ -326,7 +335,12 @@ class MailService extends DoctrineService
             $job->getTransactionId(),
             $error
         );
-        $item['job'] = ($response ? $response : $error);
+        if ($response) {
+            $item['job'] = $response;
+            unset($item['job']['messageids']);
+        } else {
+            $item['job'] = $error;
+        }
 
         return JSendResponse::success(['item' => $item])->asArray();
     }
