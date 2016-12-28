@@ -15,6 +15,8 @@ use AppBundle\Entity\Repository\Common\Traits\MetadataHelperTrait;
 use AppBundle\Entity\Repository\Common\Traits\QueryHelperTrait;
 use AppBundle\Entity\Repository\Common\Traits\SerializerTrait;
 use AppBundle\Entity\Repository\Common\Traits\ValidatorTrait;
+
+use AppBundle\Entity\Common\Entity;
 use Doctrine\ORM\EntityRepository;
 
 
@@ -36,5 +38,18 @@ class MailJobRepository extends EntityRepository implements
     use FactoryTrait;
     use AssignerTrait;
     use ValidatorTrait;
-    use SerializerTrait;
+    use SerializerTrait {
+        SerializerTrait::serialize as traitSerialize;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function serialize(Entity $entity)
+    {
+        $result = $this->traitSerialize($entity);
+        unset($result['transactionId']);
+        unset($result['messageId']);
+        return $result;
+    }
 }

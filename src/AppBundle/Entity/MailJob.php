@@ -23,6 +23,10 @@ use AppBundle\Entity\Common\Traits\EntryTrait;
  *      options={"collate"="utf8_swedish_ci"},
  *      indexes={
  *          @ORM\Index(
+ *              name="idx_entry_id",
+ *              columns={"entry_id"}
+ *          ),
+ *          @ORM\Index(
  *              name="idx_transactionId",
  *              columns={"transactionId"}
  *          ),
