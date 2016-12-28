@@ -21,7 +21,7 @@ class MailService extends DoctrineService
 
     public function getMethods()
     {
-        return ['create', 'read'];
+        return ['create', 'read', 'search'];
     }
 
 
@@ -89,6 +89,46 @@ class MailService extends DoctrineService
         }
 
         return $recipients;
+    }
+
+    protected function buildQuery(
+        array $filter,
+        array $orderBy = [],
+        $offset = null,
+        $limit = null
+    ) {
+        $qb = $this->getManager()->createQueryBuilder()
+            ->from('AppBundle:MailJob', 'mailJob')
+            ->select('mailJob')
+            ->innerJoin('mailJob.entry', 'entry');
+
+        $user = $this->getUser();
+        if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            $filter['registry'] = $user->getRegistryId();
+        }
+        if (!$user->hasRole(User::ROLE_ADMIN)) {
+            $filter['entry'] = $user->getEntryId();
+        }
+
+        $repo = $this->getRepository('AppBundle:MailJob');
+
+        $repo->applyWhereFilter($qb, 'mailJob', $filter);
+        if (isset($filter['registry'])) {
+            $qb
+            ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
+            ->setParameter('registry', $filter['registry']);
+        }
+        if (isset($orderBy)) {
+            $repo->applyOrderBy($qb, 'mailJob', $orderBy);
+        }
+        if (isset($offset)) {
+            $qb->setFirstResult($offset);
+        }
+        if (isset($limit)) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb;
     }
 
 
@@ -179,6 +219,44 @@ class MailService extends DoctrineService
     }
 
 
+
+    public function search(array $request)
+    {
+        $result = ['items' => [], 'foundCount' => 0];
+
+        $filter = $order = [];
+        $offset = $limit = null;
+
+        if (isset($request['filter']) && is_array($request['filter'])) {
+            $filter = $request['filter'];
+        }
+        if (isset($request['order']) && is_array($request['order'])) {
+            $order = $request['order'];
+        }
+        if (isset($request['offset'])) {
+            $offset = (int)$request['offset'];
+        }
+        if (isset($request['limit'])) {
+            $limit = (int)$request['limit'];
+        }
+
+        $qb = $this->buildQuery($filter, $order, $offset, $limit);
+        $entities = $qb->getQuery()->getResult();
+
+        if (count($entities)) {
+            $repo = $this->getRepository('AppBundle:MailJob');
+            foreach ($entities as $entity) {
+                $result['items'][] = $repo->serialize($entity);
+            }
+            if (isset($offset) || isset($limit)) {
+                $result['foundCount'] = $repo->getFoundCount($qb);
+            } else {
+                $result['foundCount'] = count($result['items']);
+            }
+        }
+
+        return JSendResponse::success($result)->asArray();
+    }
 
     public function create(array $request)
     {
