@@ -307,12 +307,8 @@ class MailService extends DoctrineService
             $em->persist($job);
             $em->flush();
 
-            $item = [
-                'id' => $job->getId(),
-                'entry' => $job->getEntry()->getId(),
-                'createdAt' => $job->getCreatedAt()
-            ];
-            return JSendResponse::success($item)->asArray();
+            $item = $this->getRepository('AppBundle:MailJob')->serialize($job);
+            return JSendResponse::success(['item' => $item])->asArray();
         }
     }
 
@@ -325,17 +321,13 @@ class MailService extends DoctrineService
             return JSendResponse::fail($messages)->asArray();
         }
 
-        $item = [
-            'id' => $job->getId(),
-            'entry' => $job->getEntry()->getId(),
-            'createdAt' => $job->getCreatedAt()
-        ];
+        $item = $this->getRepository('AppBundle:MailJob')->serialize($job);
         $response = $this->emailGetStatus(
             $job->getTransactionId(),
             $error
         );
         $item['job'] = ($response ? $response : $error);
 
-        return JSendResponse::success($item)->asArray();
+        return JSendResponse::success(['item' => $item])->asArray();
     }
 }
