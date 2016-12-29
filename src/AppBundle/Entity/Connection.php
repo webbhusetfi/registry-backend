@@ -169,7 +169,7 @@ class Connection extends Entity
      *              name="property_id",
      *              referencedColumnName="id",
      *              nullable=false,
-     *              onDelete="RESTRICT"
+     *              onDelete="CASCADE"
      *          )
      *      }
      * )
