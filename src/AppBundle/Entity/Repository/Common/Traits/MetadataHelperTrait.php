@@ -168,6 +168,10 @@ trait MetadataHelperTrait
             $column = $metaData->columnNames[$id];
             $fieldNames[$column] = $id;
         }
+        $assocs = $this->getSingleValuedAssociationMappings();
+        foreach ($assocs as $name => $assoc) {
+            $fieldNames[$assoc['joinColumns'][0]['name']] = $assoc['fieldName'];
+        }
         $indexes = $this->getIndexes();
         foreach ($indexes as $fields) {
             $fieldNames[array_keys($fields)[0]] = array_values($fields)[0];

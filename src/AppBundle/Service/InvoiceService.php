@@ -6,7 +6,7 @@ use AppBundle\Entity\User;
 
 use AppBundle\Service\Common\DoctrineService;
 use JSend\JSendResponse;
-
+use Doctrine\ORM\Query\Expr;
 
 class InvoiceService extends DoctrineService
 {
@@ -25,6 +25,9 @@ class InvoiceService extends DoctrineService
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
             $filter['registry'] = $user->getRegistryId();
         }
+        if (!$user->hasRole(User::ROLE_ADMIN)) {
+            $filter['entry'] = $user->getEntryId();
+        }
 
         $repo = $this->getRepository('AppBundle:Invoice');
 
@@ -34,7 +37,7 @@ class InvoiceService extends DoctrineService
             ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
             ->setParameter('registry', $filter['registry']);
         }
-        if (isset($orderBy)) {
+        if (!empty($orderBy)) {
             $repo->applyOrderBy($qb, 'invoice', $orderBy);
         }
         if (isset($offset)) {
@@ -52,24 +55,30 @@ class InvoiceService extends DoctrineService
         return $qb;
     }
 
+    protected function isAssigned(int $id)
+    {
+        $query = $this->getManager()->createQuery(
+            'SELECT 1 FROM AppBundle:EntryInvoice entryInvoice'
+            . ' WHERE entryInvoice.invoice = :invoice'
+        );
+        $query->setParameter('invoice', $id);
+        $query->setMaxResults(1);
+
+        return (count($query->getResult()) == 1);
+    }
+
     public function createEntity()
     {
         return $this->getRepository('AppBundle:Invoice')->createEntity();
     }
 
-    public function fetchEntity(array $filter, $method = 'read')
+    public function fetchEntity(array $filter)
     {
         if (!isset($filter['id'])) {
             return null;
         }
 
         $params = ['id' => $filter['id']];
-        $user = $this->getUser();
-        if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            if ($method != 'read') {
-                $params['entry'] = $user->getEntryId();
-            }
-        }
         $qb = $this->buildQuery($params);
 
         $entities = $qb->getQuery()->getResult();
@@ -88,16 +97,17 @@ class InvoiceService extends DoctrineService
         $messages[] = $repository->validate($entity);
         $messages = array_merge($messages[1], $messages[0]);
 
-        return $messages;
-    }
-
-    protected function verifyAccess(array $request, $method)
-    {
+        // Validate entry
         $user = $this->getUser();
-        if ($user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            return true;
+        if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            if ($entry = $entity->getEntry()) {
+                if ($user->getRegistryId() != $entry->getRegistry()->getId()) {
+                    $message['entry'] = 'Invalid value';
+                }
+            }
         }
-        return true;
+
+        return $messages;
     }
 
     public function getMethods()
@@ -107,11 +117,6 @@ class InvoiceService extends DoctrineService
 
     public function search(array $request)
     {
-        if (!$this->verifyAccess($request, __FUNCTION__)) {
-            $messages = ['error' => 'Access denied'];
-            return JSendResponse::fail($messages)->asArray();
-        }
-
         $result = ['items' => [], 'foundCount' => 0];
 
         $filter = $order = [];
@@ -150,11 +155,6 @@ class InvoiceService extends DoctrineService
 
     public function create(array $request)
     {
-        if (!$this->verifyAccess($request, __FUNCTION__)) {
-            $messages = ['error' => 'Access denied'];
-            return JSendResponse::fail($messages)->asArray();
-        }
-
         $entity = $this->createEntity();
 
         $messages = $this->prepareEntity($entity, $request);
@@ -173,12 +173,7 @@ class InvoiceService extends DoctrineService
 
     public function read(array $request)
     {
-        if (!$this->verifyAccess($request, __FUNCTION__)) {
-            $messages = ['error' => 'Access denied'];
-            return JSendResponse::fail($messages)->asArray();
-        }
-
-        $entity = $this->fetchEntity($request, __FUNCTION__);
+        $entity = $this->fetchEntity($request);
 
         if (!isset($entity)) {
             $messages = ['error' => 'Not found'];
@@ -192,15 +187,15 @@ class InvoiceService extends DoctrineService
 
     public function update(array $request)
     {
-        if (!$this->verifyAccess($request, __FUNCTION__)) {
-            $messages = ['error' => 'Access denied'];
-            return JSendResponse::fail($messages)->asArray();
-        }
-
-        $entity = $this->fetchEntity($request, __FUNCTION__);
+        $entity = $this->fetchEntity($request);
 
         if (!isset($entity)) {
             $messages = ['error' => 'Not found'];
+            return JSendResponse::fail($messages)->asArray();
+        }
+
+        if ($this->isAssigned($entity->getId())) {
+            $messages = ['error' => 'Access denied'];
             return JSendResponse::fail($messages)->asArray();
         }
 
@@ -219,15 +214,15 @@ class InvoiceService extends DoctrineService
 
     public function delete(array $request)
     {
-        if (!$this->verifyAccess($request, __FUNCTION__)) {
-            $messages = ['error' => 'Access denied'];
-            return JSendResponse::fail($messages)->asArray();
-        }
-
-        $entity = $this->fetchEntity($request, __FUNCTION__);
+        $entity = $this->fetchEntity($request);
 
         if (!isset($entity)) {
             $messages = ['error' => 'Not found'];
+            return JSendResponse::fail($messages)->asArray();
+        }
+
+        if ($this->isAssigned($entity->getId())) {
+            $messages = ['error' => 'Access denied'];
             return JSendResponse::fail($messages)->asArray();
         }
 
@@ -238,4 +233,3 @@ class InvoiceService extends DoctrineService
         return JSendResponse::success()->asArray();
     }
 }
-

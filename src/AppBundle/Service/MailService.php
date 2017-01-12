@@ -30,12 +30,12 @@ class MailService extends DoctrineService
         if (!isset($filter['id'])) {
             return null;
         }
-
-        $query = [
-            'id' => (int)$filter['id']
-        ];
-        return $this->getRepository('AppBundle:MailJob')->findOneBy($query);
-
+        $qb = $this->buildQuery($filter);
+        $entities = $qb->getQuery()->getResult();
+        if (count($entities) !== 1) {
+            return null;
+        }
+        return $entities[0];
     }
 
     protected function getEntry(array $request)
