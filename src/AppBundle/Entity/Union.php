@@ -1,11 +1,11 @@
 <?php
 namespace AppBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-
 use AppBundle\Entity\Common\Interfaces\OrganizationInterface;
 use AppBundle\Entity\Common\Traits\OrganizationTrait;
+
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Union

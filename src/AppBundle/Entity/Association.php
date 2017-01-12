@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 use AppBundle\Entity\Common\Interfaces\OrganizationInterface;
+
 use AppBundle\Entity\Common\Traits\OrganizationTrait;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Assocation

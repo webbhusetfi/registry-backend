@@ -1,8 +1,8 @@
 <?php
 namespace AppBundle\Entity\Common;
 
-use PDO;
 use Doctrine\ORM\Internal\Hydration\AbstractHydrator;
+use PDO;
 
 /**
  * The SimpleArrayHydrator produces a result array with the columns grouped

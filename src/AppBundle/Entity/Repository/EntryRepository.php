@@ -1,16 +1,16 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
+use AppBundle\Entity\Address;
+use AppBundle\Entity\Entry;
 use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Repository\Common\Request;
 use AppBundle\Entity\Repository\Common\Response;
 use AppBundle\Entity\User;
-use AppBundle\Entity\Entry;
-use AppBundle\Entity\Address;
 
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * Entry repository

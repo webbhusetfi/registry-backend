@@ -1,9 +1,9 @@
 <?php
 namespace AppBundle\Service;
 
+use AppBundle\Entity\User;
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\ScrudConfiguration;
-use AppBundle\Entity\User;
 
 class RegistryService extends ScrudService
 {

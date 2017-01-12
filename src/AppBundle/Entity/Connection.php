@@ -3,9 +3,9 @@ namespace AppBundle\Entity;
 
 use AppBundle\Entity\Common\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\Proxy;
+use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -67,7 +67,7 @@ class Connection extends Entity
      *
      * @ORM\Column(
      *      name="createdAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=true
      * )
      * @Assert\DateTime()
@@ -169,7 +169,7 @@ class Connection extends Entity
      *              name="property_id",
      *              referencedColumnName="id",
      *              nullable=false,
-     *              onDelete="RESTRICT"
+     *              onDelete="CASCADE"
      *          )
      *      }
      * )

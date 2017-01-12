@@ -3,10 +3,15 @@ namespace AppBundle\Entity;
 
 use AppBundle\Entity\Common\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
+use AppBundle\Entity\Common\Interfaces\ClassNameInterface;
+use AppBundle\Entity\Common\Traits\ClassNameTrait;
+
+use AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * Entry
@@ -86,8 +91,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      repositoryClass="AppBundle\Entity\Repository\EntryRepository"
  * )
  */
-abstract class Entry extends Entity
+abstract class Entry extends Entity implements ClassNameInterface
 {
+    use ClassNameTrait;
+
     /**
      * @var string
      *
@@ -120,7 +127,7 @@ abstract class Entry extends Entity
      *
      * @ORM\Column(
      *      name="createdAt",
-     *      type="datetime",
+     *      type="atomdatetime",
      *      nullable=false
      * )
      * @Assert\DateTime()
@@ -185,7 +192,7 @@ abstract class Entry extends Entity
      *              name="property_id",
      *              referencedColumnName="id",
      *              nullable=false,
-     *              onDelete="RESTRICT"
+     *              onDelete="CASCADE"
      *          )
      *      }
      * )
@@ -201,6 +208,16 @@ abstract class Entry extends Entity
      * )
      */
     protected $addresses;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(
+     *      targetEntity="EntryInvoice",
+     *      mappedBy="entry"
+     * )
+     */
+    protected $entryInvoices;
 
     /**
      * @var ArrayCollection
@@ -227,9 +244,10 @@ abstract class Entry extends Entity
      */
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new AtomDateTime();
         $this->properties = new ArrayCollection();
         $this->addresses = new ArrayCollection();
+        $this->entryInvoices = new ArrayCollection();
         $this->childConnections = new ArrayCollection();
         $this->parentConnections = new ArrayCollection();
     }
@@ -372,6 +390,16 @@ abstract class Entry extends Entity
     public function getAddresses()
     {
         return $this->addresses;
+    }
+
+    /**
+     * Get entry invoices
+     *
+     * @return ArrayCollection
+     */
+    public function getEntryInvoices()
+    {
+        return $this->entryInvoices;
     }
 
     /**

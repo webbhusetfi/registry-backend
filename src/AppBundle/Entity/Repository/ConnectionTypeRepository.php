@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
-use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Common\Entity;
-use AppBundle\Entity\User;
 use AppBundle\Entity\Entry;
+use AppBundle\Entity\Repository\Common\Repository;
+use AppBundle\Entity\User;
 
 use Doctrine\ORM\Query;
 
@@ -28,7 +28,7 @@ class ConnectionTypeRepository extends Repository
         }
         if (!$user->hasRole(User::ROLE_ADMIN)
             && !in_array($method, [self::METHOD_SEARCH, self::METHOD_READ])) {
-            $message['error'] = 'Access denied';
+            $message['error'] = 'Access denied1';
             return false;
         }
 
@@ -45,7 +45,7 @@ class ConnectionTypeRepository extends Repository
         if (!isset($filter['registry'])) {
             $filter['registry'] = $registryId;
         } elseif ($filter['registry'] != $registryId) {
-            $message['error'] = 'Access denied';
+            $message['error'] = 'Access denied: ' . $registryId;
             return false;
         }
 

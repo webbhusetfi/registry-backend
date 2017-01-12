@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Service\Common;
 
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
-
 use AppBundle\Service\Common\Interfaces\ServiceInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 abstract class Service implements ContainerAwareInterface, ServiceInterface
 {

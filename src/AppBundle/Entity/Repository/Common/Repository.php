@@ -1,21 +1,25 @@
 <?php
 namespace AppBundle\Entity\Repository\Common;
 
-use Doctrine\ORM\EntityRepository;
-
-use AppBundle\Entity\Repository\Common\Interfaces\FoundCountInterface;
-use AppBundle\Entity\Repository\Common\Traits\FoundCountTrait;
-
 use AppBundle\Entity\Common\Entity;
 
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\PersistentCollection;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\EntityNotFoundException;
-use Doctrine\ORM\Mapping\MappingException;
+use AppBundle\Entity\Repository\Common\Interfaces\MetadataHelperInterface;
+use AppBundle\Entity\Repository\Common\Traits\MetadataHelperTrait;
+
+use AppBundle\Entity\Repository\Common\Interfaces\QueryHelperInterface;
+use AppBundle\Entity\Repository\Common\Traits\QueryHelperTrait;
+
+use AppBundle\Entity\Common\Type\AtomDateTime\AtomDateTime;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Persistence\Proxy;
+use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\MappingException;
+
+use Doctrine\ORM\PersistentCollection;
+use Doctrine\ORM\QueryBuilder;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Validator\Validation;
@@ -26,11 +30,11 @@ use Symfony\Component\Validator\Validation;
  * @author Kim Wistbacka <kim@webbhuset.fi>
  */
 abstract class Repository extends EntityRepository implements
-    FoundCountInterface
-//     PrepareInterface,
+    MetadataHelperInterface,
+    QueryHelperInterface
 {
-    use FoundCountTrait;
-//     use PrepareTrait;
+    use MetadataHelperTrait;
+    use QueryHelperTrait;
 
     protected $allAttributes;
     protected $indexedAttributes;
@@ -285,17 +289,20 @@ abstract class Repository extends EntityRepository implements
                     case "date":
                     case "time":
                     case "datetime":
-                    case "datetimetz": {
-                        $value = null;
+                    case "datetimetz":
+                    case "atomdatetime": {
+                        $date = null;
                         if (is_string($request[$key])) {
-                            $date = preg_replace("|\.\d+|", "", $request[$key]);
-                            $value = \DateTime::createFromFormat(
+                            $date = \DateTime::createFromFormat(
                                 \DateTime::ATOM,
-                                $date
+                                preg_replace("|\.\d+|", "", $request[$key])
                             );
+                            if ($date) {
+                                $date = new AtomDateTime($date->format('Y-m-d H:i:s e'));
+                            }
                         }
-                        if ($value) {
-                            $accessor->setValue($entity, $key, $value);
+                        if ($date) {
+                            $accessor->setValue($entity, $key, $date);
                         } else {
                             $message[$key] = "Invalid value";
                         }

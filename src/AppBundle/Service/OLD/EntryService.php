@@ -1,9 +1,9 @@
 <?php
 namespace AppBundle\Service;
 
+use AppBundle\Entity\User;
 use AppBundle\Service\Common\ScrudService;
 use AppBundle\Service\Configuration\Configuration;
-use AppBundle\Entity\User;
 use JSend\JSendResponse;
 
 class EntryService extends ScrudService

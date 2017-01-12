@@ -18,6 +18,34 @@ trait OrganizationTrait
      * @var string
      *
      * @ORM\Column(
+     *      name="name",
+     *      type="string",
+     *      length=64
+     * )
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64
+     * )
+     * @Assert\NotBlank()
+     */
+    protected $name;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(
+     *      name="description",
+     *      type="string",
+     *      length=255
+     * )
+     * @Assert\Length(max = 255)
+     */
+    protected $description;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(
      *      name="bank",
      *      type="string",
      *      length=64

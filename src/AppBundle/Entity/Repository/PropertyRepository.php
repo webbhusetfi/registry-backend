@@ -1,8 +1,8 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
-use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\Common\Entity;
+use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\User;
 
 use Doctrine\ORM\Query;

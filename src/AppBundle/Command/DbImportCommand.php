@@ -1,28 +1,28 @@
 <?php
 namespace AppBundle\Command;
 
+use \Pdo;
+
 use AppBundle\Command\Common\ImportCommand;
+use AppBundle\Entity\Address;
+use AppBundle\Entity\Association;
+use AppBundle\Entity\Connection;
+use AppBundle\Entity\ConnectionType;
+
+use AppBundle\Entity\Directory;
+
+use AppBundle\Entity\MemberPerson;
+use AppBundle\Entity\Property;
+use AppBundle\Entity\PropertyGroup;
+
+use AppBundle\Entity\Registry;
+use AppBundle\Entity\Union;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use \Pdo;
-
-use AppBundle\Entity\Registry;
-
-use AppBundle\Entity\Union;
-use AppBundle\Entity\Association;
-use AppBundle\Entity\MemberPerson;
-
-use AppBundle\Entity\Address;
-use AppBundle\Entity\Directory;
-
-use AppBundle\Entity\PropertyGroup;
-use AppBundle\Entity\Property;
-
-use AppBundle\Entity\Connection;
-use AppBundle\Entity\ConnectionType;
 
 class DbImportCommand extends ImportCommand
 {

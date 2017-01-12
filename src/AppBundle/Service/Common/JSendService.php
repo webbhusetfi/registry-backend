@@ -20,6 +20,11 @@ class JSendService extends Service
         return $this->configuration;
     }
 
+    public function getMethods()
+    {
+        return $this->getConfiguration()->getMethods();
+    }
+
     public function __construct($entityClass)
     {
         $this->entityClass = $entityClass;

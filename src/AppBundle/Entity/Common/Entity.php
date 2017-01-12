@@ -1,10 +1,10 @@
 <?php
 namespace AppBundle\Entity\Common;
 
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Common\Persistence\Proxy;
-
 use Doctrine\ORM\Mapping as ORM;
+
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * Abstract entity base class
@@ -114,6 +114,16 @@ abstract class Entity implements \JsonSerializable
             }
         }
         return $values;
+    }
+
+    /**
+     * Get all properties as an array.
+     *
+     * @return array
+     */
+    public function asArray()
+    {
+        return get_object_vars($this);
     }
 
     /**
