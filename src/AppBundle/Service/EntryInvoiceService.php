@@ -43,13 +43,13 @@ class EntryInvoiceService extends DoctrineService
 
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            $qb->andWhere('entry.registry_id = :registry');
-            $qb->setParameter('registry', $user->getRegistryId());
+            $qb->andWhere('entry.registry_id = :user_registry');
+            $qb->setParameter('user_registry', $user->getRegistryId());
             $joins = array_merge($joins, ['entry']);
         }
         if (!$user->hasRole(User::ROLE_ADMIN)) {
-            $qb->andWhere('entryInvoice.entry_id = :entry OR invoice.entry_id = :entry');
-            $qb->setParameter('entry', $user->getEntryId());
+            $qb->andWhere('entryInvoice.entry_id = :user_entry OR invoice.entry_id = :user_entry');
+            $qb->setParameter('user_entry', $user->getEntryId());
             $joins = array_merge($joins, ['invoice']);
         }
 
@@ -142,22 +142,17 @@ class EntryInvoiceService extends DoctrineService
 
         $user = $this->getUser();
         if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            $qb->andWhere('entry.registry = :registry');
-            $qb->setParameter('registry', $user->getRegistryId());
+            $qb->andWhere('entry.registry = :user_registry');
+            $qb->setParameter('user_registry', $user->getRegistryId());
         }
         if (!$user->hasRole(User::ROLE_ADMIN)) {
-            $qb->andWhere('entryInvoice.entry = :entry OR invoice.entry = :entry');
-            $qb->setParameter('entry', $user->getEntryId());
+            $qb->andWhere('entryInvoice.entry = :user_entry OR invoice.entry = :user_entry');
+            $qb->setParameter('user_entry', $user->getEntryId());
         }
 
         $repo = $this->getRepository('AppBundle:EntryInvoice');
 
         $repo->applyWhereFilter($qb, 'entryInvoice', $filter);
-        if (isset($filter['registry'])) {
-            $qb
-            ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
-            ->setParameter('registry', $filter['registry']);
-        }
         if (isset($orderBy)) {
             $repo->applyOrderBy($qb, 'entryInvoice', $orderBy);
         }

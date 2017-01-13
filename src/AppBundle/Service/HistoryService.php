@@ -21,22 +21,22 @@ class HistoryService extends DoctrineService
             ->select('history', 'entry')
             ->innerJoin('history.entry', 'entry');
 
-        $user = $this->getUser();
-        if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
-            $filter['registry'] = $user->getRegistryId();
-        }
-        if (!$user->hasRole(User::ROLE_ADMIN)) {
-            $filter['entry'] = $user->getEntryId();
-        }
-
         $repo = $this->getRepository('AppBundle:History');
 
-        $repo->applyWhereFilter($qb, 'history', $filter);
-        if (isset($filter['registry'])) {
-            $qb
-            ->andWhere($qb->expr()->eq('entry.registry', ':registry'))
-            ->setParameter('registry', $filter['registry']);
+        $user = $this->getUser();
+        if (!$user->hasRole(User::ROLE_SUPER_ADMIN)) {
+            $qb->andWhere('entry.registry = :user_registry');
+            $qb->setParameter('user_registry', $user->getRegistryId());
         }
+        if (!$user->hasRole(User::ROLE_ADMIN)) {
+            $childConnection = 'SELECT 1 FROM AppBundle:Connection connection'
+                . ' WHERE connection.parentEntry = entry'
+                . ' AND connection.childEntry = :user_entry';
+            $qb->andWhere("history.entry = :user_entry OR EXISTS({$childConnection})");
+            $qb->setParameter('user_entry', $user->getEntryId());
+        }
+
+        $repo->applyWhereFilter($qb, 'history', $filter);
         if (!empty($orderBy)) {
             $repo->applyOrderBy($qb, 'history', $orderBy);
         }
