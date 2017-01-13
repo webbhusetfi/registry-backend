@@ -1,6 +1,7 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
+use AppBundle\Entity\History;
 use AppBundle\Entity\Common\Entity;
 use AppBundle\Entity\Repository\Common\Repository;
 use AppBundle\Entity\User;
@@ -218,6 +219,14 @@ class ConnectionRepository extends Repository
 
         $em = $this->getEntityManager();
         $em->persist($item);
+
+        $history = new History();
+        $history->setEntry($item->getChildEntry());
+        $history->setModifiedAt(new \DateTime());
+        $history->setModifiedBy($em->find('AppBundle:User', $user->getId()));
+        $history->setDescription("Connection added");
+        $em->persist($history);
+
         $em->flush();
 
         return ['item' => $this->serialize($item->toArray(["properties"]))];
@@ -346,6 +355,13 @@ class ConnectionRepository extends Repository
             return null;
         }
 
+        $history = new History();
+        $history->setEntry($items[0]->getChildEntry());
+        $history->setModifiedAt(new \DateTime());
+        $history->setModifiedBy($em->find('AppBundle:User', $user->getId()));
+        $history->setDescription("Connection modified");
+        $em->persist($history);
+
         $em->flush();
 
         return ['item' => $this->serialize($items[0]->toArray(["properties"]))];
@@ -394,6 +410,13 @@ class ConnectionRepository extends Repository
             $message['error'] = 'Not found';
             return null;
         }
+
+        $history = new History();
+        $history->setEntry($items[0]->getChildEntry());
+        $history->setModifiedAt(new \DateTime());
+        $history->setModifiedBy($em->find('AppBundle:User', $user->getId()));
+        $history->setDescription("Connection removed");
+        $em->persist($history);
 
         $em->remove($items[0]);
         $em->flush();

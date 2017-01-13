@@ -19,6 +19,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  *              columns={"entry_id"}
  *          ),
  *          @ORM\Index(
+ *              name="idx_modifiedAt",
+ *              columns={"modifiedAt"}
+ *          ),
+ *          @ORM\Index(
  *              name="idx_modifiedBy_id",
  *              columns={"modifiedBy_id"}
  *          )

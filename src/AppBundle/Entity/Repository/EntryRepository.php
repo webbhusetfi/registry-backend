@@ -1,6 +1,7 @@
 <?php
 namespace AppBundle\Entity\Repository;
 
+use AppBundle\Entity\History;
 use AppBundle\Entity\Address;
 use AppBundle\Entity\Entry;
 use AppBundle\Entity\Repository\Common\Repository;
@@ -648,6 +649,13 @@ class EntryRepository extends Repository
         if (!$this->prepare($items[0], $request, $user, $message)) {
             return null;
         }
+
+        $history = new History();
+        $history->setEntry($items[0]);
+        $history->setModifiedAt(new \DateTime());
+        $history->setModifiedBy($em->find('AppBundle:User', $user->getId()));
+        $history->setDescription("Entry modified");
+        $em->persist($history);
 
         $em->flush();
 

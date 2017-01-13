@@ -68,3 +68,6 @@ services:
     registryapi.mail:
         class: AppBundle\Service\MailService
         parent: registryapi.service
+    registryapi.history:
+        class: AppBundle\Service\HistoryService
+        parent: registryapi.service
