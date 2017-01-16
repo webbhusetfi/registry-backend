@@ -2,7 +2,9 @@
 namespace AppBundle\Service;
 
 use AppBundle\Entity\User;
+use AppBundle\Entity\Entry;
 use AppBundle\Entity\MailJob;
+use AppBundle\Entity\Common\Interfaces\OrganizationInterface;
 
 use AppBundle\Service\Common\DoctrineService;
 use JSend\JSendResponse;
@@ -51,6 +53,19 @@ class MailService extends DoctrineService
             }
             return $this->getRepository('AppBundle:Entry')->findOneBy($query);
         }
+    }
+
+    protected function getPrimaryAddress(Entry $entry)
+    {
+        $query = [
+            'class' => 'PRIMARY',
+            'entry' => $entry
+        ];
+        $addresses = $this->getRepository('AppBundle:Address')->findBy($query);
+        if (count($addresses) != 1) {
+            return null;
+        }
+        return $addresses[0];
     }
 
     protected function getRecipients(array $request)
@@ -156,12 +171,31 @@ class MailService extends DoctrineService
         return null;
     }
 
-    protected function emailSend(array $recipients, $subject, $message, &$error)
-    {
+    protected function emailSend(
+        array $sender,
+        array $recipients,
+        $subject,
+        $message,
+        &$error
+    ) {
         $data = [];
         $data['apikey'] = $this->getParameter('elastic_apikey');
-        $data['from'] = $this->getParameter('elastic_sender_email');
-        $data['fromName'] = $this->getParameter('elastic_sender_name');
+        if (isset($sender['email'])) {
+            $data['from'] = $sender['email'];
+        } else {
+            $data['from'] = $this->getParameter('elastic_sender_email');
+        }
+        if (isset($sender['name'])) {
+            $data['fromName'] = $sender['name'];
+        } else {
+            $data['fromName'] = $this->getParameter('elastic_sender_name');
+        }
+        if (isset($sender['replyToEmail'])) {
+            $data['replyTo'] = $sender['replyToEmail'];
+        }
+        if (isset($sender['replyToName'])) {
+            $data['replyToName'] = $sender['replyToName'];
+        }
         $data['to'] = implode(',', $recipients);
         $data['subject'] = $subject;
         $data['bodyText'] = $message;
@@ -296,7 +330,22 @@ class MailService extends DoctrineService
             return JSendResponse::fail($messages)->asArray();
         }
 
+        $sender = [];
+        if (!empty($request['senderName'])) {
+            $sender['name'] = $request['senderName'];
+        } elseif ($entry instanceof OrganizationInterface) {
+            $sender['name'] = $entry->getName();
+        }
+        $address = $this->getPrimaryAddress($entry);
+        if (!empty($request['senderEmail'])
+            && ($email = filter_var($request['senderEmail'], FILTER_VALIDATE_EMAIL))) {
+            $sender['email'] = $email;
+        } elseif ($address && ($email = $address->getEmail())) {
+            $sender['email'] = $email;
+        }
+
         $response = $this->emailSend(
+            $sender,
             $recipients,
             $request['subject'],
             $request['message'],
