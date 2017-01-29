@@ -32,7 +32,7 @@ class CsvImportCommand extends ImportCommand
     }
 
     protected function execute(
-        InputInterface $input, 
+        InputInterface $input,
         OutputInterface $output
     ) {
         ini_set('memory_limit','256M');
@@ -57,7 +57,7 @@ class CsvImportCommand extends ImportCommand
         $parentEntry = null;
         if (isset($parentEntryID)) {
             $parentEntry = $this->getEntry(
-                (int)$parentEntryID, 
+                (int)$parentEntryID,
                 $registry
             );
             if (!$parentEntry) {
@@ -75,8 +75,10 @@ class CsvImportCommand extends ImportCommand
                 : null
             )
         );
+
         $output->write("Performing dry run...");
         $result = $this->importCsvFile(true, $repository, $path, $registry, $parentEntry);
+
         if (empty($result['errors'])) {
             $output->writeln("OK");
             $output->write("Importing entries...");
@@ -100,7 +102,7 @@ class CsvImportCommand extends ImportCommand
             }
         }
     }
-    
+
     protected function getConnectionType(
         string $parentType,
         string $childType,
@@ -119,11 +121,13 @@ class CsvImportCommand extends ImportCommand
     protected function getPrimaryAddress(Entry $entry)
     {
         // Find existing primary address
-        $addresses = $entry->getAddresses();
-        if (count($addresses)) {
-            foreach ($addresses as $address) {
-                if ($address->getClass() == Address::CLASS_PRIMARY) {
-                    return $address;
+        if ($entry->getId()) {
+            $addresses = $entry->getAddresses();
+            if (count($addresses)) {
+                foreach ($addresses as $address) {
+                    if ($address->getClass() == Address::CLASS_PRIMARY) {
+                        return $address;
+                    }
                 }
             }
         }
@@ -132,7 +136,7 @@ class CsvImportCommand extends ImportCommand
         $address = new Address();
         $address->setClass(Address::CLASS_PRIMARY);
         $address->setEntry($entry);
-        $em->persist($address);
+        $this->getManager()->persist($address);
         return $address;
     }
 
@@ -242,8 +246,9 @@ class CsvImportCommand extends ImportCommand
             return $result;
         }
 
-        $count = 0;
-        foreach ($file as $key => $row) {
+        $entries = $addresses = $connections = [];
+        $row = reset($file);
+        while ($row) {
             $values = array_map('trim', str_getcsv($row));
             $values = array_map(function($value) {
                 return $value === "" ? null : $value;
@@ -255,7 +260,7 @@ class CsvImportCommand extends ImportCommand
             $entryData = array_combine(
                 array_keys($schema['entry']),
                 array_intersect_key(
-                    $values, 
+                    $values,
                     array_flip($schema['entry'])
                 )
             );
@@ -276,19 +281,21 @@ class CsvImportCommand extends ImportCommand
             if (isset($entryData['id'])) {
                 if (isset($parentEntry)) {
                     $entry = $this->getEntry(
-                        (int)$entryData['id'], 
+                        (int)$entryData['id'],
                         $registry,
                         $entryRepository->getType(),
                         $parentEntry
                     );
                 } else {
                     $entry = $this->getEntry(
-                        (int)$entryData['id'], 
+                        (int)$entryData['id'],
                         $registry,
                         $entryRepository->getType()
                     );
                 }
-                if (!$entry) {
+                if ($entry) {
+                    $entries[] = $entry;
+                } else {
                     $errors['entry:id'] = "Not found";
                 }
             } else {
@@ -296,6 +303,7 @@ class CsvImportCommand extends ImportCommand
                 $entry = new $entityName();
                 $entry->setRegistry($registry);
                 $em->persist($entry);
+                $entries[] = $entry;
 
                 // Connection
                 if (isset($membership)) {
@@ -305,6 +313,7 @@ class CsvImportCommand extends ImportCommand
                         ->setParentEntry($parentEntry)
                         ->setChildEntry($entry);
                     $em->persist($connection);
+                    $connections[] = $connection;
                 }
             }
 
@@ -313,7 +322,7 @@ class CsvImportCommand extends ImportCommand
                     $propertyData = array_combine(
                         array_keys($schema['property']),
                         array_intersect_key(
-                            $values, 
+                            $values,
                             array_flip($schema['property'])
                         )
                     );
@@ -344,7 +353,7 @@ class CsvImportCommand extends ImportCommand
                     $addressData = array_combine(
                         array_keys($schema['address']),
                         array_intersect_key(
-                            $values, 
+                            $values,
                             array_flip($schema['address'])
                         )
                     );
@@ -361,6 +370,7 @@ class CsvImportCommand extends ImportCommand
                         );
                     }
                     $address = $this->getPrimaryAddress($entry);
+                    $addresses[] = $address;
                     $messages = [];
                     if (!$addressRepository->prepare($address, $addressData, null, $messages)) {
                         foreach ($messages as $field => $message) {
@@ -371,7 +381,7 @@ class CsvImportCommand extends ImportCommand
             }
 
             if (!empty($errors)) {
-                $errorString = "Validation failed for row " . ($key + 3) . ":\n";
+                $errorString = "Validation failed for row " . (key($file) + 3) . ":\n";
                 foreach ($errors as $field => $message) {
                     $errorString .= "\t{$field} => {$message}\n";
                 }
@@ -380,24 +390,24 @@ class CsvImportCommand extends ImportCommand
                 $result['valid']++;
             }
 
-            if (++$count >= 100) {
+            $row = next($file);
+            if (!$row || count($entries) == 100) {
                 if (!$dryRun && empty($result['errors'])) {
                     $em->flush();
-                    $result['imported'] += $count;
+                    $result['imported'] += count($entries);
                 }
-                $em->clear($entryRepository->getClassName());
-                $em->clear('AppBundle:Address');
-                $em->clear('AppBundle:Connection');
-                $count = 0;
+                foreach ($entries as $entry) {
+                    $em->detach($entry);
+                }
+                foreach ($addresses as $address) {
+                    $em->detach($address);
+                }
+                foreach ($connections as $connection) {
+                    $em->detach($connection);
+                }
+                $entries = $addresses = $connections = [];
             }
         }
-        if (!$dryRun && empty($result['errors'])) {
-            $em->flush();
-            $result['imported'] += $count;
-        }
-        $em->clear($entryRepository->getClassName());
-        $em->clear('AppBundle:Address');
-        $em->clear('AppBundle:Connection');
 
         return $result;
     }
