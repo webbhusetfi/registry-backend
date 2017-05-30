@@ -199,7 +199,7 @@ class MailService extends DoctrineService
         $data['to'] = implode(',', $recipients);
         $data['subject'] = $subject;
         $data['bodyText'] = $message;
-        $data['bodyHtml'] = $message;
+        $data['bodyHtml'] = str_replace("\n", '<br>', $message);
 
         $options = [
             CURLOPT_URL => 'https://api.elasticemail.com/v2/email/send',

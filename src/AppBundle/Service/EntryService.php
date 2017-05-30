@@ -84,7 +84,11 @@ class EntryService extends JSendService
         }
         if (array_key_exists('parentEntry', $filter)
             && !array_key_exists('withParent', $filter)) {
-            $filter['withParent'] = $filter['parentEntry'];
+            if (isset($filter['parentEntry'])) {
+                $filter['withParent'] = $filter['parentEntry'];
+            } else {
+                $filter['withoutParent'] = [];
+            }
         }
         if (array_key_exists('address', $filter)
             && !array_key_exists('primaryAddress', $filter)) {
