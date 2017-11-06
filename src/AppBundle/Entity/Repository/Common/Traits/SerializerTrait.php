@@ -22,7 +22,7 @@ trait SerializerTrait
 
         $serialized = [];
         foreach ($properties as $name => $value) {
-            if (isset($associations[$name])) {
+            if (isset($value) && isset($associations[$name])) {
                 if ($associations[$name]['type'] & ClassMetadataInfo::TO_ONE) {
                     $serialized[$name] = $value->getId();
                 }
